@@ -12,7 +12,7 @@ original_namespace_name :  identifier ;
 // A.2 Lexical conventions 	 [gram.lex] 
 hex_quad :  hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit ;
 universal_character_name :  '\\u' hex_quad |  '\\U' hex_quad hex_quad ;
-preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  each non_white_space character that cannot be one of the above ;
+preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  RESTRICTED_NON_WHITE ;
 // § A.2 	 1210  c ISO/IEC 	 N4296
 
 token :  identifier |  keyword |  literal |  operator |  punctuator ;
@@ -21,7 +21,7 @@ h_char_sequence :  h_char |  h_char_sequence h_char ;
 h_char :  any member of the source character set except new_line and '>' ;
 q_char_sequence :  q_char |  q_char_sequence q_char ;
 q_char :  any member of the source character set except new_line and '"' ;
-pp_number :  digit |  '.' digit |  pp_number digit |  pp_number identifier_nondigit |  pp_number '\'' digit |  pp_number '\'' nondigit |  pp_number e sign |  pp_number E sign |  pp_number '.' ;
+pp_number :  digit |  '.' digit |  pp_number digit |  pp_number identifier_nondigit |  pp_number '\'' digit |  pp_number '\'' nondigit |  pp_number 'e' sign |  pp_number 'E' sign |  pp_number '.' ;
 identifier :  identifier_nondigit |  identifier identifier_nondigit |  identifier digit ;
 identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;
 nondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
@@ -55,7 +55,7 @@ octal_escape_sequence :  '\\' octal_digit |  '\\' octal_digit octal_digit |  '\\
 hexadecimal_escape_sequence :  '\\x' hexadecimal_digit |  hexadecimal_escape_sequence hexadecimal_digit ;
 floating_literal :  fractional_constant exponent_part ? floating_suffix ? |  digit_sequence exponent_part floating_suffix ? ;
 fractional_constant :  digit_sequence ? '.' digit_sequence |  digit_sequence '.' ;
-exponent_part :  e sign ? digit_sequence |  E sign ? |  digit_sequence ;
+exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;
 sign :  '+' | '-' ;
 digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_suffix :  'f' | 'l' | 'F' | 'L' ;
@@ -345,3 +345,22 @@ pp_tokens :  preprocessing_token |  pp_tokens preprocessing_token ;
 new_line :  the new_line character ;
 // § A.14 	 1229  c ISO/IEC 	 N4296
 
+keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
+    'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
+    'asm' | 'default' | 'if' | 'return' | 'typedef'
+    'auto' | 'delete' | 'inline' | 'short' | 'typeid'
+    'bool' | 'do' | 'int' | 'signed' | 'typename'
+    'break' | 'double' | 'long' | 'sizeof' | 'union'
+    'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
+    'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
+    'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
+    'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
+    'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
+    'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
+    'const' | 'false' | 'private' | 'this' | 'while'
+    'constexpr' | 'float' | 'protected' | 'thread_local'
+    'const_cast' | 'for' | 'public' | 'throw'
+    'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
+    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
+
+punctuator : preprocessing_op_or_punc;

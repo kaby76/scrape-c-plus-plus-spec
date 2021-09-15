@@ -153,16 +153,40 @@ namespace scrape_pdf
                 if (term) result.AppendLine(" ;");
 			}
 
+            result.AppendLine(@"keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
+    'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
+    'asm' | 'default' | 'if' | 'return' | 'typedef'
+    'auto' | 'delete' | 'inline' | 'short' | 'typeid'
+    'bool' | 'do' | 'int' | 'signed' | 'typename'
+    'break' | 'double' | 'long' | 'sizeof' | 'union'
+    'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
+    'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
+    'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
+    'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
+    'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
+    'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
+    'const' | 'false' | 'private' | 'this' | 'while'
+    'constexpr' | 'float' | 'protected' | 'thread_local'
+    'const_cast' | 'for' | 'public' | 'throw'
+    'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
+    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
+");
+            result.AppendLine("punctuator : preprocessing_op_or_punc;");
+
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
+            output = output.Replace(" e ", " 'e' ");
+            output = output.Replace(" E ", " 'E' ");
             output = ReplaceFirstOccurrence(output, "typedef_name :  identifier ;", "// typedef_name :  identifier ;");
             output = ReplaceFirstOccurrence(output, "enum_name :  identifier ;", "// enum_name :  identifier ;");
             output = ReplaceFirstOccurrence(output, "namespace_name :  original_namespace_name |  namespace_alias ;", "// namespace_name :  original_namespace_name |  namespace_alias ;");
             output = ReplaceFirstOccurrence(output, "namespace_alias :  identifier ;", "// namespace_alias :  identifier ;");
             output = ReplaceFirstOccurrence(output, "class_name :  identifier |  simple_template_id ;", "// class_name :  identifier |  simple_template_id ;");
             output = ReplaceFirstOccurrence(output, "template_name :  identifier ;", "// template_name :  identifier ;");
-            System.Console.Write(output);
+            output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_NON_WHITE");
+            
+                System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
         public static string ReplaceFirstOccurrence(string source, string search, string replace)
