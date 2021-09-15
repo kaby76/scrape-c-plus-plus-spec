@@ -17,8 +17,8 @@ namespace scrape_pdf
 		static string GetTextFromPDF()
 		{
 			StringBuilder text = new StringBuilder();
-//			string src = @"C:\Users\kenne\Downloads\n4296.pdf";
-			string src = @"C:\Users\kenne\Downloads\c-plus-plus-spec-draft.pdf";
+//			string src = @"n4296.pdf";
+			string src = @"c-plus-plus-spec-draft.pdf";
 			PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
 			{
 				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
@@ -76,6 +76,7 @@ namespace scrape_pdf
                 // Starting at a rule...
                 cursor = pdfText.IndexOf(':', first) + 1;
                 var lhs = pdfText.Substring(first, cursor - 1 - first);
+                lhs = Antlrize(lhs);
                 System.Console.Write(lhs + " : ");
 
                 // Grab one line at a time and examine.
@@ -118,20 +119,22 @@ namespace scrape_pdf
                     }
                     if (first_time)
                     {
-                        one_of = rhs == "one of";
+                        one_of = one_of || rhs == "one of";
+                        if (rhs == "one of")
+                        {
+                            continue;
+                        }
                     }
-                    else
-                    {
-                        if (!one_of) System.Console.Write(" | ");
-                        else System.Console.Write(" ");
-                    }
-                    var ss = rhs.Split(' ').ToList();
-                    first_time = false;
+                    if (!first_time) System.Console.Write(" | ");
+                    var ss = rhs.Split(' ').Select(s => s.Trim()).Where(s => s != "").ToList();
                     foreach (var s in ss)
                     {
                         var r = s;
-                        if (!IsName(r)) r = "'" + r + "'";
-                        if (r == "opt") r = "?";
+                        if (one_of) { r = (first_time ? "" : "| ") + "'" + r + "'"; }
+                        else if (r == "opt") r = "?";
+                        else if (!IsName(r)) r = "'" + r + "'";
+                        else if (IsName(r)) r = Antlrize(r);
+                        first_time = false;
                         System.Console.Write(" " + r);
                     }
                 }
@@ -140,6 +143,11 @@ namespace scrape_pdf
 
 		//	Console.WriteLine(pdfText);
 		}
+
+        private static string Antlrize(string symbol)
+        {
+            return symbol.Replace('-', '_');
+        }
 
         private static bool IsName(string rhs)
         {
