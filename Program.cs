@@ -154,11 +154,24 @@ namespace scrape_pdf
 			}
 
             var output = result.ToString();
+            // Fix ups.
             output = output.Replace("|  ?", "?");
+            output = ReplaceFirstOccurrence(output, "typedef_name :  identifier ;", "// typedef_name :  identifier ;");
+            output = ReplaceFirstOccurrence(output, "enum_name :  identifier ;", "// enum_name :  identifier ;");
+            output = ReplaceFirstOccurrence(output, "namespace_name :  original_namespace_name |  namespace_alias ;", "// namespace_name :  original_namespace_name |  namespace_alias ;");
+            output = ReplaceFirstOccurrence(output, "namespace_alias :  identifier ;", "// namespace_alias :  identifier ;");
+            output = ReplaceFirstOccurrence(output, "class_name :  identifier |  simple_template_id ;", "// class_name :  identifier |  simple_template_id ;");
+            output = ReplaceFirstOccurrence(output, "template_name :  identifier ;", "// template_name :  identifier ;");
             System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
-
+        public static string ReplaceFirstOccurrence(string source, string search, string replace)
+        {
+            int index = source.IndexOf(search);
+            if (index < 0) return source;
+            var sourceSpan = source.AsSpan();
+            return string.Concat(sourceSpan.Slice(0, index), replace, sourceSpan.Slice(index + search.Length));
+        }
         private static string Antlrize(string symbol)
         {
             symbol = symbol.Replace('-', '_');

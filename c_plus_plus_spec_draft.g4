@@ -1,13 +1,13 @@
 grammar c_plus_plus_spec_draft;
 
 // A.1 Keywords 	 [gram.key] 
-typedef_name :  identifier ;
-namespace_name :  original_namespace_name |  namespace_alias ;
+// typedef_name :  identifier ;
+// namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  identifier ;
-namespace_alias :  identifier ;
-class_name :  identifier |  simple_template_id ;
-enum_name :  identifier ;
-template_name :  identifier ;
+// namespace_alias :  identifier ;
+// class_name :  identifier |  simple_template_id ;
+// enum_name :  identifier ;
+// template_name :  identifier ;
 
 // A.2 Lexical conventions 	 [gram.lex] 
 hex_quad :  hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit ;
