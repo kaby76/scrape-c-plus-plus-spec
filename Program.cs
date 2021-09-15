@@ -14,12 +14,11 @@ namespace scrape_pdf
 {
     class Program
     {
-		static string GetTextFromPDF()
+		static string GetTextFromPDF(string src_file_name)
 		{
 			StringBuilder text = new StringBuilder();
 //			string src = @"n4296.pdf";
-			string src = @"c-plus-plus-spec-draft.pdf";
-			PdfDocument pdfDoc = new PdfDocument(new PdfReader(src));
+			PdfDocument pdfDoc = new PdfDocument(new PdfReader(src_file_name));
 			{
 				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
 				{
@@ -45,7 +44,13 @@ namespace scrape_pdf
 
         static void Main(string[] args)
 		{
-			string pdfText = GetTextFromPDF();
+            var result = new StringBuilder();
+
+            string src_file_name = @"c-plus-plus-spec-draft.pdf";
+
+            string pdfText = GetTextFromPDF(src_file_name);
+
+            result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
 
             // Let's start parsing the spec text and extracting the
             // rules for C++.
@@ -68,16 +73,15 @@ namespace scrape_pdf
                 if (pdfText.Substring(first).StartsWith("A."))
                 {
                     cursor = pdfText.IndexOf('\n', first);
-                    System.Console.WriteLine();
-                    System.Console.WriteLine("// " + pdfText.Substring(first, cursor - first));
+                    result.AppendLine();
+                    result.AppendLine("// " + pdfText.Substring(first, cursor - first));
                     continue;
                 }
 
                 // Starting at a rule...
                 cursor = pdfText.IndexOf(':', first) + 1;
                 var lhs = pdfText.Substring(first, cursor - 1 - first);
-                lhs = Antlrize(lhs);
-                System.Console.Write(lhs + " : ");
+                result.Append(Antlrize(lhs) + " : ");
 
                 // Grab one line at a time and examine.
                 var next_first = Find(cursor, pdfText);
@@ -101,20 +105,23 @@ namespace scrape_pdf
                     if (rhs == "") continue;
                     // Special cases that need to be delt with.
                     if (rhs.StartsWith("Note that a typedef-name naming")) continue;
+                    if (rhs.StartsWith("any member of the source character set except new-line and >"))
+                    {
+                    }
                     if (rhs.StartsWith("§"))
                     {
                         term = false;
-                        System.Console.WriteLine(" ;");
-                        System.Console.WriteLine("// " + rhs);
-                        System.Console.WriteLine();
+                        result.AppendLine(" ;");
+                        result.AppendLine("// " + rhs);
+                        result.AppendLine();
                         break;
                     }
                     if (rhs.StartsWith("A."))
                     {
                         term = false;
-                        System.Console.WriteLine(" ;");
-                        System.Console.WriteLine();
-                        System.Console.WriteLine("// " + rhs);
+                        result.AppendLine(" ;");
+                        result.AppendLine();
+                        result.AppendLine("// " + rhs);
                         break;
                     }
                     if (first_time)
@@ -125,38 +132,76 @@ namespace scrape_pdf
                             continue;
                         }
                     }
-                    if (!first_time) System.Console.Write(" | ");
-                    var ss = rhs.Split(' ').Select(s => s.Trim()).Where(s => s != "").ToList();
+                    if (!first_time && !one_of) result.Append(" | ");
+                    rhs = rhs.Replace("opt'", "opt '");
+                    var ss = rhs.Split(' ')
+                        .Select(s => s.Trim())
+                        .Where(s => s != "")
+                        .ToList();
                     foreach (var s in ss)
                     {
                         var r = s;
-                        if (one_of) { r = (first_time ? "" : "| ") + "'" + r + "'"; }
+                        if (r == "N4296") continue;
+                        if (one_of) { r = (first_time ? "" : "| ") + "'" + PerformEscapes(r) + "'"; }
                         else if (r == "opt") r = "?";
-                        else if (!IsName(r)) r = "'" + r + "'";
+                        else if (!IsName(r)) r = "'" + PerformEscapes(r) + "'";
                         else if (IsName(r)) r = Antlrize(r);
                         first_time = false;
-                        System.Console.Write(" " + r);
+                        result.Append(" " + r);
                     }
                 }
-                if (term) System.Console.WriteLine(" ;");
+                if (term) result.AppendLine(" ;");
 			}
 
+            var output = result.ToString();
+            output = output.Replace("|  ?", "?");
+            System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
 
         private static string Antlrize(string symbol)
         {
-            return symbol.Replace('-', '_');
+            symbol = symbol.Replace('-', '_');
+            if (symbol == "private") symbol = symbol + "_";
+            if (symbol == "protected") symbol = symbol + "_";
+            if (symbol == "public") symbol = symbol + "_";
+            if (symbol == "catch") symbol = symbol + "_";
+            return symbol;
         }
 
         private static bool IsName(string rhs)
         {
-            for (var i = 0; i < rhs.Length; ++i)
+            if (rhs == "") return false;
+            if (!char.IsLetter(rhs[0])) return false;
+            for (var i = 1; i < rhs.Length; ++i)
             {
                 if (!(char.IsLetter(rhs[i]) || rhs[i] == '-')) return false;
             }
             return true;
         }
+
+        private static string ToLiteral(string input)
+        {
+            var literal = input;
+            literal = literal.Replace("\\", "\\\\");
+            literal = literal.Replace("\b", "\\b");
+            literal = literal.Replace("\n", "\\n");
+            literal = literal.Replace("\t", "\\t");
+            literal = literal.Replace("\r", "\\r");
+            literal = literal.Replace("\f", "\\f");
+            //literal = literal.Replace("\"", "\\\"");
+            literal = literal.Replace("'", "\\'");
+            literal = literal.Replace(string.Format("\" +{0}\t\"", Environment.NewLine), "");
+            return literal;
+        }
+
+        public static string PerformEscapes(string s)
+        {
+            StringBuilder new_s = new StringBuilder();
+            new_s.Append(ToLiteral(s));
+            return new_s.ToString();
+        }
+
     }
 
 
