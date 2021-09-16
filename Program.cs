@@ -169,9 +169,8 @@ namespace scrape_pdf
     'constexpr' | 'float' | 'protected' | 'thread_local'
     'const_cast' | 'for' | 'public' | 'throw'
     'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
-    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
-");
-            result.AppendLine("punctuator : preprocessing_op_or_punc;");
+    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;");
+            result.AppendLine("punctuator : preprocessing_op_or_punc ;");
 
             var output = result.ToString();
             // Fix ups.
@@ -184,9 +183,23 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, "namespace_alias :  identifier ;", "// namespace_alias :  identifier ;");
             output = ReplaceFirstOccurrence(output, "class_name :  identifier |  simple_template_id ;", "// class_name :  identifier |  simple_template_id ;");
             output = ReplaceFirstOccurrence(output, "template_name :  identifier ;", "// template_name :  identifier ;");
-            output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_NON_WHITE");
-            
-                System.Console.Write(output);
+            output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_CHARS1");
+            output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
+            output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
+            output = ReplaceFirstOccurrence(output, "other implementation_defined characters", "RESTRICTED_CHARS4");
+            output = output.Replace(" o pt ", " ? ");
+            output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
+            output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character", "RESTRICTED_CHARS6");
+            output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
+            output = ReplaceFirstOccurrence(output, @"any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'", "RESTRICTED_CHARS8");
+            output = ReplaceFirstOccurrence(output, @"any token other than a 'parenthesis,' a 'bracket,' or a brace", "RESTRICTED_CHARS9");
+            output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS9");
+            output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS10");
+            output = ReplaceFirstOccurrence(output, @"|  exception_specification ? attribute_specifier_seq ? trailing_return_type ?", @"exception_specification ? attribute_specifier_seq ? trailing_return_type ?");
+            output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
+            output = output.Replace(@"'opt)'", @"? ')'");
+            output = output.Replace(@"? |  ')'", @"? ')'");
+            System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
         public static string ReplaceFirstOccurrence(string source, string search, string replace)
@@ -199,10 +212,91 @@ namespace scrape_pdf
         private static string Antlrize(string symbol)
         {
             symbol = symbol.Replace('-', '_');
-            if (symbol == "private") symbol = symbol + "_";
-            if (symbol == "protected") symbol = symbol + "_";
-            if (symbol == "public") symbol = symbol + "_";
-            if (symbol == "catch") symbol = symbol + "_";
+            if (symbol == "alignas") symbol = "'alignas'";
+            if (symbol == "alignof") symbol = "'alignof'";
+            if (symbol == "asm") symbol = "'asm'";
+            if (symbol == "auto") symbol = "'auto'";
+            if (symbol == "bool") symbol = "'bool'";
+            if (symbol == "break") symbol = "'break'";
+            if (symbol == "case") symbol = "'case'";
+            if (symbol == "catch") symbol = "'catch'";
+            if (symbol == "char") symbol = "'char'";
+            if (symbol == "class") symbol = "'class'";
+            if (symbol == "const") symbol = "'const'";
+            if (symbol == "constexpr") symbol = "'constexpr'";
+            if (symbol == "continue") symbol = "'continue'";
+            if (symbol == "decltype") symbol = "'decltype'";
+            if (symbol == "default") symbol = "'default'";
+            if (symbol == "define") symbol = "'define'";
+            if (symbol == "delete") symbol = "'delete'";
+            if (symbol == "do") symbol = "'do'";
+            if (symbol == "double") symbol = "'double'";
+            if (symbol == "elif") symbol = "'elif'";
+            if (symbol == "else") symbol = "'else'";
+            if (symbol == "endif") symbol = "'endif'";
+            if (symbol == "enum") symbol = "'enum'";
+            if (symbol == "error") symbol = "'error'";
+            if (symbol == "explicit") symbol = "'explicit'";
+            if (symbol == "export") symbol = "'export'";
+            if (symbol == "extern") symbol = "'extern'";
+            if (symbol == "false") symbol = "'false'";
+            if (symbol == "final") symbol = "'final'";
+            if (symbol == "float") symbol = "'float'";
+            if (symbol == "for") symbol = "'for'";
+            if (symbol == "friend") symbol = "'friend'";
+            if (symbol == "goto") symbol = "'goto'";
+            if (symbol == "if") symbol = "'if'";
+            if (symbol == "if") symbol = "'if'";
+            if (symbol == "ifdef") symbol = "'ifdef'";
+            if (symbol == "ifndef") symbol = "'ifndef'";
+            if (symbol == "include") symbol = "'include'";
+            if (symbol == "inline") symbol = "'inline'";
+            if (symbol == "int") symbol = "'int'";
+            if (symbol == "line") symbol = "'line'";
+            if (symbol == "long") symbol = "'long'";
+            if (symbol == "mutable") symbol = "'mutable'";
+            if (symbol == "namespace") symbol = "'namespace'";
+            if (symbol == "noexcept") symbol = "'noexcept'";
+            if (symbol == "nullptr") symbol = "'nullptr'";
+            if (symbol == "optdefault") symbol = "? 'default'";
+            if (symbol == "optdelete") symbol = "? 'delete'";
+            if (symbol == "optnew") symbol = "? 'new'";
+            if (symbol == "optusing") symbol = "? 'using'";
+            if (symbol == "optvirtual") symbol = "? 'virtual'";
+            if (symbol == "override") symbol = "'override'";
+            if (symbol == "pragma") symbol = "'pragma'";
+            if (symbol == "private") symbol = "'private'";
+            if (symbol == "protected") symbol = "'protected'";
+            if (symbol == "public") symbol = "'public'";
+            if (symbol == "register") symbol = "'register'";
+            if (symbol == "return") symbol = "'return'";
+            if (symbol == "short") symbol = "'short'";
+            if (symbol == "signed") symbol = "'signed'";
+            if (symbol == "sizeof") symbol = "'sizeof'";
+            if (symbol == "static") symbol = "'static'";
+            if (symbol == "static_assert") symbol = "'static_assert'";
+            if (symbol == "struct") symbol = "'struct'";
+            if (symbol == "switch") symbol = "'switch'";
+            if (symbol == "template") symbol = "'template'";
+            if (symbol == "this") symbol = "'this'";
+            if (symbol == "thread_local") symbol = "'thread_local'";
+            if (symbol == "throw") symbol = "'throw'";
+            if (symbol == "throw") symbol = "'throw'";
+            if (symbol == "throw") symbol = "'throw'";
+            if (symbol == "true") symbol = "'true'";
+            if (symbol == "try") symbol = "'try'";
+            if (symbol == "typedef") symbol = "'typedef'";
+            if (symbol == "typeid") symbol = "'typeid'";
+            if (symbol == "typename") symbol = "'typename'";
+            if (symbol == "typeof") symbol = "'typeof'";
+            if (symbol == "undef") symbol = "'undef'";
+            if (symbol == "union") symbol = "'union'";
+            if (symbol == "unsigned") symbol = "'unsigned'";
+            if (symbol == "using") symbol = "'using'";
+            if (symbol == "virtual") symbol = "'virtual'";
+            if (symbol == "void") symbol = "'void'";
+            if (symbol == "volatile") symbol = "'volatile'";
+            if (symbol == "while") symbol = "'while'";
             return symbol;
         }
 
