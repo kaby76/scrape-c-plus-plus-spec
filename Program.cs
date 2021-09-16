@@ -220,6 +220,16 @@ namespace scrape_pdf
             output = output.Replace(@"'opt)'", @"? ')'");
             output = output.Replace(@"? |  ')'", @"? ')'");
             output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
+            // Get nullable for string_literal. NEED TO TEST IN ANALYSIS!
+            output = ReplaceFirstOccurrence(output, @"'""' |  encoding_prefix", @"'""'  encoding_prefix");
+
+            output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
+            output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");
+            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq abstract_declarator ?", @"attribute_specifier_seq ? decl_specifier_seq abstract_declarator ?");
+            output = ReplaceFirstOccurrence(output, @"noptr_abstract_pack_declarator '[' constant_expression ? |  ']' attribute_specifier_seq ?", @"noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ?");
+            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq declarator '=' initializer_clause", @"attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause");
+            output = ReplaceFirstOccurrence(output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ?", @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ?");
+            
             System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}

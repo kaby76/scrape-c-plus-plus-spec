@@ -59,7 +59,7 @@ exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;
 sign :  '+' | '-' ;
 digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' |  encoding_prefix ? |  R raw_string ;
+string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ? |  R raw_string ;
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
@@ -147,7 +147,7 @@ statement_seq :  statement |  statement_seq statement ;
 // § A.5 	 1218  c ISO/IEC 	 N4296
 
 selection_statement :  'if' '(' condition ')' statement |  'if' '(' condition ')' statement 'else' statement |  'switch' '(' condition ')' statement ;
-condition :  expression |  attribute_specifier_seq ? |  decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq declarator braced_init_list ;
+condition :  expression |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq declarator braced_init_list ;
 iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;
 for_init_statement :  expression_statement |  simple_declaration ;
 for_range_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator ;
@@ -226,7 +226,7 @@ init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
 ptr_declarator :  noptr_declarator |  ptr_operator ptr_declarator ;
 noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' constant_expression 'opt]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;
-parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
+parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
 trailing_return_type :  '->' trailing_type_specifier_seq abstract_declarator ? ;
 ptr_operator :  '*' attribute_specifier_seq ? cv_qualifier_seq ? |  '&' attribute_specifier_seq ? |  '&&' attribute_specifier_seq ? |  nested_name_specifier '*' attribute_specifier_seq ? cv_qualifier_seq ? ;
 cv_qualifier_seq :  cv_qualifier cv_qualifier_seq ? ;
@@ -238,12 +238,12 @@ declarator_id :  '...' ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
 ptr_abstract_declarator :  noptr_abstract_declarator |  ptr_operator ptr_abstract_declarator ? ;
-noptr_abstract_declarator :  noptr_abstract_declarator ? |  parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;
+noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;
 abstract_pack_declarator :  noptr_abstract_pack_declarator |  ptr_operator abstract_pack_declarator ;
-noptr_abstract_pack_declarator :  noptr_abstract_pack_declarator parameters_and_qualifiers |  noptr_abstract_pack_declarator '[' constant_expression ? |  ']' attribute_specifier_seq ? |  '...' ;
-parameter_declaration_clause :  parameter_declaration_list ? |  '...' ? |  parameter_declaration_list ',' '...' ;
+noptr_abstract_pack_declarator :  noptr_abstract_pack_declarator parameters_and_qualifiers |  noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '...' ;
+parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;
 parameter_declaration_list :  parameter_declaration |  parameter_declaration_list ',' parameter_declaration ;
-parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? |  decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;
+parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;
 function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator virt_specifier_seq ? function_body ;
 function_body :  ctor_initializer ? compound_statement |  function_try_block |  '=' 'default' ';' |  '=' 'delete' ';' ;
 initializer :  brace_or_equal_initializer |  '(' expression_list ')' ;
