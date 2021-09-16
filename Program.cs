@@ -42,6 +42,8 @@ namespace scrape_pdf
             else return -1;
         }
 
+        static bool ebnf = false;
+
         static void Main(string[] args)
 		{
             var result = new StringBuilder();
@@ -50,7 +52,10 @@ namespace scrape_pdf
 
             string pdfText = GetTextFromPDF(src_file_name);
 
-            result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
+            if (!ebnf)
+            {
+                result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
+            }
 
             // Let's start parsing the spec text and extracting the
             // rules for C++.
@@ -81,7 +86,10 @@ namespace scrape_pdf
                 // Starting at a rule...
                 cursor = pdfText.IndexOf(':', first) + 1;
                 var lhs = pdfText.Substring(first, cursor - 1 - first);
-                result.Append(Antlrize(lhs) + " : ");
+                if (ebnf)
+                    result.Append(Antlrize(lhs) + " ::= ");
+                else
+                    result.Append(Antlrize(lhs) + " : ");
 
                 // Grab one line at a time and examine.
                 var next_first = Find(cursor, pdfText);
@@ -111,7 +119,10 @@ namespace scrape_pdf
                     if (rhs.StartsWith("§"))
                     {
                         term = false;
-                        result.AppendLine(" ;");
+                        if (ebnf)
+                            result.AppendLine();
+                        else
+                            result.AppendLine(" ;");
                         result.AppendLine("// " + rhs);
                         result.AppendLine();
                         break;
@@ -119,7 +130,10 @@ namespace scrape_pdf
                     if (rhs.StartsWith("A."))
                     {
                         term = false;
-                        result.AppendLine(" ;");
+                        if (ebnf)
+                            result.AppendLine();
+                        else
+                            result.AppendLine(" ;");
                         result.AppendLine();
                         result.AppendLine("// " + rhs);
                         break;
@@ -142,18 +156,24 @@ namespace scrape_pdf
                     {
                         var r = s;
                         if (r == "N4296") continue;
-                        if (one_of) { r = (first_time ? "" : "| ") + "'" + PerformEscapes(r) + "'"; }
+                        if (one_of) { r = (first_time ? "" : "| ") + Quotify(r); }
                         else if (r == "opt") r = "?";
-                        else if (!IsName(r)) r = "'" + PerformEscapes(r) + "'";
+                        else if (!IsName(r)) r = Quotify(r);
                         else if (IsName(r)) r = Antlrize(r);
                         first_time = false;
                         result.Append(" " + r);
                     }
                 }
-                if (term) result.AppendLine(" ;");
-			}
+                if (term)
+                {
+                    if (ebnf)
+                        result.AppendLine();
+                    else
+                        result.AppendLine(" ;");
+                }
+            }
 
-            result.AppendLine(@"keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
+            result.AppendLine(@"keyword " + (ebnf ? "::=" : ":") + @" 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
     'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
     'asm' | 'default' | 'if' | 'return' | 'typedef'
     'auto' | 'delete' | 'inline' | 'short' | 'typeid'
@@ -169,20 +189,20 @@ namespace scrape_pdf
     'constexpr' | 'float' | 'protected' | 'thread_local'
     'const_cast' | 'for' | 'public' | 'throw'
     'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
-    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;");
-            result.AppendLine("punctuator : preprocessing_op_or_punc ;");
+    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq'" + (ebnf ? "" : " ;"));
+            result.AppendLine(@"punctuator " + (ebnf ? "::=" : ":") + " preprocessing_op_or_punc" + (ebnf ? "" : " ;"));
 
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
             output = output.Replace(" e ", " 'e' ");
             output = output.Replace(" E ", " 'E' ");
-            output = ReplaceFirstOccurrence(output, "typedef_name :  identifier ;", "// typedef_name :  identifier ;");
-            output = ReplaceFirstOccurrence(output, "enum_name :  identifier ;", "// enum_name :  identifier ;");
-            output = ReplaceFirstOccurrence(output, "namespace_name :  original_namespace_name |  namespace_alias ;", "// namespace_name :  original_namespace_name |  namespace_alias ;");
-            output = ReplaceFirstOccurrence(output, "namespace_alias :  identifier ;", "// namespace_alias :  identifier ;");
-            output = ReplaceFirstOccurrence(output, "class_name :  identifier |  simple_template_id ;", "// class_name :  identifier |  simple_template_id ;");
-            output = ReplaceFirstOccurrence(output, "template_name :  identifier ;", "// template_name :  identifier ;");
+            output = ReplaceFirstOccurrence(output, "typedef_name " + (ebnf ? "::=" : ":") + "  identifier", "// typedef_name :  identifier");
+            output = ReplaceFirstOccurrence(output, "enum_name " + (ebnf ? "::=" : ":") + "  identifier", "// enum_name :  identifier");
+            output = ReplaceFirstOccurrence(output, "namespace_name " + (ebnf ? "::=" : ":") + "  original_namespace_name |  namespace_alias", "// namespace_name :  original_namespace_name |  namespace_alias");
+            output = ReplaceFirstOccurrence(output, "namespace_alias " + (ebnf ? "::=" : ":") + "  identifier", "// namespace_alias :  identifier");
+            output = ReplaceFirstOccurrence(output, "class_name " + (ebnf ? "::=" : ":") + "  identifier |  simple_template_id", "// class_name :  identifier |  simple_template_id");
+            output = ReplaceFirstOccurrence(output, "template_name " + (ebnf ? "::=" : ":") + "  identifier", "// template_name :  identifier");
             output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_CHARS1");
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
@@ -334,6 +354,19 @@ namespace scrape_pdf
             return new_s.ToString();
         }
 
+        public static string Quotify(string s)
+        {
+            if (s == "'")
+            {
+                if (ebnf) return "\"'\"";
+                else return "'" + PerformEscapes(s) + "'";
+            } else if (s.Contains("'"))
+            {
+                if (ebnf) return "\"" + PerformEscapes(s) + "\"";
+                else return "'" + PerformEscapes(s) + "'";
+            }
+            return "'" + PerformEscapes(s) + "'";
+        }
     }
 
 
