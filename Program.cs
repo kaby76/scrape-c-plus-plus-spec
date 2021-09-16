@@ -199,6 +199,7 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
             output = output.Replace(@"'opt)'", @"? ')'");
             output = output.Replace(@"? |  ')'", @"? ')'");
+            output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
             System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
