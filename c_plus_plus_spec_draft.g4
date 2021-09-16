@@ -59,7 +59,7 @@ exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;
 sign :  '+' | '-' ;
 digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ? |  R raw_string ;
+string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ? |  'R' raw_string ;
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
@@ -88,7 +88,7 @@ primary_expression :  literal |  'this' |  '(' expression ')' |  id_expression |
 id_expression :  unqualified_id |  qualified_id ;
 unqualified_id :  identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  '-' class_name |  '-' decltype_specifier |  template_id ;
 qualified_id :  nested_name_specifier 'template' ? unqualified_id ;
-nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? |  simple_template_id '::' ;
+nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;
 lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
 lambda_introducer :  '[' lambda_capture ? ']' ;
 lambda_capture :  capture_default |  capture_list |  capture_default ',' capture_list ;
@@ -206,7 +206,7 @@ using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id '
 using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;
 asm_definition :  'asm' '(' string_literal ')' ';' ;
 linkage_specification :  'extern' string_literal '{' declaration_seq 'opt}' |  'extern' string_literal declaration ;
-attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;
+attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
 attribute_specifier :  '[' '[' attribute_list ']' ']' |  alignment_specifier ;
 alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;
 attribute_list :  attribute ? |  attribute_list ',' attribute ? |  attribute '...' |  attribute_list ',' attribute '...' ;
@@ -238,7 +238,7 @@ declarator_id :  '...' ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
 ptr_abstract_declarator :  noptr_abstract_declarator |  ptr_operator ptr_abstract_declarator ? ;
-noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;
+noptr_abstract_declarator : noptr_abstract_declarator parameters_and_qualifiers | noptr_abstract_declarator '[' constant_expression ? ']' attribute_specifier_seq ? | '(' ptr_abstract_declarator ')' | parameters_and_qualifiers | '[' constant_expression ? ']' attribute_specifier_seq ? ;
 abstract_pack_declarator :  noptr_abstract_pack_declarator |  ptr_operator abstract_pack_declarator ;
 noptr_abstract_pack_declarator :  noptr_abstract_pack_declarator parameters_and_qualifiers |  noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '...' ;
 parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;

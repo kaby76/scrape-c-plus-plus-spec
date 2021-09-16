@@ -195,8 +195,6 @@ namespace scrape_pdf
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
-            output = output.Replace(" e ", " 'e' ");
-            output = output.Replace(" E ", " 'E' ");
             output = ReplaceFirstOccurrence(output, "typedef_name " + (ebnf ? "::=" : ":") + "  identifier", "// typedef_name :  identifier");
             output = ReplaceFirstOccurrence(output, "enum_name " + (ebnf ? "::=" : ":") + "  identifier", "// enum_name :  identifier");
             output = ReplaceFirstOccurrence(output, "namespace_name " + (ebnf ? "::=" : ":") + "  original_namespace_name |  namespace_alias", "// namespace_name :  original_namespace_name |  namespace_alias");
@@ -229,7 +227,14 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_pack_declarator '[' constant_expression ? |  ']' attribute_specifier_seq ?", @"noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ?");
             output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq declarator '=' initializer_clause", @"attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause");
             output = ReplaceFirstOccurrence(output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ?", @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ?");
-            
+            output = ReplaceFirstOccurrence(output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? |  simple_template_id '::' ;",
+                @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
+            // Fix rules that should have been written differently.
+            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");
+            output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
+                @"noptr_abstract_declarator : noptr_abstract_declarator parameters_and_qualifiers | noptr_abstract_declarator '[' constant_expression ? ']' attribute_specifier_seq ? | '(' ptr_abstract_declarator ')' | parameters_and_qualifiers | '[' constant_expression ? ']' attribute_specifier_seq ? ;");
+
+
             System.Console.Write(output);
 		//	Console.WriteLine(pdfText);
 		}
@@ -243,6 +248,9 @@ namespace scrape_pdf
         private static string Antlrize(string symbol)
         {
             symbol = symbol.Replace('-', '_');
+            if (symbol == "e") symbol = "'e'";
+            if (symbol == "E") symbol = "'E'";
+            if (symbol == "R") symbol = "'R'";
             if (symbol == "alignas") symbol = "'alignas'";
             if (symbol == "alignof") symbol = "'alignof'";
             if (symbol == "asm") symbol = "'asm'";
