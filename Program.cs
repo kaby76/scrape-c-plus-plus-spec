@@ -205,12 +205,16 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
             // There are no implementation defined chars.
-            output = ReplaceFirstOccurrence(output, @"identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;", "identifier_nondigit :  nondigit |  universal_character_name ;");
+            output = ReplaceFirstOccurrence(output,
+                @"identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;",
+                @"identifier_nondigit :  nondigit |  universal_character_name ;");
             output = output.Replace(" o pt ", " ? ");
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character", "RESTRICTED_CHARS6");
             output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
-            output = ReplaceFirstOccurrence(output, @"any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'", "RESTRICTED_CHARS8");
+            output = ReplaceFirstOccurrence(output,
+                @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'",
+                @"D_char : ~[\r\n\t\u000B()\\]");
             output = ReplaceFirstOccurrence(output, @"any token other than a 'parenthesis,' a 'bracket,' or a brace", "RESTRICTED_CHARS9");
             output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS9");
             output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS10");
@@ -230,6 +234,10 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ?", @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ?");
             output = ReplaceFirstOccurrence(output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? |  simple_template_id '::' ;",
                 @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"raw_string :  '""' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '""' ;",
+                @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;");
+            
             // Fix rules that should have been written differently.
             output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",

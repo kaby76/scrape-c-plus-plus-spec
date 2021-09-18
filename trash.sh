@@ -77,11 +77,8 @@ trparse c_plus_plus_spec_draft.g4 | \
 	trinsert "//ruleSpec/parserRuleSpec/RULE_REF[text()='preprocessing_token' or text()='token' or text()='header_name' or text()='h_char_sequence' or text()='h_char' or text()='q_char_sequence' or text()='q_char' or text()='pp_number' or text()='preprocessing_file' or text()='group' or text()='group_part' or text()='if_section' or text()='if_group' or text()='elif_groups' or text()='elif_group' or text()='else_group' or text()='endif_line' or text()='control_line' or text()='text_line' or text()='non_directive' or text()='lparen' or text()='replacement_list' or text()='pp_tokens' or text()='new_line']" '// ' | \
 	trsponge -c true
 
-
-	
-exit 0
-
 echo Rewriting lexer String rules ...
 trparse c_plus_plus_spec_draft.g4 | \
-	trrename -r 'string_literal,String_literal;encoding_prefix,Encoding_prefix;s_char_sequence,S_char_sequence;raw_string,Raw_string;s_char,S_char;escape_sequence,Escape_sequence;universal_character_name,Universal_character_name;hex_quad,Hex_quad;hexadecimal_digit,Hexadecimal_digit' | \
+	trrename -r 'string_literal,String_literal;s_char_sequence,FS_char_sequence;s_char,FS_char;raw_string,FRaw_string;r_char_sequence,FR_char_sequence;r_char,FR_char;d_char_sequence,FD_char_sequence;d_char,FD_char' | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence' or text()='FS_char' or text()='FRaw_string' or text()='FR_char_sequence' or text()='FR_char' or text()='FD_char_sequence' or text()='FD_char']" "fragment" | \
 	trsponge -c true

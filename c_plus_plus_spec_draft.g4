@@ -29,7 +29,7 @@ fragment FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 // § A.2 	 1211  c ISO/IEC
 
 preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | 'and' | 'or' | '>=' | 'and_eq' | 'or_eq' | '&&' | 'bitand' | 'xor' | '||' | 'bitor' | 'xor_eq' | '++' | 'compl' | '--' | 'not' | ',' | 'not_eq' | '->*' | '->' ;
-literal :  Integer_literal |  Character_literal |  Floating_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
+literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
 Integer_literal :  Binary_literal FInteger_suffix ? |  Octal_literal FInteger_suffix ? |  Decimal_literal FInteger_suffix ? |  Hexadecimal_literal FInteger_suffix ? ;
 Binary_literal : (  '0b' FBinary_digit |  '0B' FBinary_digit ) ( '’' ? FBinary_digit ) * ;
 Octal_literal : (  '0' ) ( '’' ? FOctal_digit ) * ;
@@ -59,22 +59,22 @@ fragment FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? |  FDigit_
 fragment FSign :  '+' | '-' ;
 fragment FDigit_sequence : (  FDigit ) ( '\'' ? FDigit ) * ;
 fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  FEncoding_prefix ? '"' s_char_sequence ? '"'  FEncoding_prefix ? |  'R' raw_string ;
+String_literal :  FEncoding_prefix ? '"' FS_char_sequence ? '"'  FEncoding_prefix ? |  'R' FRaw_string ;
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
-s_char_sequence :  s_char |  s_char_sequence s_char ;
-s_char :  RESTRICTED_CHARS6 |  FEscape_sequence |  FUniversal_character_name ;
-raw_string :  '"' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '"' ;
-r_char_sequence :  r_char |  r_char_sequence r_char ;
-r_char :  RESTRICTED_CHARS7 ;
-d_char_sequence :  d_char |  d_char_sequence d_char ;
-d_char :  RESTRICTED_CHARS8 ;
+fragment FS_char_sequence :  FS_char |  FS_char_sequence FS_char ;
+fragment FS_char :  RESTRICTED_CHARS6 |  FEscape_sequence |  FUniversal_character_name ;
+fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
+fragment FR_char_sequence :  FR_char |  FR_char_sequence FR_char ;
+fragment FR_char :  RESTRICTED_CHARS7 ;
+fragment FD_char_sequence :  FD_char |  FD_char_sequence FD_char ;
+D_char : ~[\r\n\t\u000B()\\] ;
 boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
 user_defined_integer_literal :  Decimal_literal ud_suffix |  Octal_literal ud_suffix |  Hexadecimal_literal ud_suffix |  Binary_literal ud_suffix ;
 user_defined_floating_literal :  FFractional_constant FExponent_part ? ud_suffix |  FDigit_sequence FExponent_part ud_suffix ;
-user_defined_string_literal :  string_literal ud_suffix ;
+user_defined_string_literal :  String_literal ud_suffix ;
 user_defined_character_literal :  Character_literal ud_suffix ;
 ud_suffix :  Identifier ;
 // § A.2 	 1214  c ISO/IEC 	 N4296
@@ -204,8 +204,8 @@ namespace_alias_definition :  'namespace' Identifier '=' qualified_namespace_spe
 qualified_namespace_specifier :  nested_name_specifier ? namespace_name ;
 using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;
 using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;
-asm_definition :  'asm' '(' string_literal ')' ';' ;
-linkage_specification :  'extern' string_literal '{' declaration_seq 'opt}' |  'extern' string_literal declaration ;
+asm_definition :  'asm' '(' String_literal ')' ';' ;
+linkage_specification :  'extern' String_literal '{' declaration_seq 'opt}' |  'extern' String_literal declaration ;
 attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
 attribute_specifier :  '[' '[' attribute_list ']' ']' |  alignment_specifier ;
 alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;
@@ -291,7 +291,7 @@ mem_initializer_id :  class_or_decltype |  Identifier ;
 // A.11 Overloading 	 [gram.over] 
 operator_function_id :  operator operator ;
 operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
-literal_operator_id :  operator string_literal Identifier |  operator user_defined_string_literal ;
+literal_operator_id :  operator String_literal Identifier |  operator user_defined_string_literal ;
 
 // A.12 Templates 	 [gram.temp] 
 template_declaration :  'template' '<' template_parameter_list '>' declaration ;

@@ -64,11 +64,11 @@ string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ?
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
 s_char :  RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;
-raw_string :  '"' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '"' ;
+raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
 r_char :  RESTRICTED_CHARS7 ;
 d_char_sequence :  d_char |  d_char_sequence d_char ;
-d_char :  RESTRICTED_CHARS8 ;
+D_char : ~[\r\n\t\u000B()\\] ;
 boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
