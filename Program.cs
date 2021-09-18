@@ -210,7 +210,9 @@ namespace scrape_pdf
                 @"identifier_nondigit :  nondigit |  universal_character_name ;");
             output = output.Replace(" o pt ", " ? ");
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
-            output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character", "RESTRICTED_CHARS6");
+            output = ReplaceFirstOccurrence(output,
+                @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
+                @"S_char : ~[""\\\r\n] |  Escape_sequence |  Universal_character_name ;");
             output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
             output = ReplaceFirstOccurrence(output,
                 @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'",

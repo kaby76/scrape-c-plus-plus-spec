@@ -79,6 +79,6 @@ trparse c_plus_plus_spec_draft.g4 | \
 
 echo Rewriting lexer String rules ...
 trparse c_plus_plus_spec_draft.g4 | \
-	trrename -r 'string_literal,String_literal;s_char_sequence,FS_char_sequence;s_char,FS_char;raw_string,FRaw_string;r_char_sequence,FR_char_sequence;r_char,FR_char;d_char_sequence,FD_char_sequence;d_char,FD_char' | \
+	trrename -r 'string_literal,String_literal;s_char_sequence,FS_char_sequence;s_char,FS_char;S_char,FS_char;raw_string,FRaw_string;r_char_sequence,FR_char_sequence;r_char,FR_char;d_char_sequence,FD_char_sequence;d_char,FD_char' | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence' or text()='FS_char' or text()='FRaw_string' or text()='FR_char_sequence' or text()='FR_char' or text()='FD_char_sequence' or text()='FD_char']" "fragment" | \
 	trsponge -c true

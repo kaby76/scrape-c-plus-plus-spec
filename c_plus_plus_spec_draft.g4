@@ -63,7 +63,7 @@ String_literal :  FEncoding_prefix ? '"' FS_char_sequence ? '"'  FEncoding_prefi
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 fragment FS_char_sequence :  FS_char |  FS_char_sequence FS_char ;
-fragment FS_char :  RESTRICTED_CHARS6 |  FEscape_sequence |  FUniversal_character_name ;
+fragment FS_char : ~["\\\r\n] |  Escape_sequence |  Universal_character_name ;
 fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
 fragment FR_char_sequence :  FR_char |  FR_char_sequence FR_char ;
 fragment FR_char :  RESTRICTED_CHARS7 ;

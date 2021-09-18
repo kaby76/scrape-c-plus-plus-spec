@@ -63,7 +63,7 @@ string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ?
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
-s_char :  RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;
+S_char : ~["\\\r\n] |  Escape_sequence |  Universal_character_name ;
 raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
 r_char :  RESTRICTED_CHARS7 ;
