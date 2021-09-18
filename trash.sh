@@ -13,7 +13,7 @@ trparse c_plus_plus_spec_draft.g4 | \
 echo ""
 echo 'Additional renaming of several basic literal rules...'
 trparse c_plus_plus_spec_draft.g4 | \
-	trrename -r 'sign,Sign;exponent_part,Exponent_part;digit_sequence,Digit_sequence;fractional_constant,Fractional_constant;hexadecimal_escape_sequence,Hexadecimal_escape_sequence;octal_escape_sequence,Octal_escape_sequence;simple_escape_sequence,Simple_escape_sequence;escape_sequence,Escape_sequence;c_char,C_char;c_char_sequence,C_char_sequence;digit,FDigit;nondigit,FNondigit;floating_suffix,FFloating_suffix;integer_suffix,FInteger_suffix' | \
+	trrename -r 'sign,FSign;exponent_part,FExponent_part;digit_sequence,FDigit_sequence;fractional_constant,FFractional_constant;hexadecimal_escape_sequence,FHexadecimal_escape_sequence;octal_escape_sequence,FOctal_escape_sequence;simple_escape_sequence,FSimple_escape_sequence;escape_sequence,FEscape_sequence;c_char,FC_char;c_char_sequence,FC_char_sequence;digit,FDigit;nondigit,FNondigit;floating_suffix,FFloating_suffix;integer_suffix,FInteger_suffix' | \
 	trsponge -c true
 
 echo ""
@@ -27,7 +27,7 @@ echo ""
 echo Inserting "'fragment'" into basic rules...
 trparse c_plus_plus_spec_draft.g4 | \
 	trinsert " //ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FHex_quad' or text()='FUniversal_character_name' or text()='FBinary_digit' or text()='FOctal_digit' or text()='FNonzero_digit' or text()='FHexadecimal_digit' or text()='FUnsigned_suffix' or text()='FLong_suffix' or text()='FLong_long_suffix' or text()='FEncoding_prefix']" "fragment" | \
-	trinsert " //ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FSign' or text()='FExponent_part' or text()='FDigit_sequence' or text()='Fractional_constant' or text()='FOctal_escape_sequence' or text()='Simple_escape_sequence' or text()='Escape_sequence' or text()='C_char' or text()='FDigit' or text()='FNondigit' or text()='FFloating_suffix' or text()='FInteger_suffix']" "fragment" | \
+	trinsert " //ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FSign' or text()='FExponent_part' or text()='FDigit_sequence' or text()='FFractional_constant' or text()='FOctal_escape_sequence' or text()='FSimple_escape_sequence' or text()='FEscape_sequence' or text()='FC_char' or text()='FDigit' or text()='FNondigit' or text()='FFloating_suffix' or text()='FInteger_suffix']" "fragment" | \
 	trsponge -c true
 
 echo ""
@@ -50,11 +50,6 @@ trparse c_plus_plus_spec_draft.g4 | \
 	
 exit 0
 	
-echo ""
-trparse c_plus_plus_spec_draft.g4 | \
-	trinsert " //ruleSpec/lexerRuleSpec/TOKEN_REF[text()='' or text()='' or text()=''escape_sequence' or text()='Octal_escape_sequence' or text()='Simple_escape_sequence' or text()='Escape_sequence' or text()='C_char' or text()='C_char_sequence' or text()='FDigit' or text()='Nondigit' or text()='Floating_suffix' or text()='Integer_suffix']" "fragment" | \
-
-
 
 trparse c_plus_plus_spec_draft.g4 | \
 	trrename -r 'integer_suffix,Integer_suffix;integer_literal,Integer_literal;binary_literal,Binary_literal;octal_literal,Octal_literal;decimal_literal,Decimal_literal;hexadecimal_literal,Hexadecimal_literal' | \

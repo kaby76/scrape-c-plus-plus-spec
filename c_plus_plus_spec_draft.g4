@@ -10,8 +10,8 @@ original_namespace_name :  identifier ;
 // template_name :  identifier ;
 
 // A.2 Lexical conventions 	 [gram.lex] 
-fragment Hex_quad :  Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit Hexadecimal_digit ;
-fragment Universal_character_name :  '\\u' Hex_quad |  '\\U' Hex_quad Hex_quad ;
+fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
+fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
 preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  RESTRICTED_CHARS1 ;
 // § A.2 	 1210  c ISO/IEC 	 N4296
 
@@ -21,49 +21,49 @@ h_char_sequence :  h_char |  h_char_sequence h_char ;
 h_char :  RESTRICTED_CHARS2 ;
 q_char_sequence :  q_char |  q_char_sequence q_char ;
 q_char :  RESTRICTED_CHARS3 ;
-pp_number : Digit |  '.' Digit |  pp_number Digit |  pp_number identifier_nondigit |  pp_number '\'' Digit |  pp_number '\'' Nondigit |  pp_number 'e' Sign |  pp_number 'E' Sign |  pp_number '.' ;
-identifier :  identifier_nondigit |  identifier identifier_nondigit |  identifier Digit ;
-identifier_nondigit :  Nondigit |  Universal_character_name |  RESTRICTED_CHARS4 ;
-fragment Nondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
-fragment Digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+pp_number :  FDigit |  '.' FDigit |  pp_number FDigit |  pp_number identifier_nondigit |  pp_number '\'' FDigit |  pp_number '\'' FNondigit |  pp_number 'e' FSign |  pp_number 'E' FSign |  pp_number '.' ;
+identifier :  identifier_nondigit |  identifier identifier_nondigit |  identifier FDigit ;
+identifier_nondigit :  FNondigit |  FUniversal_character_name |  RESTRICTED_CHARS4 ;
+fragment FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
+fragment FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 // § A.2 	 1211  c ISO/IEC
 
 preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | 'and' | 'or' | '>=' | 'and_eq' | 'or_eq' | '&&' | 'bitand' | 'xor' | '||' | 'bitor' | 'xor_eq' | '++' | 'compl' | '--' | 'not' | ',' | 'not_eq' | '->*' | '->' ;
 literal :  integer_literal |  character_literal |  floating_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
-integer_literal :  binary_literal Integer_suffix ? |  octal_literal Integer_suffix ? |  decimal_literal Integer_suffix ? |  hexadecimal_literal Integer_suffix ? ;
-binary_literal :  '0b' Binary_digit |  '0B' Binary_digit |  binary_literal '’' ? Binary_digit ;
-octal_literal :  '0' |  octal_literal '’' ? Octal_digit ;
-decimal_literal :  Nonzero_digit |  decimal_literal '’' ? Digit ;
-hexadecimal_literal :  '0x' Hexadecimal_digit |  '0X' Hexadecimal_digit |  hexadecimal_literal '’' ? Hexadecimal_digit ;
-fragment Binary_digit :  '0' |  '1' ;
-fragment Octal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
-fragment Nonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-fragment Hexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
-fragment Integer_suffix :  Unsigned_suffix Long_suffix ? |  Unsigned_suffix Long_long_suffix ? |  Long_suffix Unsigned_suffix ? |  Long_long_suffix Unsigned_suffix ? ;
+integer_literal :  binary_literal FInteger_suffix ? |  octal_literal FInteger_suffix ? |  decimal_literal FInteger_suffix ? |  hexadecimal_literal FInteger_suffix ? ;
+binary_literal :  '0b' FBinary_digit |  '0B' FBinary_digit |  binary_literal '’' ? FBinary_digit ;
+octal_literal :  '0' |  octal_literal '’' ? FOctal_digit ;
+decimal_literal :  FNonzero_digit |  decimal_literal '’' ? FDigit ;
+hexadecimal_literal :  '0x' FHexadecimal_digit |  '0X' FHexadecimal_digit |  hexadecimal_literal '’' ? FHexadecimal_digit ;
+fragment FBinary_digit :  '0' |  '1' ;
+fragment FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+fragment FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+fragment FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
+fragment FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
 // § A.2 	 1212  c ISO/IEC 	 N4296
 
-fragment Unsigned_suffix :  'u' | 'U' ;
-fragment Long_suffix :  'l' | 'L' ;
-fragment Long_long_suffix :  'll' | 'LL' ;
-character_literal :  Encoding_prefix ? '\'' C_char_sequence '\'' ;
-fragment Encoding_prefix :  'u8' | 'u' | 'U' | 'L' ;
-fragment C_char_sequence : (  C_char ) ( C_char ) * ;
-fragment C_char :  ~['\\r\n] |  Escape_sequence |  Universal_character_name ;
-fragment Escape_sequence :  Simple_escape_sequence |  Octal_escape_sequence |  Hexadecimal_escape_sequence ;
-fragment Simple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
-fragment Octal_escape_sequence :  '\\' Octal_digit |  '\\' Octal_digit Octal_digit |  '\\' Octal_digit Octal_digit Octal_digit ;
-fragment Hexadecimal_escape_sequence : (  '\\x' Hexadecimal_digit ) ( Hexadecimal_digit ) * ;
-floating_literal :  Fractional_constant Exponent_part ? Floating_suffix ? |  Digit_sequence Exponent_part Floating_suffix ? ;
-fragment Fractional_constant :  Digit_sequence ? '.' Digit_sequence |  Digit_sequence '.' ;
-fragment Exponent_part :  'e' Sign ? Digit_sequence |  'E' Sign ? |  Digit_sequence ;
-fragment Sign :  '+' | '-' ;
-fragment Digit_sequence : (  Digit ) ( '\'' ? Digit ) * ;
-fragment Floating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  Encoding_prefix ? '"' s_char_sequence ? '"'  Encoding_prefix ? |  'R' raw_string ;
+fragment FUnsigned_suffix :  'u' | 'U' ;
+fragment FLong_suffix :  'l' | 'L' ;
+fragment FLong_long_suffix :  'll' | 'LL' ;
+character_literal :  FEncoding_prefix ? '\'' FC_char_sequence '\'' ;
+fragment FEncoding_prefix :  'u8' | 'u' | 'U' | 'L' ;
+fragment FC_char_sequence : (  FC_char ) ( FC_char ) * ;
+fragment FC_char :  ~['\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
+fragment FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
+fragment FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
+fragment FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
+fragment FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) ( FHexadecimal_digit ) * ;
+floating_literal :  FFractional_constant FExponent_part ? FFloating_suffix ? |  FDigit_sequence FExponent_part FFloating_suffix ? ;
+fragment FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
+fragment FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? |  FDigit_sequence ;
+fragment FSign :  '+' | '-' ;
+fragment FDigit_sequence : (  FDigit ) ( '\'' ? FDigit ) * ;
+fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
+string_literal :  FEncoding_prefix ? '"' s_char_sequence ? '"'  FEncoding_prefix ? |  'R' raw_string ;
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
-s_char :  RESTRICTED_CHARS6 |  Escape_sequence |  Universal_character_name ;
+s_char :  RESTRICTED_CHARS6 |  FEscape_sequence |  FUniversal_character_name ;
 raw_string :  '"' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
 r_char :  RESTRICTED_CHARS7 ;
@@ -73,7 +73,7 @@ boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
 user_defined_integer_literal :  decimal_literal ud_suffix |  octal_literal ud_suffix |  hexadecimal_literal ud_suffix |  binary_literal ud_suffix ;
-user_defined_floating_literal :  Fractional_constant Exponent_part ? ud_suffix |  Digit_sequence Exponent_part ud_suffix ;
+user_defined_floating_literal :  FFractional_constant FExponent_part ? ud_suffix |  FDigit_sequence FExponent_part ud_suffix ;
 user_defined_string_literal :  string_literal ud_suffix ;
 user_defined_character_literal :  character_literal ud_suffix ;
 ud_suffix :  identifier ;
