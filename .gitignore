@@ -348,3 +348,11 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+c_plus_plus_spec_draft.interp
+c_plus_plus_spec_draft.tokens
+c_plus_plus_spec_draftBaseListener.java
+c_plus_plus_spec_draftLexer.interp
+c_plus_plus_spec_draftLexer.java
+c_plus_plus_spec_draftLexer.tokens
+c_plus_plus_spec_draftListener.java
+c_plus_plus_spec_draftParser.java
