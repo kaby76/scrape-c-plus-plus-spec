@@ -204,7 +204,8 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_CHARS1");
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
             output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
-            output = ReplaceFirstOccurrence(output, "other implementation_defined characters", "RESTRICTED_CHARS4");
+            // There are no implementation defined chars.
+            output = ReplaceFirstOccurrence(output, @"identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;", "identifier_nondigit :  nondigit |  universal_character_name ;");
             output = output.Replace(" o pt ", " ? ");
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character", "RESTRICTED_CHARS6");
