@@ -212,14 +212,14 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
             output = ReplaceFirstOccurrence(output,
                 @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
-                @"S_char : ~[""\\\r\n] |  Escape_sequence |  Universal_character_name ;");
+                @"s_char : RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;");
             output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
             output = ReplaceFirstOccurrence(output,
                 @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'",
-                @"D_char : ~[\r\n\t\u000B()\\]");
+                @"d_char : RESTRICTED_CHARS8");
             output = ReplaceFirstOccurrence(output, @"any token other than a 'parenthesis,' a 'bracket,' or a brace", "RESTRICTED_CHARS9");
-            output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS9");
-            output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS10");
+            output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS10");
+            output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS11");
             output = ReplaceFirstOccurrence(output, @"|  exception_specification ? attribute_specifier_seq ? trailing_return_type ?", @"exception_specification ? attribute_specifier_seq ? trailing_return_type ?");
             output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
             output = output.Replace(@"'opt)'", @"? ')'");

@@ -63,12 +63,12 @@ String_literal :  FEncoding_prefix ? '"' FS_char_sequence ? '"'  FEncoding_prefi
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 fragment FS_char_sequence :  FS_char |  FS_char_sequence FS_char ;
-fragment FS_char : ~["\\\r\n] |  Escape_sequence |  Universal_character_name ;
+fragment FS_char : ~["\\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
 fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
 fragment FR_char_sequence :  FR_char |  FR_char_sequence FR_char ;
 fragment FR_char :  RESTRICTED_CHARS7 ;
 fragment FD_char_sequence :  FD_char |  FD_char_sequence FD_char ;
-D_char : ~[\r\n\t\u000B()\\] ;
+fragment FD_char : ~[ ()\\\r\n\t\u000B] ;
 boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
@@ -336,13 +336,13 @@ noexcept_specification :  'noexcept' '(' constant_expression ')' |  'noexcept' ;
 //  control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' Identifier replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' Identifier lparen '...' ')' replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' Identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
 //  text_line :  pp_tokens ? new_line ;
 //  non_directive :  pp_tokens new_line ;
-//  lparen :  RESTRICTED_CHARS9 ;
+//  lparen :  RESTRICTED_CHARS10 ;
 // § A.14 	 1228  c ISO/IEC 	 N4296
 
 identifier_list :  Identifier |  identifier_list ',' Identifier ;
 //  replacement_list :  pp_tokens ? ;
 //  pp_tokens :  preprocessing_token |  pp_tokens preprocessing_token ;
-//  new_line :  RESTRICTED_CHARS10 ;
+//  new_line :  RESTRICTED_CHARS11 ;
 // § A.14 	 1229  c ISO/IEC 	 N4296
 
 keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 

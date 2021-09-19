@@ -22,8 +22,7 @@ trparse c_plus_plus_spec_draft.g4 | \
 echo ""
 echo 'Taking care of converting RESTRICTED_CHARS5 into its proper form...'
 trparse c_plus_plus_spec_draft.g4 | \
-	trinsert "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS5']" "~['\\\r\n]" | \
-	trdelete "//lexerElement/lexerAtom/terminal/TOKEN_REF[text()='RESTRICTED_CHARS5']" | \
+	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS5']" "~['\\\r\n]" | \
 	trsponge -c true
 
 echo ""
@@ -82,3 +81,11 @@ trparse c_plus_plus_spec_draft.g4 | \
 	trrename -r 'string_literal,String_literal;s_char_sequence,FS_char_sequence;s_char,FS_char;S_char,FS_char;raw_string,FRaw_string;r_char_sequence,FR_char_sequence;r_char,FR_char;d_char_sequence,FD_char_sequence;d_char,FD_char' | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence' or text()='FS_char' or text()='FRaw_string' or text()='FR_char_sequence' or text()='FR_char' or text()='FD_char_sequence' or text()='FD_char']" "fragment" | \
 	trsponge -c true
+
+echo ""
+echo 'Taking care of converting RESTRICTED_CHARS6 and RESTRICTED_CHARS8 into its proper form...'
+trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS6']" '~["\\\r\n]' | \
+	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS8']" '~[ ()\\\r\n\t\u000B]' | \
+	trsponge -c true
+	

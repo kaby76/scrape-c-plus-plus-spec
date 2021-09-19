@@ -63,12 +63,12 @@ string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ?
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
-S_char : ~["\\\r\n] |  Escape_sequence |  Universal_character_name ;
+s_char : RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;
 raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
 r_char :  RESTRICTED_CHARS7 ;
 d_char_sequence :  d_char |  d_char_sequence d_char ;
-D_char : ~[\r\n\t\u000B()\\] ;
+d_char : RESTRICTED_CHARS8 ;
 boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
@@ -336,13 +336,13 @@ endif_line :  '#' 'endif' new_line ;
 control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
 text_line :  pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
-lparen :  RESTRICTED_CHARS9 ;
+lparen :  RESTRICTED_CHARS10 ;
 // § A.14 	 1228  c ISO/IEC 	 N4296
 
 identifier_list :  identifier |  identifier_list ',' identifier ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token |  pp_tokens preprocessing_token ;
-new_line :  RESTRICTED_CHARS10 ;
+new_line :  RESTRICTED_CHARS11 ;
 // § A.14 	 1229  c ISO/IEC 	 N4296
 
 keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
