@@ -86,6 +86,12 @@ echo ""
 echo 'Taking care of converting RESTRICTED_CHARS6 and RESTRICTED_CHARS8 into its proper form...'
 trparse c_plus_plus_spec_draft.g4 | \
 	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS6']" '~["\\\r\n]' | \
+	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS7']" '~[)"]' | \
 	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS8']" '~[ ()\\\r\n\t\u000B]' | \
 	trsponge -c true
 	
+trparse c_plus_plus_spec_draft.g4 | \
+	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence']" | \
+	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FR_char_sequence']" | \
+	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FD_char_sequence']" | \
+	trsponge -c true
