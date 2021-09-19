@@ -226,7 +226,35 @@ namespace scrape_pdf
             output = output.Replace(@"? |  ')'", @"? ')'");
             output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
             // Get nullable for string_literal. NEED TO TEST IN ANALYSIS!
-            output = ReplaceFirstOccurrence(output, @"'""' |  encoding_prefix", @"'""'  encoding_prefix");
+            output = ReplaceFirstOccurrence(output,
+                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? |  'R' raw_string ;",
+                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' | encoding_prefix ? 'R' raw_string ;");
+            output = ReplaceFirstOccurrence(output,
+                @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? |  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;",
+                @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ?  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? |  simple_template_id |  'enum' nested_name_specifier ? Identifier ;",
+                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? Identifier ;");
+            output = ReplaceFirstOccurrence(output,
+                @"enum_specifier :  enum_head '{' enumerator_list ? |  '}' |  enum_head '{' enumerator_list ',' '}' ;",
+                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? |  nested_name_specifier Identifier |  enum_base ? ;",
+                @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier Identifier enum_base ? ;");
+            output = ReplaceFirstOccurrence(output,
+                @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? |  Identifier enum_base ? |  ';' ;",
+                @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? Identifier enum_base ? ';' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? |  Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;",
+                @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;");
+            output = ReplaceFirstOccurrence(output,
+                @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? |  simple_template_id ;",
+                @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;");
+            output = ReplaceFirstOccurrence(output,
+                @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? |  type_specifier_seq abstract_declarator ? |  '...' ;",
+                @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;");
+
+
 
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
             output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");
@@ -239,7 +267,10 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output,
                 @"raw_string :  '""' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '""' ;",
                 @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;");
-            
+            output = ReplaceFirstOccurrence(output,
+                @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;",
+                @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;");
+
             // Fix rules that should have been written differently.
             output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",

@@ -55,11 +55,11 @@ octal_escape_sequence :  '\\' octal_digit |  '\\' octal_digit octal_digit |  '\\
 hexadecimal_escape_sequence :  '\\x' hexadecimal_digit |  hexadecimal_escape_sequence hexadecimal_digit ;
 floating_literal :  fractional_constant exponent_part ? floating_suffix ? |  digit_sequence exponent_part floating_suffix ? ;
 fractional_constant :  digit_sequence ? '.' digit_sequence |  digit_sequence '.' ;
-exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;
+exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;
 sign :  '+' | '-' ;
 digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  encoding_prefix ? '"' s_char_sequence ? '"'  encoding_prefix ? |  'R' raw_string ;
+string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' | encoding_prefix ? 'R' raw_string ;
 // § A.2 	 1213  c ISO/IEC 	 N4296
 
 s_char_sequence :  s_char |  s_char_sequence s_char ;
@@ -102,7 +102,7 @@ init_capture :  identifier initializer |  '&' identifier initializer ;
 lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 fold_expression :  '(' cast_expression fold_operator '...' ')' |  '(' '...' fold_operator cast_expression ')' |  '(' cast_expression fold_operator '...' fold_operator cast_expression ')' ;
 fold_operator :  '+' | '-' | '*' | '/' | '%' | 'ˆ' | '&' | '|' | '<<' | '>>' | '+=' | '-=' | '*=' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<=' | '>>=' | '=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '&&' | '||' | ',' | '.*' | '->*' ;
-postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? |  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
+postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ?  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
 expression_list :  initializer_list ;
 pseudo_destructor_name :  nested_name_specifier ? type_name '::' '-' type_name |  nested_name_specifier 'template' simple_template_id '::' '-' type_name |  '-' type_name |  '-' decltype_specifier ;
 unary_expression :  postfix_expression |  '++' cast_expression |  '--' cast_expression |  unary_operator cast_expression |  'sizeof' unary_expression |  'sizeof' '(' type_id ')' |  'sizeof' '...' '(' identifier ')' |  'alignof' '(' type_id ')' |  noexcept_expression |  new_expression |  delete_expression ;
@@ -182,7 +182,7 @@ type_name :  class_name |  enum_name |  typedef_name |  simple_template_id ;
 decltype_specifier :  'decltype' '(' expression ')' |  'decltype' '(' 'auto' ')' ;
 elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? |  simple_template_id |  'enum' nested_name_specifier ? identifier ;
 enum_name :  identifier ;
-enum_specifier :  enum_head '{' enumerator_list ? |  '}' |  enum_head '{' enumerator_list ',' '}' ;
+enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;
 enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? |  nested_name_specifier identifier |  enum_base ? ;
 opaque_enum_declaration :  enum_key attribute_specifier_seq ? |  identifier enum_base ? |  ';' ;
 enum_key :  'enum' |  'enum' 'class' |  'enum' 'struct' ;
@@ -315,7 +315,7 @@ try_block :  'try' compound_statement handler_seq ;
 function_try_block :  'try' ctor_initializer ? compound_statement handler_seq ;
 handler_seq :  handler handler_seq ? ;
 handler :  'catch' '(' exception_declaration ')' compound_statement ;
-exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? |  type_specifier_seq abstract_declarator ? |  '...' ;
+exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;
 exception_specification :  dynamic_exception_specification |  noexcept_specification ;
 dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;
 // § A.13 	 1227  c ISO/IEC 	 N4296
