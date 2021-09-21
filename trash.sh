@@ -8,6 +8,12 @@ echo 'This grammar passes the Antlr4 tool with warnings, but it is not really us
 cp c_plus_plus_spec_draft.g4 _orig.g4
 
 echo ""
+echo "Fix start rule..."
+trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='translation_unit']" "translation_unit :  declaration_seq ? EOF ;" | \
+	trsponge -c true
+
+echo ""
 echo 'Renaming several basic literal rules...'
 trparse c_plus_plus_spec_draft.g4 | \
 	trrename -r 'universal_character_name,FUniversal_character_name;hex_quad,FHex_quad;hexadecimal_digit,FHexadecimal_digit;binary_digit,FBinary_digit;octal_digit,FOctal_digit;nonzero_digit,FNonzero_digit;unsigned_suffix,FUnsigned_suffix;long_suffix,FLong_suffix;long_long_suffix,FLong_long_suffix;encoding_prefix,FEncoding_prefix' | \
@@ -71,6 +77,10 @@ trparse c_plus_plus_spec_draft.g4 | \
 	trsponge -c true
 
 echo ""
+trparse c_plus_plus_spec_draft.g4 | \
+	trsponge -c true
+
+echo ""
 echo "For now, we comment out preprocessing rules until we know what to do."
 trparse c_plus_plus_spec_draft.g4 | \
 	trinsert "//ruleSpec/parserRuleSpec/RULE_REF[text()='preprocessing_token' or text()='token' or text()='header_name' or text()='h_char_sequence' or text()='h_char' or text()='q_char_sequence' or text()='q_char' or text()='pp_number' or text()='preprocessing_file' or text()='group' or text()='group_part' or text()='if_section' or text()='if_group' or text()='elif_groups' or text()='elif_group' or text()='else_group' or text()='endif_line' or text()='control_line' or text()='text_line' or text()='non_directive' or text()='lparen' or text()='replacement_list' or text()='pp_tokens' or text()='new_line']" '// ' | \
@@ -89,9 +99,44 @@ trparse c_plus_plus_spec_draft.g4 | \
 	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS7']" '~[)"]' | \
 	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS8']" '~[ ()\\\r\n\t\u000B]' | \
 	trsponge -c true
-	
+
+echo ""
+echo 'Removing lexer left recursions...'
 trparse c_plus_plus_spec_draft.g4 | \
 	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence']" | \
 	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FR_char_sequence']" | \
 	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FD_char_sequence']" | \
 	trsponge -c true
+
+echo ""
+echo "Fixing user_defined_literal, user_defined_floating_literal, user_defined_integer_literal, user_defined_string_literal, user_defined_character_literal, ud_suffix"
+trparse c_plus_plus_spec_draft.g4 | \
+	trrename -r "user_defined_literal,User_defined_literal;user_defined_floating_literal,User_defined_floating_literal;user_defined_integer_literal,User_defined_integer_literal;user_defined_string_literal,User_defined_string_literal;user_defined_character_literal,User_defined_character_literal;ud_suffix,FUd_suffix" | \
+	trsponge -c true
+
+echo ""
+echo "Fixing balanced_token"
+trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//TOKEN_REF[text()='RESTRICTED_CHARS9']" "~( '(' | ')' | '{' | '}' | '[' | ']' )+" | \
+	trsponge -c true
+
+
+echo Fix FS_char_sequence FR_char_sequence  ...
+trparse c_plus_plus_spec_draft.g4 | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FR_char_sequence']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FD_char_sequence']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FUd_suffix']" "fragment" | \
+	trsponge -c true
+
+trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='pure_specifier']" "pure_specifier :  '=' Octal_literal ;" | \
+	trsponge -c true
+	
+
+echo ""
+echo "Fixing alternative operators Table 6"
+trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='and_expression']//STRING_LITERAL" "( '&' | 'bitand' )" | \
+	trsponge -c true
+	

@@ -174,24 +174,26 @@ namespace scrape_pdf
             }
 
             result.AppendLine(@"keyword " + (ebnf ? "::=" : ":") + @" 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
-    'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
-    'asm' | 'default' | 'if' | 'return' | 'typedef'
-    'auto' | 'delete' | 'inline' | 'short' | 'typeid'
-    'bool' | 'do' | 'int' | 'signed' | 'typename'
-    'break' | 'double' | 'long' | 'sizeof' | 'union'
-    'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
-    'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
-    'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
-    'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
-    'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
-    'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
-    'const' | 'false' | 'private' | 'this' | 'while'
-    'constexpr' | 'float' | 'protected' | 'thread_local'
-    'const_cast' | 'for' | 'public' | 'throw'
-    'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
-    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq'" + (ebnf ? "" : " ;"));
+                'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
+                'asm' | 'default' | 'if' | 'return' | 'typedef'
+                'auto' | 'delete' | 'inline' | 'short' | 'typeid'
+                'bool' | 'do' | 'int' | 'signed' | 'typename'
+                'break' | 'double' | 'long' | 'sizeof' | 'union'
+                'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
+                'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
+                'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
+                'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
+                'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
+                'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
+                'const' | 'false' | 'private' | 'this' | 'while'
+                'constexpr' | 'float' | 'protected' | 'thread_local'
+                'const_cast' | 'for' | 'public' | 'throw'
+                'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
+                'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq'" + (ebnf ? "" : " ;"));
             result.AppendLine(@"punctuator " + (ebnf ? "::=" : ":") + " preprocessing_op_or_punc" + (ebnf ? "" : " ;"));
-
+            result.AppendLine(@"WS : [\n\r\t ]+ -> skip;
+COMMENT : '//' ~[\n\r]* -> skip;
+Prep : '#' ~[\n\r]* -> skip;");
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
@@ -223,6 +225,13 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output, @"|  exception_specification ? attribute_specifier_seq ? trailing_return_type ?", @"exception_specification ? attribute_specifier_seq ? trailing_return_type ?");
             output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
             output = output.Replace(@"'opt)'", @"? ')'");
+            output = output.Replace(@"'opt='", @"? '='");
+            output = output.Replace(@"'opt:'", @"? ':'");
+            output = output.Replace(@"'opt;'", @"? ';'");
+            output = output.Replace(@"'opt{'", @"? '{'");
+            output = output.Replace(@"'opt}'", @"? '}'");
+            output = output.Replace(@"'opt]'", @"? ']'");
+            output = output.Replace(@"'opt>'", @"? '>'");
             output = output.Replace(@"? |  ')'", @"? ')'");
             output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
             // Get nullable for string_literal. NEED TO TEST IN ANALYSIS!
@@ -253,8 +262,18 @@ namespace scrape_pdf
             output = ReplaceFirstOccurrence(output,
                 @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? |  type_specifier_seq abstract_declarator ? |  '...' ;",
                 @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;");
-
-
+            output = ReplaceFirstOccurrence(output,
+                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '""' and_expression ;",
+                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;");
+            output = ReplaceFirstOccurrence(output,
+                @"static_assert_declaration :  'static_assert' '(' 'constant-expression)' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
+                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
+                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;");
+            output = ReplaceFirstOccurrence(output,
+                @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;",
+                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;");
 
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
             output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");

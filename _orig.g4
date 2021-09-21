@@ -127,7 +127,7 @@ equality_expression :  relational_expression |  equality_expression '==' relatio
 // § A.4 	 1217  c ISO/IEC 	 N4296
 
 and_expression :  equality_expression |  and_expression '&' equality_expression ;
-exclusive_or_expression :  and_expression |  exclusive_or_expression '"' and_expression ;
+exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;
 inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression '|' exclusive_or_expression ;
 logical_and_expression :  inclusive_or_expression |  logical_and_expression '&&' inclusive_or_expression ;
 logical_or_expression :  logical_and_expression |  logical_or_expression '||' logical_and_expression ;
@@ -161,9 +161,9 @@ declaration :  block_declaration |  function_definition |  template_declaration 
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;
 // § A.6 	 1219  c ISO/IEC 	 N4296
 
-alias_declaration :  'using' identifier attribute_specifier_seq 'opt=' type_id ';' ;
-simple_declaration :  decl_specifier_seq ? init_declarator_list 'opt;' |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list ';' ;
-static_assert_declaration :  'static_assert' '(' 'constant-expression)' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;
+alias_declaration :  'using' identifier attribute_specifier_seq ? '=' type_id ';' ;
+simple_declaration :  decl_specifier_seq ? init_declarator_list ? ';' |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list ';' ;
+static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;
 empty_declaration :  ';' ;
 attribute_declaration :  attribute_specifier_seq ';' ;
 decl_specifier :  storage_class_specifier |  type_specifier |  function_specifier |  'friend' |  'typedef' |  'constexpr' ;
@@ -195,7 +195,7 @@ enumerator :  identifier attribute_specifier_seq ? ;
 namespace_name :  identifier |  namespace_alias ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition nested_namespace_definition ;
 named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;
-unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq 'opt{' namespace_body '}' ;
+unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;
 nested_namespace_definition :  'namespace' enclosing_namespace_specifier '::' identifier '{' namespace_body '}' ;
 enclosing_namespace_specifier :  identifier enclosing_namespace_specifier '::' identifier ;
 namespace_body :  declaration_seq ? ;
@@ -205,7 +205,7 @@ qualified_namespace_specifier :  nested_name_specifier ? namespace_name ;
 using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;
 using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;
 asm_definition :  'asm' '(' string_literal ')' ';' ;
-linkage_specification :  'extern' string_literal '{' declaration_seq 'opt}' |  'extern' string_literal declaration ;
+linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;
 attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
 attribute_specifier :  '[' '[' attribute_list ']' ']' |  alignment_specifier ;
 alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;
@@ -225,7 +225,7 @@ init_declarator_list :  init_declarator |  init_declarator_list ',' init_declara
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
 ptr_declarator :  noptr_declarator |  ptr_operator ptr_declarator ;
-noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' constant_expression 'opt]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;
+noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;
 parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
 trailing_return_type :  '->' trailing_type_specifier_seq abstract_declarator ? ;
 ptr_operator :  '*' attribute_specifier_seq ? cv_qualifier_seq ? |  '&' attribute_specifier_seq ? |  '&&' attribute_specifier_seq ? |  nested_name_specifier '*' attribute_specifier_seq ? cv_qualifier_seq ? ;
@@ -256,15 +256,15 @@ braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;
 
 // A.8 Classes 	 [gram.class] 
 class_name :  identifier |  simple_template_id ;
-class_specifier :  class_head '{' member_specification 'opt}' ;
+class_specifier :  class_head '{' member_specification ? '}' ;
 class_head :  class_key attribute_specifier_seq ? class_head_name class_virt_specifier ? base_clause ? |  class_key attribute_specifier_seq ? base_clause ? ;
 class_head_name :  nested_name_specifier ? class_name ;
 class_virt_specifier :  'final' ;
 class_key :  'class' |  'struct' |  'union' ;
 member_specification :  member_declaration member_specification ? |  access_specifier ':' member_specification ? ;
-member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list 'opt;' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;
+member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;
 member_declarator_list :  member_declarator |  member_declarator_list ',' member_declarator ;
-member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq 'opt:' constant_expression ;
+member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;
 virt_specifier_seq :  virt_specifier |  virt_specifier_seq virt_specifier ;
 virt_specifier :  'override' |  'final' ;
 pure_specifier :  '=' '0' ;
@@ -290,7 +290,7 @@ mem_initializer_id :  class_or_decltype |  identifier ;
 
 // A.11 Overloading 	 [gram.over] 
 operator_function_id :  operator operator ;
-operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
+operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
 literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;
 
 // A.12 Templates 	 [gram.temp] 
@@ -299,10 +299,10 @@ template_parameter_list :  template_parameter |  template_parameter_list ',' tem
 // § A.12 	 1226  c ISO/IEC 	 N4296
 
 template_parameter :  type_parameter |  parameter_declaration ;
-type_parameter :  type_parameter_key '...' ? identifier ? |  type_parameter_key identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? |  identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier 'opt=' id_expression ;
+type_parameter :  type_parameter_key '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? |  identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;
 type_parameter_key :  'class' |  'typename' ;
-simple_template_id :  template_name '<' template_argument_list 'opt>' ;
-template_id :  simple_template_id |  operator_function_id '<' template_argument_list 'opt>' |  literal_operator_id '<' template_argument_list 'opt>' ;
+simple_template_id :  template_name '<' template_argument_list ? '>' ;
+template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;
 template_name :  identifier ;
 template_argument_list :  template_argument '...' ? |  template_argument_list ',' template_argument '...' ? ;
 template_argument :  constant_expression |  type_id |  id_expression ;
@@ -346,20 +346,23 @@ new_line :  RESTRICTED_CHARS11 ;
 // § A.14 	 1229  c ISO/IEC 	 N4296
 
 keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
-    'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
-    'asm' | 'default' | 'if' | 'return' | 'typedef'
-    'auto' | 'delete' | 'inline' | 'short' | 'typeid'
-    'bool' | 'do' | 'int' | 'signed' | 'typename'
-    'break' | 'double' | 'long' | 'sizeof' | 'union'
-    'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
-    'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
-    'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
-    'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
-    'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
-    'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
-    'const' | 'false' | 'private' | 'this' | 'while'
-    'constexpr' | 'float' | 'protected' | 'thread_local'
-    'const_cast' | 'for' | 'public' | 'throw'
-    'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
-    'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
+                'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
+                'asm' | 'default' | 'if' | 'return' | 'typedef'
+                'auto' | 'delete' | 'inline' | 'short' | 'typeid'
+                'bool' | 'do' | 'int' | 'signed' | 'typename'
+                'break' | 'double' | 'long' | 'sizeof' | 'union'
+                'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
+                'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
+                'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
+                'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
+                'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
+                'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
+                'const' | 'false' | 'private' | 'this' | 'while'
+                'constexpr' | 'float' | 'protected' | 'thread_local'
+                'const_cast' | 'for' | 'public' | 'throw'
+                'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
+                'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
 punctuator : preprocessing_op_or_punc ;
+WS : [\n\r\t ]+ -> skip;
+COMMENT : '//' ~[\n\r]* -> skip;
+Prep : '#' ~[\n\r]* -> skip;
