@@ -108,7 +108,7 @@ pseudo_destructor_name :  nested_name_specifier ? type_name '::' '-' type_name |
 unary_expression :  postfix_expression |  '++' cast_expression |  '--' cast_expression |  unary_operator cast_expression |  'sizeof' unary_expression |  'sizeof' '(' type_id ')' |  'sizeof' '...' '(' Identifier ')' |  'alignof' '(' type_id ')' |  noexcept_expression |  new_expression |  delete_expression ;
 // § A.4 	 1216  c ISO/IEC 	 N4296
 
-unary_operator :  '*' | '&' | '+' | '-' | '!' | '~' ;
+unary_operator :  '*' | '&' | '+' | '-' | '!' | '~' | 'not' | 'compl' ;
 new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;
 new_placement :  '(' expression_list ')' ;
 new_type_id :  type_specifier_seq new_declarator ? ;
@@ -126,15 +126,15 @@ relational_expression :  shift_expression |  relational_expression '<' shift_exp
 equality_expression :  relational_expression |  equality_expression '==' relational_expression |  equality_expression '!=' relational_expression ;
 // § A.4 	 1217  c ISO/IEC 	 N4296
 
-and_expression :  equality_expression |  and_expression '&' equality_expression ;
-exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;
-inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression '|' exclusive_or_expression ;
-logical_and_expression :  inclusive_or_expression |  logical_and_expression '&&' inclusive_or_expression ;
-logical_or_expression :  logical_and_expression |  logical_or_expression '||' logical_and_expression ;
+and_expression :  equality_expression |  and_expression ( '&' | 'bitand' ) equality_expression ;
+exclusive_or_expression :  and_expression |  exclusive_or_expression ( '^' | 'xor' ) and_expression ;
+inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( '|' | 'bitor' ) exclusive_or_expression ;
+logical_and_expression :  inclusive_or_expression |  logical_and_expression ( '&&' | 'and' ) inclusive_or_expression ;
+logical_or_expression :  logical_and_expression |  logical_or_expression ( '||' | 'or' ) logical_and_expression ;
 conditional_expression :  logical_or_expression |  logical_or_expression '?' expression ':' assignment_expression ;
 throw_expression :  'throw' assignment_expression ? ;
 assignment_expression :  conditional_expression |  logical_or_expression assignment_operator initializer_clause |  throw_expression ;
-assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | 'ˆ=' | '|=' ;
+assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | 'ˆ=' | '|=' | 'and_eq' | 'or_eq' | 'xor_eq' ;
 expression :  assignment_expression |  expression ',' assignment_expression ;
 constant_expression :  conditional_expression ;
 

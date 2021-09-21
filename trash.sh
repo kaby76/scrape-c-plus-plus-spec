@@ -137,6 +137,12 @@ trparse c_plus_plus_spec_draft.g4 | \
 echo ""
 echo "Fixing alternative operators Table 6"
 trparse c_plus_plus_spec_draft.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='logical_and_expression']//STRING_LITERAL" "( '&&' | 'and' )" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='assignment_operator']//SEMI" "| 'and_eq' | 'or_eq' | 'xor_eq' ;" | \
 	trreplace "//parserRuleSpec[RULE_REF/text()='and_expression']//STRING_LITERAL" "( '&' | 'bitand' )" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='inclusive_or_expression']//STRING_LITERAL" "( '|' | 'bitor' )" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='logical_or_expression']//STRING_LITERAL" "( '||' | 'or' )" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='exclusive_or_expression']//STRING_LITERAL" "( '^' | 'xor' )" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='unary_operator']//SEMI" "| 'not' | 'compl' ;" | \
 	trsponge -c true
-	
+
