@@ -1,4 +1,4 @@
-grammar n4296_ocred;
+grammar scrape;
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
