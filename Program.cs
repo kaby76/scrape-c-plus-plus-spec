@@ -191,9 +191,9 @@ namespace scrape_pdf
                 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
                 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq'" + (ebnf ? "" : " ;"));
             result.AppendLine(@"punctuator " + (ebnf ? "::=" : ":") + " preprocessing_op_or_punc" + (ebnf ? "" : " ;"));
-            result.AppendLine(@"WS : [\n\r\t ]+ -> skip;
-COMMENT : '//' ~[\n\r]* -> skip;
-Prep : '#' ~[\n\r]* -> skip;");
+            result.AppendLine(@"WS : [\n\r\t ]+ -> channel(HIDDEN);
+COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
+Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
@@ -289,6 +289,16 @@ Prep : '#' ~[\n\r]* -> skip;");
             output = ReplaceFirstOccurrence(output,
                 @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;",
                 @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;");
+            output = ReplaceFirstOccurrence(output,
+                @"conversion_function_id :  operator conversion_type_id ;",
+                @"conversion_function_id :  'operator' conversion_type_id ;");
+            output = ReplaceFirstOccurrence(output,
+                @"operator_function_id :  operator operator ;",
+                @"operator_function_id :  'operator' operator ;");
+            output = ReplaceFirstOccurrence(output,
+                @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
+                @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
+
 
             // Fix rules that should have been written differently.
             output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");

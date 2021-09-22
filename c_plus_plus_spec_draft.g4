@@ -280,7 +280,7 @@ base_type_specifier :  class_or_decltype ;
 access_specifier :  'private' |  'protected' |  'public' ;
 
 // A.10 Special member functions 	 [gram.special] 
-conversion_function_id :  operator conversion_type_id ;
+conversion_function_id :  'operator' conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator conversion_declarator ? ;
 ctor_initializer :  ':' mem_initializer_list ;
@@ -289,9 +289,9 @@ mem_initializer :  mem_initializer_id '(' expression_list ? ')' |  mem_initializ
 mem_initializer_id :  class_or_decltype |  Identifier ;
 
 // A.11 Overloading 	 [gram.over] 
-operator_function_id :  operator operator ;
+operator_function_id :  'operator' operator ;
 operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
-literal_operator_id :  operator String_literal Identifier |  operator User_defined_string_literal ;
+literal_operator_id :  'operator' String_literal Identifier |  'operator' User_defined_string_literal ;
 
 // A.12 Templates 	 [gram.temp] 
 template_declaration :  'template' '<' template_parameter_list '>' declaration ;
@@ -363,6 +363,6 @@ keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true'
                 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
                 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
 punctuator : preprocessing_op_or_punc ;
-WS : [\n\r\t ]+ -> skip;
-COMMENT : '//' ~[\n\r]* -> skip;
-Prep : '#' ~[\n\r]* -> skip;
+WS : [\n\r\t ]+ -> channel(HIDDEN);
+COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
+Prep : '#' ~[\n\r]* -> channel(HIDDEN);
