@@ -1,4 +1,4 @@
-grammar c_plus_plus_spec_draft;
+grammar n4296_ocred;
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
@@ -365,4 +365,5 @@ keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true'
 punctuator : preprocessing_op_or_punc ;
 WS : [\n\r\t ]+ -> channel(HIDDEN);
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
+ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
 Prep : '#' ~[\n\r]* -> channel(HIDDEN);
