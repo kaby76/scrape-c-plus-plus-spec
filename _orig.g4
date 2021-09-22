@@ -1,4 +1,4 @@
-grammar scrape;
+grammar Scrape;
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
