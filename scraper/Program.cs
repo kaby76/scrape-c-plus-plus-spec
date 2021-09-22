@@ -54,8 +54,9 @@ namespace scrape_pdf
 
             if (!ebnf)
             {
-                result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
-            }
+//                result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
+		    result.AppendLine("grammar scrape;");
+	    }
 
             // Let's start parsing the spec text and extracting the
             // rules for C++.
