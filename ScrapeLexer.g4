@@ -1,4 +1,4 @@
-lexer grammar ScrapeLexer;
+lexer grammar ScrapeLexer; 
 
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
@@ -47,6 +47,7 @@ KWNamespace: 'namespace';
 KWNew: 'new';
 KWNoexcept: 'noexcept';
 KWNot: 'not';
+KWNotEq: 'not_eq';
 KWNullptr: 'nullptr';
 KWOperator: 'operator';
 KWOr: 'or';
@@ -95,6 +96,7 @@ ArrowStar: '->*';
 Assign: '=';
 Caret: '^';
 Colon: ':';
+ColonGt: ':>';
 Comma: ',';
 Div: '/';
 DivAssign: '/=';
@@ -112,6 +114,8 @@ LeftShift: '<<';
 LeftShiftAssign: '<<=';
 Less: '<';
 LessEqual: '<=';
+LtColon: '<:';
+LtPer: '<%';
 Minus: '-';
 MinusAssign: '-=';
 MinusMinus: '--';
@@ -122,9 +126,14 @@ NotEqual: '!=';
 Or: '|';
 OrAssign: '|=';
 OrOr: '||';
+PerColon: '%:';
+PerColonPerColon: '%:%:';
+PerGt: '%>';
 Plus: '+';
 PlusAssign: '+=';
 PlusPlus: '++';
+Pound: '#';
+PoundPound: '##';
 Question: '?';
 RightBrace: '}';
 RightBracket: ']';
@@ -136,6 +145,7 @@ Star: '*';
 StarAssign: '*=';
 Tilde: '~';
 XorAssign: '^=';
+
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;

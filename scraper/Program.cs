@@ -199,6 +199,10 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             var output = result.ToString();
             // Fix ups.
             output = output.Replace("|  ?", "?");
+            output = output.Replace("'ˆ", "'^");
+            output = output.Replace("'new[]'", "'new' '[' ']'");
+            output = output.Replace("'delete[]'", "'delete' '[' ']'");
+            output = output.Replace("'static_assert-declaration'", "static_assert_declaration");
             output = ReplaceFirstOccurrence(output, "typedef_name " + (ebnf ? "::=" : ":") + "  identifier", "// typedef_name :  identifier");
             output = ReplaceFirstOccurrence(output, "enum_name " + (ebnf ? "::=" : ":") + "  identifier", "// enum_name :  identifier");
             output = ReplaceFirstOccurrence(output, "namespace_name " + (ebnf ? "::=" : ":") + "  original_namespace_name |  namespace_alias", "// namespace_name :  original_namespace_name |  namespace_alias");
@@ -274,8 +278,9 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
                 @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
                 @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;");
             output = ReplaceFirstOccurrence(output,
-                @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;",
-                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;");
+                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;",
+                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;");
+
 
             output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
             output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");
@@ -300,7 +305,6 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             output = ReplaceFirstOccurrence(output,
                 @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
                 @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
-
 
             // Fix rules that should have been written differently.
             output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");

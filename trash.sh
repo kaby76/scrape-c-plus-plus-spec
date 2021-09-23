@@ -155,6 +155,11 @@ trparse Scrape.g4 | \
 	trsplit | \
 	trsponge -c true
 
+xx="; `cat addin`"
+trparse ScrapeLexer.g4 | \
+	trreplace "//grammarSpec/grammarDecl/SEMI" "$xx" | \
+	trsponge -c true
+
 echo ""
 echo "Folding lexer symbols"
 trparse ScrapeParser.g4 | \

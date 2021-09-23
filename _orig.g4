@@ -28,7 +28,7 @@ nondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l
 digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 // § A.2 	 1211  c ISO/IEC
 
-preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | 'and' | 'or' | '>=' | 'and_eq' | 'or_eq' | '&&' | 'bitand' | 'xor' | '||' | 'bitor' | 'xor_eq' | '++' | 'compl' | '--' | 'not' | ',' | 'not_eq' | '->*' | '->' ;
+preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | 'and' | 'or' | '>=' | 'and_eq' | 'or_eq' | '&&' | 'bitand' | 'xor' | '||' | 'bitor' | 'xor_eq' | '++' | 'compl' | '--' | 'not' | ',' | 'not_eq' | '->*' | '->' ;
 literal :  integer_literal |  character_literal |  floating_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
 integer_literal :  binary_literal integer_suffix ? |  octal_literal integer_suffix ? |  decimal_literal integer_suffix ? |  hexadecimal_literal integer_suffix ? ;
 binary_literal :  '0b' binary_digit |  '0B' binary_digit |  binary_literal '’' ? binary_digit ;
@@ -101,7 +101,7 @@ simple_capture :  identifier |  '&' identifier |  'this' ;
 init_capture :  identifier initializer |  '&' identifier initializer ;
 lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 fold_expression :  '(' cast_expression fold_operator '...' ')' |  '(' '...' fold_operator cast_expression ')' |  '(' cast_expression fold_operator '...' fold_operator cast_expression ')' ;
-fold_operator :  '+' | '-' | '*' | '/' | '%' | 'ˆ' | '&' | '|' | '<<' | '>>' | '+=' | '-=' | '*=' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<=' | '>>=' | '=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '&&' | '||' | ',' | '.*' | '->*' ;
+fold_operator :  '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '<<' | '>>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<=' | '>>=' | '=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '&&' | '||' | ',' | '.*' | '->*' ;
 postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ?  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
 expression_list :  initializer_list ;
 pseudo_destructor_name :  nested_name_specifier ? type_name '::' '-' type_name |  nested_name_specifier 'template' simple_template_id '::' '-' type_name |  '-' type_name |  '-' decltype_specifier ;
@@ -134,7 +134,7 @@ logical_or_expression :  logical_and_expression |  logical_or_expression '||' lo
 conditional_expression :  logical_or_expression |  logical_or_expression '?' expression ':' assignment_expression ;
 throw_expression :  'throw' assignment_expression ? ;
 assignment_expression :  conditional_expression |  logical_or_expression assignment_operator initializer_clause |  throw_expression ;
-assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | 'ˆ=' | '|=' ;
+assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | '^=' | '|=' ;
 expression :  assignment_expression |  expression ',' assignment_expression ;
 constant_expression :  conditional_expression ;
 
@@ -158,7 +158,7 @@ declaration_statement :  block_declaration ;
 // A.6 Declarations 	 [gram.dcl] 
 declaration_seq :  declaration |  declaration_seq declaration ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
-block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;
+block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 // § A.6 	 1219  c ISO/IEC 	 N4296
 
 alias_declaration :  'using' identifier attribute_specifier_seq ? '=' type_id ';' ;
@@ -262,7 +262,7 @@ class_head_name :  nested_name_specifier ? class_name ;
 class_virt_specifier :  'final' ;
 class_key :  'class' |  'struct' |  'union' ;
 member_specification :  member_declaration member_specification ? |  access_specifier ':' member_specification ? ;
-member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;
+member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;
 member_declarator_list :  member_declarator |  member_declarator_list ',' member_declarator ;
 member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;
 virt_specifier_seq :  virt_specifier |  virt_specifier_seq virt_specifier ;
@@ -290,7 +290,7 @@ mem_initializer_id :  class_or_decltype |  identifier ;
 
 // A.11 Overloading 	 [gram.over] 
 operator_function_id :  'operator' operator ;
-operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | 'ˆ' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | 'ˆ=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
+operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;
 literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;
 
 // A.12 Templates 	 [gram.temp] 
