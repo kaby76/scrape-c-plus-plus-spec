@@ -1,3 +1,5 @@
+#define XX asdf
+
 union a {
 	int b;
 	float c;

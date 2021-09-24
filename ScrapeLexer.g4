@@ -163,11 +163,11 @@ fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_qu
 
 //  token :  Identifier |  keyword |  literal |  operator |  punctuator ;
 //  header_name :  '<' h_char_sequence '>' |  '"' q_char_sequence '"' ;
-//  h_char_sequence :  h_char |  h_char_sequence h_char ;
+//  h_char_sequence : (  h_char ) ( h_char ) * ;
 //  h_char :  RESTRICTED_CHARS2 ;
-//  q_char_sequence :  q_char |  q_char_sequence q_char ;
+//  q_char_sequence : (  q_char ) ( q_char ) * ;
 //  q_char :  RESTRICTED_CHARS3 ;
-//  pp_number :  FDigit |  '.' FDigit |  pp_number FDigit |  pp_number FIdentifier_nondigit |  pp_number '\'' FDigit |  pp_number '\'' FNondigit |  pp_number 'e' FSign |  pp_number 'E' FSign |  pp_number '.' ;
+//  pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * ;
 Identifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * ;
 fragment FIdentifier_nondigit :  FNondigit |  FUniversal_character_name ;
 fragment FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;

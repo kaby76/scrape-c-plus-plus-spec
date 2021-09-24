@@ -48,9 +48,7 @@ echo "left-recursion in lexer rule (it does for parser rules)."
 echo "In particular, the rules are Hexadecimal_escape_sequence, C_char_sequence, Digit_sequence"
 
 trparse Scrape.g4 | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FHexadecimal_escape_sequence']" | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FC_char_sequence']" | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FDigit_sequence']" | \
+	trkleene | \
 	trsponge -c true
 
 echo ""
@@ -105,12 +103,6 @@ trparse Scrape.g4 | \
 
 echo ""
 echo "Removing lexer left recursions..."
-trparse Scrape.g4 | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence']" | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FR_char_sequence']" | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='FD_char_sequence']" | \
-	trsponge -c true
-
 echo ""
 echo "Fixing user_defined_literal, user_defined_floating_literal, user_defined_integer_literal, user_defined_string_literal, user_defined_character_literal, ud_suffix"
 trparse Scrape.g4 | \
@@ -124,11 +116,8 @@ trparse Scrape.g4 | \
 	trsponge -c true
 
 
-echo Fix FS_char_sequence FR_char_sequence  ...
+echo Fix FUd_suffix
 trparse Scrape.g4 | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FS_char_sequence']" "fragment" | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FR_char_sequence']" "fragment" | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FD_char_sequence']" "fragment" | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FUd_suffix']" "fragment" | \
 	trsponge -c true
 
