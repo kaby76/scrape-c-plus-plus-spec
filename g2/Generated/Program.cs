@@ -22,7 +22,7 @@ public class Program
     {
         var str = new AntlrInputStream(input);
         var lexer = new SaveLexer(str);
-	    Lexer = lexer;
+        Lexer = lexer;
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
         TokenStream = tokens;
@@ -165,7 +165,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     {
         for (IParseTree p = context; p != null; p = p.Parent)
         {
-            if (p is SaveParser.Text_lineContext)
+            //if (p is SaveParser.Text_lineContext)
             {
                 var p1 = TreeEdits.LeftMostToken(context);
                 var pp1 = p1.SourceInterval;
@@ -177,7 +177,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                     var p3 = TreeEdits.GetText(p2);
                     sb.Append(p3);
                 }
-                sb.Append(context.GetText());
+                sb.AppendLine();
                 break;
             }
         }
@@ -357,7 +357,41 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         else if (context.PPInclude() != null)
         {
-
+            var header = context.pp_tokens();
+            VisitPp_tokens(header);
+            // Get pp_tokens state.
+            List<string> probe_locations = new List<string>()
+            {
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/x86_64-pc-msys",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/backward",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include-fixed",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/../../../../lib/../include/w32api",
+            };
+            // Fix for Windows.
+            List<string> new_list = new List<string>();
+            foreach (var s in probe_locations) { new_list.Add("c:/msys64" + s); }
+            probe_locations = new_list;
+            var header_string = state[header] as string;
+            var angle_bracket_include = header_string[0] == '<';
+            if (!angle_bracket_include)
+            {
+                // Look in standard file location.
+                probe_locations.Insert(0, "./");
+            }
+            var stripped = header_string.Substring(1, header_string.Length - 2);
+            // Find file.
+            foreach (var l in probe_locations)
+            {
+                var dir = !l.EndsWith("/") ? l + "/" : l;
+                if (File.Exists(dir + stripped))
+                {
+                    // Add file to input.
+                    break;
+                }
+            }
         }
         return null;
     }
@@ -389,8 +423,15 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         foreach (var pp in preprocessing_tokens)
         {
             VisitPreprocessing_token(pp);
+            if (state.TryGetValue(pp, out object v))
+            {
+                state[context] = v;
+            }
+            else
+            {
+                state[context] = null;
+            }
         }
-        state[context] = null;
         return null;
     }
 

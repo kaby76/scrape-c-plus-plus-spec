@@ -1,4 +1,6 @@
-#define XX asdf
+#include <iostream>
+
+//#define XX asdf
 
 #ifdef XX
 int foo1() {}
