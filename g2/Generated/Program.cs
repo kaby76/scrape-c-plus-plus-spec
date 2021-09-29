@@ -100,7 +100,7 @@ public class Program
             else
                 str = CharStreams.fromPath(file_name, encoding);
         }
-	    var lexer = new SaveLexer(str);
+        var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         if (show_tokens)
         {
@@ -143,7 +143,7 @@ public class Program
 
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
-        visitor.Visit(tree);
+        //visitor.Visit(tree);
         System.Console.WriteLine(visitor.sb.ToString());
 	    System.Environment.Exit(listener_lexer.had_error || listener_parser.had_error ? 1 : 0);
     }
@@ -360,6 +360,9 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             var header = context.pp_tokens();
             VisitPp_tokens(header);
             // Get pp_tokens state.
+            // This list obtained from https://stackoverflow.com/questions/344317/where-does-gcc-look-for-c-and-c-header-files
+            // echo "#include <bogus.h>" > t.cc; g++ -v t.cc; rm t.cc
+            // echo "#include <bogus.h>" > t.c; gcc -v t.c; rm t.c
             List<string> probe_locations = new List<string>()
             {
                 "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
@@ -389,6 +392,25 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 if (File.Exists(dir + stripped))
                 {
                     // Add file to input.
+                    var input = File.ReadAllText(dir + stripped);
+                    var str = new AntlrInputStream(input);
+                    var lexer = new SaveLexer(str);
+                    lexer.PushMode(SaveLexer.PP);
+                    var tokens = new CommonTokenStream(lexer);
+                    var parser = new SaveParser(tokens);
+                    var listener_lexer = new ErrorListener<int>();
+                    var listener_parser = new ErrorListener<IToken>();
+                    lexer.AddErrorListener(listener_lexer);
+                    parser.AddErrorListener(listener_parser);
+                    DateTime before = DateTime.Now;
+                    var tree = parser.preprocessing_file();
+                    var visitor = new Preprocessor(tokens);
+                    visitor.state = this.state;
+                    visitor.preprocessor_symbols = this.preprocessor_symbols;
+                    visitor.Visit(tree);
+                    this.state = visitor.state;
+                    this.preprocessor_symbols = visitor.preprocessor_symbols;
+                    sb.AppendLine(visitor.sb.ToString());
                     break;
                 }
             }

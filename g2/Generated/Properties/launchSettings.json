@@ -2,7 +2,8 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "commandLineArgs": "-file c:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\test\\z.cpp -tokens"
+      "commandLineArgs": "-file c++config.h",
+      "workingDirectory": "c:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\test"
     }
   }
 }

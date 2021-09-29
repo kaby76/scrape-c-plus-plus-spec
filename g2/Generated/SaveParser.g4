@@ -1,6 +1,23 @@
 parser grammar SaveParser;
 
 options { tokenVocab=SaveLexer; }
+@members {
+static DateTime _last_time = DateTime.Now;
+bool Time()
+{
+    var now = DateTime.Now;
+    System.TimeSpan diff = now.Subtract(_last_time);
+	var one = new System.TimeSpan(0, 0, 1);
+    _last_time = now;
+	if (System.TimeSpan.Compare(diff, one) > 0)
+    {
+	    var tok = this.TokenStream.LT(1);
+		System.Console.WriteLine(tok.Line + " " + tok.Column);
+    }
+    //System.Console.WriteLine(DateTime.Now.ToString());
+    return true;
+}
+}
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
@@ -272,8 +289,8 @@ elif_groups :  elif_group |  elif_groups elif_group ;
 elif_group :  '#' 'elif' constant_expression new_line group ? ;
 else_group :  '#' 'else' new_line group ? ;
 endif_line :  '#' 'endif' new_line ;
-control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' Identifier replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' Identifier lparen '...' ')' replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' Identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
-text_line :  { InputStream.LA(1) != SaveLexer.PPPound }? pp_tokens ? new_line ;
+control_line :  { Time() }? ('#' 'include' pp_tokens new_line |  '#' 'define' Identifier replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' Identifier lparen '...' ')' replacement_list new_line |  '#' 'define' Identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' Identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ) ;
+text_line :  { Time() && InputStream.LA(1) != SaveLexer.PPPound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  '(';
 // § A.14 	 1228  c ISO/IEC 	 N4296
