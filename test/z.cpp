@@ -1,5 +1,13 @@
 #define XX asdf
 
+#ifdef XX
+int foo1() {}
+#endif
+
+#ifndef XX
+int foo2() {}
+#endif
+
 union a {
 	int b;
 	float c;
