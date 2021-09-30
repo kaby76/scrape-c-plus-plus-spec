@@ -203,9 +203,9 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 break;
             }
         }
-        var pp_header = context.PPHeader_name();
+        var pp_header = context.Header_name();
         var id = context.Identifier();
-        var pp_number = context.Pp_number();
+        var pp_number = context.pp_number();
         var char_lit = context.Character_literal();
         var user_def_char_list = context.User_defined_character_literal();
         var user_def_str_lit = context.User_defined_string_literal();
@@ -286,7 +286,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 Visit(context.group());
             }
         }
-        else if (context.PPIfndef() != null)
+        else if (context.KWIfndef() != null)
         {
             var id = context.Identifier().GetText();
             var b = preprocessor_symbols.ContainsKey(id);
@@ -297,7 +297,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 Visit(context.group());
             }
         }
-        else if (context.PPIfdef() != null)
+        else if (context.KWIfdef() != null)
         {
             var id = context.Identifier().GetText();
             var b = preprocessor_symbols.ContainsKey(id);
@@ -342,20 +342,20 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitControl_line([NotNull] SaveParser.Control_lineContext context)
     {
-        if (context.PPDefine() != null)
+        if (context.KWDefine() != null)
         {
             var id = context.Identifier().GetText();
             SaveParser.Replacement_listContext list = context.replacement_list();
-            SaveParser.Identifier_listContext parms = context.identifier_list();
+            var parms = context.identifier_list();
             preprocessor_symbols[id] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>(parms, list);
             sb.AppendLine(); // Per spec, output blank line.
         }
-        else if (context.PPUndef() != null)
+        else if (context.KWUndef() != null)
         {
             var id = context.Identifier().GetText();
             preprocessor_symbols.Remove(id);
         }
-        else if (context.PPInclude() != null)
+        else if (context.KWInclude() != null)
         {
             var header = context.pp_tokens();
             VisitPp_tokens(header);
