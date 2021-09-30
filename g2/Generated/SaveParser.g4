@@ -61,7 +61,7 @@ pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Minus ty
 unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
 // § A.4 	 1216  c ISO/IEC 	 N4296
 
-unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl ;
+unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl | KWDefined;
 new_expression :  Doublecolon ? KWNew new_placement ? new_type_id new_initializer ? |  Doublecolon ? KWNew new_placement ? LeftParen type_id RightParen new_initializer ? ;
 new_placement :  LeftParen expression_list RightParen ;
 new_type_id :  type_specifier_seq new_declarator ? ;
@@ -279,14 +279,14 @@ noexcept_specification :  KWNoexcept LeftParen constant_expression RightParen | 
 // A.14 Preprocessing directives 	 [gram.cpp] 
 preprocessing_file :  group ? EOF ;
 group :  group_part+? ;
-group_part :  if_section |  control_line |  text_line |  PPPound non_directive ;
+group_part :  if_section |  control_line |  text_line |  Pound non_directive ;
 if_section :  if_group elif_groups ? else_group ? endif_line ;
 if_group :  Pound KWIf constant_expression new_line group ? |  Pound KWIfdef Identifier new_line group ? |  Pound KWIfndef Identifier new_line group ? ;
 elif_groups :  elif_group |  elif_groups elif_group ;
 elif_group :  Pound KWElif constant_expression new_line group ? ;
 else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound KWEndif new_line ;
-control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound KWError pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
+control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line ;//|  Pound new_line ;
 text_line :  { InputStream.LA(1) != SaveLexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen;

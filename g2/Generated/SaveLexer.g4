@@ -1,6 +1,6 @@
 lexer grammar SaveLexer;
 
-tokens { KWDefine, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError }
+tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning }
 
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
@@ -223,11 +223,13 @@ PPKWBitAnd: 'bitand' -> type(KWBitAnd);
 PPKWBitOr: 'bitor' -> type(KWBitOr);
 PPKWCompl: 'compl' -> type(KWCompl);
 PPKWDefine: 'define' -> type(KWDefine);
+PPKWDefined: 'defined' -> type(KWDefined);
 PPKWDelete: 'delete' -> type(KWDelete);
 PPKWElif: 'elif' -> type(KWElif);
 PPKWElse: 'else' -> type(KWElse);
 PPKWEndif: 'endif' -> type(KWEndif);
 PPKWError: 'error' -> type(KWError);
+PPKWWarning: 'warning' -> type(KWWarning);
 PPKWIf: 'if' -> type(KWIf);
 PPKWIfdef: 'ifdef' -> type(KWIfdef);
 PPKWIfndef: 'ifndef' -> type(KWIfndef);
