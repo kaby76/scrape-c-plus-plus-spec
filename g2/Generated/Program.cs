@@ -153,7 +153,7 @@ public class Program
 
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
-        //visitor.Visit(tree);
+        visitor.Visit(tree);
         System.Console.WriteLine(visitor.sb.ToString());
 	    System.Environment.Exit(listener_lexer.had_error || listener_parser.had_error ? 1 : 0);
     }
@@ -545,7 +545,24 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitLogical_or_expression([NotNull] SaveParser.Logical_or_expressionContext context)
     {
-        throw new Exception();
+        var or = context.logical_or_expression();
+        var and = context.logical_and_expression();
+        if (or != null)
+        {
+            Visit(or);
+            var v = state[or];
+            bool b = v == null ? false : (bool)v;
+            if (b)
+            {
+                state[context] = b;
+                return null;
+            }
+        }
+        Visit(and);
+        var v2 = state[and];
+        bool b2 = v2 == null ? false : (bool)v2;
+        state[context] = b2;
+        return null;
     }
 
     public override IParseTree VisitAdditive_expression([NotNull] SaveParser.Additive_expressionContext context)
@@ -555,7 +572,21 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitAnd_expression([NotNull] SaveParser.And_expressionContext context)
     {
-        throw new Exception();
+        // and_expression :  equality_expression |  and_expression ( And | KWBitAnd ) equality_expression ;
+        var eq = context.equality_expression();
+        var and = context.and_expression();
+        int b = -1;
+        if (and != null)
+        {
+            Visit(and);
+            var v = state[and];
+            b = v == null ? 0 : (int)v;
+        }
+        Visit(eq);
+        var v2 = state[eq];
+        var b2 = v2 == null ? 0 : (int)v2;
+        state[context] = b & b2;
+        return null;
     }
 
 
@@ -580,7 +611,21 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitExclusive_or_expression([NotNull] SaveParser.Exclusive_or_expressionContext context)
     {
-        throw new Exception();
+        // exclusive_or_expression :  and_expression |  exclusive_or_expression ( Caret | KWXor ) and_expression ;
+        var and = context.and_expression();
+        var xor = context.exclusive_or_expression();
+        int b = 0;
+        if (xor != null)
+        {
+            Visit(xor);
+            var v = state[xor];
+            b = v == null ? 0 : (int)v;
+        }
+        Visit(and);
+        var v2 = state[and];
+        int b2 = v2 == null ? 0 : (int)v2;
+        state[context] = b ^ b2;
+        return null;
     }
 
     public override IParseTree VisitFold_expression([NotNull] SaveParser.Fold_expressionContext context)
@@ -595,7 +640,21 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitInclusive_or_expression([NotNull] SaveParser.Inclusive_or_expressionContext context)
     {
-        throw new Exception();
+        // inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( Or | KWBitOr ) exclusive_or_expression ;
+        var ior = context.inclusive_or_expression();
+        var xor = context.exclusive_or_expression();
+        int b = 0;
+        if (ior != null)
+        {
+            Visit(ior);
+            var v = state[ior];
+            b = v == null ? 0 : (int)v;
+        }
+        Visit(xor);
+        var v2 = state[ior];
+        int b2 = v2 == null ? 0 : (int)v2;
+        state[context] = b | b2;
+        return null;
     }
 
     public override IParseTree VisitLambda_expression([NotNull] SaveParser.Lambda_expressionContext context)
@@ -605,7 +664,31 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitLogical_and_expression([NotNull] SaveParser.Logical_and_expressionContext context)
     {
-        throw new Exception();
+        var ior = context.inclusive_or_expression();
+        var and = context.logical_and_expression();
+        if (and != null)
+        {
+            Visit(and);
+            var v = state[and];
+            bool b = v == null ? false : (bool)v;
+            if (!b)
+            {
+                state[context] = b;
+                return null;
+            }
+        }
+        Visit(ior);
+        var v2 = state[ior];
+        bool b2 = v2 == null ? false : (bool)v2;
+        if (b2)
+        {
+            state[context] = b2;
+        }
+        else
+        {
+            state[context] = false;
+        }
+        return null;
     }
 
     public override IParseTree VisitMultiplicative_expression([NotNull] SaveParser.Multiplicative_expressionContext context)
