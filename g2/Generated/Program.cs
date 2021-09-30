@@ -116,7 +116,7 @@ public class Program
             }
             System.Console.Error.WriteLine(new_s.ToString());
             lexer.Reset();
-	        lexer.PushMode(SaveLexer.PP);
+            lexer.PushMode(SaveLexer.PP);
         }
         var tokens = new CommonTokenStream(lexer);
         var parser = new SaveParser(tokens);
@@ -125,6 +125,7 @@ public class Program
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
+       // parser.Profile = true;
         var tree = parser.preprocessing_file();
         DateTime after = DateTime.Now;
         System.Console.Error.WriteLine("Time: " + (after - before));
@@ -140,6 +141,15 @@ public class Program
         {
             System.Console.Error.WriteLine(tree.ToStringTree(parser));
         }
+        //foreach (var xxx in parser.ParseInfo.getDecisionInfo().Select(d =>
+        //{
+        //    var t = d.timeInPrediction;
+        //    var z = parser.RuleNames[parser.Atn.GetDecisionState(d.decision).ruleIndex];
+        //    return z + " " + t + " " + d.ToString();
+        //}))
+        //{
+        //    System.Console.Out.WriteLine(xxx);
+        //}
 
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
@@ -203,7 +213,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 break;
             }
         }
-        var pp_header = context.Header_name();
+        var pp_header = context.header_name();
         var id = context.Identifier();
         var pp_number = context.pp_number();
         var char_lit = context.Character_literal();

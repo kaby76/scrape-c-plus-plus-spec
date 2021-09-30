@@ -250,9 +250,9 @@ fragment H_char :  ~[\n>] ;
 fragment Q_char_sequence :  Q_char+ ;
 fragment Q_char :  ~[\n"] ;
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
-Header_name :  '<' H_char_sequence '>' |  '"' Q_char_sequence '"' ;
+Header_name :  ( '<' H_char_sequence '>' |  '"' Q_char_sequence '"' ) -> type(String_literal) ;
 PPEOL: [\r\n']+ -> type(Newline);
-PPOWS : [ ]+ -> channel(HIDDEN);
+PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);
 
 PPLeftBrace: '{' -> type(LeftBrace);
@@ -312,5 +312,7 @@ PPComma: ',' -> type(Comma);
 PPArrow: '->' -> type(Arrow);
 PPArrowStar: '->*' -> type(ArrowStar);
 PPNotEqual: '!=' -> type(NotEqual);
+
+PPContinue : [\\][\r\n]+ -> channel(HIDDEN);
 
 PPAny : .;

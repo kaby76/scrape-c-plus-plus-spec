@@ -6,10 +6,11 @@ options { tokenVocab=SaveLexer; }
 // typedef_name :  identifier ;
 // namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  Identifier ;
-preprocessing_token :  Header_name |  Identifier |  pp_number |  Character_literal |  User_defined_character_literal |  String_literal |  User_defined_string_literal |  preprocessing_op_or_punc | ~Newline;
+preprocessing_token :  header_name |  Identifier |  pp_number |  Character_literal |  User_defined_character_literal |  String_literal |  User_defined_string_literal |  preprocessing_op_or_punc | ~Newline;
 // § A.2 	 1210  c ISO/IEC 	 N4296
 
 token :  Identifier |  keyword |  literal |  operator |  punctuator ;
+header_name : String_literal ;
 // § A.2 	 1211  c ISO/IEC
 
 preprocessing_op_or_punc :  LeftBrace | RightBrace | LeftBracket | RightBracket
@@ -279,10 +280,10 @@ noexcept_specification :  KWNoexcept LeftParen constant_expression RightParen | 
 // A.14 Preprocessing directives 	 [gram.cpp] 
 preprocessing_file :  group ? EOF ;
 group :  group_part+? ;
-group_part :  if_section |  control_line |  text_line |  Pound non_directive ;
-if_section :  if_group elif_groups ? else_group ? endif_line ;
+group_part :  if_section |  control_line |  text_line ;// |  Pound non_directive ;
+if_section : (  Pound KWIf constant_expression new_line group ? |  Pound KWIfdef Identifier new_line group ? |  Pound KWIfndef Identifier new_line group ? ) elif_groups ? else_group ? endif_line ;
 if_group :  Pound KWIf constant_expression new_line group ? |  Pound KWIfdef Identifier new_line group ? |  Pound KWIfndef Identifier new_line group ? ;
-elif_groups :  elif_group |  elif_groups elif_group ;
+elif_groups :  elif_group+;
 elif_group :  Pound KWElif constant_expression new_line group ? ;
 else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound KWEndif new_line ;
