@@ -2,6 +2,7 @@
   "profiles": {
     "scrape-pdf": {
       "commandName": "Project",
+      "commandLineArgs": "n4296-ocred.pdf",
       "workingDirectory": "C:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec"
     }
   }
