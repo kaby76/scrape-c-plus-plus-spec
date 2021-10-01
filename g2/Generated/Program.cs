@@ -277,7 +277,81 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitIf_section([NotNull] SaveParser.If_sectionContext context)
     {
-        return base.VisitIf_section(context);
+        // if_section: (Pound KWIf constant_expression new_line group ? | Pound KWIfdef Identifier new_line group ? | Pound KWIfndef Identifier new_line group ? ) elif_groups? else_group ? endif_line;
+        var test = context.constant_expression();
+        var group = context.group();
+        var elif = context.elif_groups();
+        var els = context.else_group();
+        if (test != null)
+        {
+            Visit(test);
+            var v = state[test];
+            if (v is int)
+            {
+                bool b = 0 != (int)v;
+                state[context] = b;
+                if (b)
+                {
+                    Visit(group);
+                }
+                else if (elif != null)
+                {
+                    Visit(elif);
+                    var v2 = state[elif];
+                    if (v2 is int)
+                    {
+                        bool b2 = 0 != (int)v2;
+                        state[context] = b2;
+                        if (b2)
+                        {
+                        }
+                        else if (els != null)
+                        {
+                            Visit(els);
+                            var v3 = state[els];
+                            if (v3 is int)
+                            {
+                                var b3 = 0 != (int)v3;
+                                state[context] = b3;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (v is bool)
+            {
+                bool b = (bool)v;
+                state[context] = b;
+                if (b)
+                {
+                    Visit(group);
+                }
+                else if (elif != null)
+                {
+                    Visit(elif);
+                    var v2 = state[elif];
+                    if (v2 is int)
+                    {
+                        bool b2 = 0 != (int)v2;
+                        state[context] = b2;
+                        if (b2)
+                        {
+                        }
+                        else if (els != null)
+                        {
+                            Visit(els);
+                            var v3 = state[els];
+                            if (v3 is int)
+                            {
+                                var b3 = 0 != (int)v3;
+                                state[context] = b3;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public override IParseTree VisitIf_group([NotNull] SaveParser.If_groupContext context)
@@ -567,7 +641,31 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitAdditive_expression([NotNull] SaveParser.Additive_expressionContext context)
     {
-        throw new Exception();
+        // additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
+        var mul = context.multiplicative_expression();
+        var add = context.additive_expression();
+        if (add != null)
+        {
+            Visit(add);
+            var v = state[add];
+            var l = (int)v;
+            Visit(mul);
+            var v2 = (int)state[mul];
+            if (context.Plus() != null)
+            {
+                state[context] = l + v2;
+            }
+            else if (context.Minus() != null)
+            {
+                state[context] = l - v2;
+            }
+        }
+        else
+        {
+            Visit(mul);
+            state[context] = state[mul];
+        }
+        return null;
     }
 
     public override IParseTree VisitAnd_expression([NotNull] SaveParser.And_expressionContext context)
@@ -592,7 +690,15 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitCast_expression([NotNull] SaveParser.Cast_expressionContext context)
     {
-        throw new Exception();
+        // cast_expression :  unary_expression |  LeftParen type_id RightParen cast_expression ;
+        if (context.unary_expression() != null)
+        {
+            var unary = context.unary_expression();
+            Visit(unary);
+            state[context] = state[unary];
+        }
+        else throw new Exception();
+        return null;
     }
 
     public override IParseTree VisitDelete_expression([NotNull] SaveParser.Delete_expressionContext context)
@@ -606,7 +712,25 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitEquality_expression([NotNull] SaveParser.Equality_expressionContext context)
     {
-        throw new Exception();
+        // equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
+        var rel = context.relational_expression();
+        var eq = context.equality_expression();
+        object l = null;
+        if (eq != null)
+        {
+            Visit(eq);
+            var v = state[eq];
+            l = v == null ? null : v;
+            Visit(rel);
+            var v2 = state[rel];
+            state[context] = v == v2;
+        }
+        else
+        {
+            Visit(rel);
+            state[context] = state[rel];
+        }
+        return null;
     }
 
     public override IParseTree VisitExclusive_or_expression([NotNull] SaveParser.Exclusive_or_expressionContext context)
@@ -651,7 +775,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             b = v == null ? 0 : (int)v;
         }
         Visit(xor);
-        var v2 = state[ior];
+        var v2 = state[xor];
         int b2 = v2 == null ? 0 : (int)v2;
         state[context] = b | b2;
         return null;
@@ -679,21 +803,46 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         Visit(ior);
         var v2 = state[ior];
-        bool b2 = v2 == null ? false : (bool)v2;
-        if (b2)
-        {
-            state[context] = b2;
-        }
-        else
-        {
-            state[context] = false;
-        }
+        bool b2;
+        if (v2 == null) b2 = false;
+        if (v2 is bool) b2 = (bool)v2;
+        else if (v2 is int) b2 = 0 != (int)v2;
+        else throw new Exception();
+        state[context] = b2;
         return null;
     }
 
     public override IParseTree VisitMultiplicative_expression([NotNull] SaveParser.Multiplicative_expressionContext context)
     {
-        throw new Exception();
+        // multiplicative_expression :  pm_expression |  multiplicative_expression Star pm_expression |  multiplicative_expression Div pm_expression |  multiplicative_expression Mod pm_expression ;
+        var pm = context.pm_expression();
+        var mul = context.multiplicative_expression();
+        if (mul != null)
+        {
+            Visit(mul);
+            var v = state[mul];
+            var l = (int)v;
+            Visit(pm);
+            var v2 = (int)state[pm];
+            if (context.Star() != null)
+            {
+                state[context] = l * v2;
+            }
+            else if (context.Div() != null)
+            {
+                state[context] = l / v2;
+            }
+            else if (context.Mod() != null)
+            {
+                state[context] = l % v2;
+            }
+        }
+        else
+        {
+            Visit(pm);
+            state[context] = state[pm];
+        }
+        return null;
     }
 
     public override IParseTree VisitNew_expression([NotNull] SaveParser.New_expressionContext context)
@@ -708,27 +857,118 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitPm_expression([NotNull] SaveParser.Pm_expressionContext context)
     {
-        throw new Exception();
+        // pm_expression :  cast_expression |  pm_expression DotStar cast_expression |  pm_expression ArrowStar cast_expression ;
+        var cast = context.cast_expression();
+        var pm = context.pm_expression();
+        if (pm != null)
+        {
+            Visit(pm);
+            var v = state[pm];
+            var l = (int)v;
+            Visit(cast);
+            var v2 = (int)state[cast];
+            if (context.DotStar() != null)
+            {
+                state[context] = l * v2;
+            }
+            else if (context.ArrowStar() != null)
+            {
+                state[context] = l / v2;
+            }
+        }
+        else
+        {
+            Visit(cast);
+            state[context] = state[cast];
+        }
+        return null;
     }
 
     public override IParseTree VisitPostfix_expression([NotNull] SaveParser.Postfix_expressionContext context)
     {
-        throw new Exception();
+        // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
+        var pri = context.primary_expression();
+        if (pri == null) throw new Exception();
+        Visit(pri);
+        state[context] = state[pri];
+        return null;
     }
 
     public override IParseTree VisitPrimary_expression([NotNull] SaveParser.Primary_expressionContext context)
     {
-        throw new Exception();
+        // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
+        var literal = context.literal();
+        if (literal == null) throw new Exception();
+        Visit(literal);
+        state[context] = state[literal];
+        return null;
     }
 
     public override IParseTree VisitRelational_expression([NotNull] SaveParser.Relational_expressionContext context)
     {
-        throw new Exception();
+        // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
+        var shift = context.shift_expression();
+        var rel = context.relational_expression();
+        IComparable l = null;
+        if (rel != null)
+        {
+            Visit(rel);
+            var v = state[rel];
+            l = (v == null ? null : v) as IComparable;
+            Visit(shift);
+            var v2 = state[shift] as IComparable;
+            if (context.Less() != null)
+            {
+                state[context] = l.CompareTo(v2) < 0;
+            }
+            else if (context.LessEqual() != null)
+            {
+                state[context] = l.CompareTo(v2) <= 0;
+            }
+            else if (context.Greater() != null)
+            {
+                state[context] = l.CompareTo(v2) > 0;
+            }
+            else if (context.GreaterEqual() != null)
+            {
+                state[context] = l.CompareTo(v2) >= 0;
+            }
+        }
+        else
+        {
+            Visit(shift);
+            state[context] = state[shift];
+        }
+        return null;
     }
 
     public override IParseTree VisitShift_expression([NotNull] SaveParser.Shift_expressionContext context)
     {
-        throw new Exception();
+        // shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression RightShift additive_expression ;
+        var add = context.additive_expression();
+        var shift = context.shift_expression();
+        if (shift != null)
+        {
+            Visit(shift);
+            var v = state[shift];
+            var l = (int)v;
+            Visit(add);
+            var v2 = (int)state[add];
+            if (context.LeftShift() != null)
+            {
+                state[context] = l << v2;
+            }
+            else if (context.RightShift() != null)
+            {
+                state[context] = l >> v2;
+            }
+        }
+        else
+        {
+            Visit(add);
+            state[context] = state[add];
+        }
+        return null;
     }
 
     public override IParseTree VisitThrow_expression([NotNull] SaveParser.Throw_expressionContext context)
@@ -738,7 +978,13 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitUnary_expression([NotNull] SaveParser.Unary_expressionContext context)
     {
-        throw new Exception();
+        // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
+        var post = context.postfix_expression();
+        var cast = context.cast_expression();
+        if (post == null) throw new Exception();
+        Visit(post);
+        state[context] = state[post];
+        return null;
     }
 
     public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
@@ -749,6 +995,18 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     public override IParseTree VisitExpression_statement([NotNull] SaveParser.Expression_statementContext context)
     {
         throw new Exception();
+    }
+
+    public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
+    {
+        // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
+        var int_lit = context.Integer_literal();
+        var float_lit = context.Floating_literal();
+        if (float_lit == null) throw new Exception();
+        string s = float_lit.GetText();
+        int l = int.Parse(s);
+        state[context] = l;
+        return null;
     }
 }
 
