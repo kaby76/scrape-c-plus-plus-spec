@@ -2,7 +2,7 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "commandLineArgs": "-file t.cc",
+      "commandLineArgs": "-file t2.cc",
       "workingDirectory": "c:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\g2\\generated"
     }
   }

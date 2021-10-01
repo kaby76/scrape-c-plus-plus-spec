@@ -19,28 +19,15 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         _stream = stream;
     }
 
-    public override IParseTree VisitNew_line([NotNull] SaveParser.New_lineContext context)
+    // A.1 Keywords 	 [gram.key] 
+    // typedef_name :  identifier ;
+    // namespace_name :  original_namespace_name |  namespace_alias ;
+
+    public override IParseTree VisitOriginal_namespace_name([NotNull] SaveParser.Original_namespace_nameContext context)
     {
-        for (IParseTree p = context; p != null; p = p.Parent)
-        {
-            //if (p is SaveParser.Text_lineContext)
-            {
-                var p1 = TreeEdits.LeftMostToken(context);
-                var pp1 = p1.SourceInterval;
-                var pp2 = p1.Payload;
-                var index = pp2.TokenIndex;
-                if (index >= 0)
-                {
-                    var p2 = _stream.GetHiddenTokensToLeft(index);
-                    var p3 = TreeEdits.GetText(p2);
-                    sb.Append(p3);
-                }
-                sb.AppendLine();
-                break;
-            }
-        }
-        return null;
+        throw new NotImplementedException();
     }
+
     public override IParseTree VisitPreprocessing_token([NotNull] SaveParser.Preprocessing_tokenContext context)
     {
         for (IParseTree p = context; p != null; p = p.Parent)
@@ -108,6 +95,245 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
+    // § A.2 	 1210  c ISO/IEC 	 N4296
+
+    public override IParseTree VisitToken([NotNull] SaveParser.TokenContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitPreprocessing_op_or_punc([NotNull] SaveParser.Preprocessing_op_or_puncContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
+    {
+        // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
+        var int_lit = context.Integer_literal();
+        var float_lit = context.Floating_literal();
+        if (float_lit == null) throw new Exception();
+        string s = float_lit.GetText();
+        int l = int.Parse(s);
+        state[context] = l;
+        return null;
+    }
+
+    public override IParseTree VisitBoolean_literal([NotNull] SaveParser.Boolean_literalContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitPointer_literal([NotNull] SaveParser.Pointer_literalContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    // § A.2 	 1214  c ISO/IEC 	 N4296
+    // A.3 Basic concepts 	 [gram.basic] 
+
+    public override IParseTree VisitTranslation_unit([NotNull] SaveParser.Translation_unitContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    // A.4 Expressions 	 [gram.expr] 
+
+    public override IParseTree VisitPrimary_expression([NotNull] SaveParser.Primary_expressionContext context)
+    {
+        // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
+        var literal = context.literal();
+        var id_expr = context.id_expression();
+        if (literal != null)
+        {
+            Visit(literal);
+            state[context] = state[literal];
+        }
+        else if (id_expr != null)
+        {
+            Visit(id_expr);
+            state[context] = state[id_expr];
+        }
+        else throw new Exception();
+        return null;
+    }
+
+    public override IParseTree VisitId_expression([NotNull] SaveParser.Id_expressionContext context)
+    {
+        // id_expression :  unqualified_id |  qualified_id ;
+        var unqual = context.unqualified_id();
+        var qual = context.qualified_id();
+        if (unqual != null)
+        {
+            Visit(unqual);
+            state[context] = state[unqual];
+        }
+        else if (qual != null)
+        {
+            Visit(qual);
+            state[context] = state[qual];
+        }
+        else throw new NotImplementedException();
+        return null;
+    }
+
+    public override IParseTree VisitUnqualified_id([NotNull] SaveParser.Unqualified_idContext context)
+    {
+        // unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Minus class_name |  Minus decltype_specifier |  template_id ;
+        var id = context.Identifier();
+        if (id != null)
+        {
+            // Get value. Null if undefined, otherwise "".
+            if (preprocessor_symbols.ContainsKey(id.GetText()))
+            {
+                var val = preprocessor_symbols[id.GetText()];
+                var v = val.Item2.GetText();
+                state[context] = v;
+            }
+            else
+            {
+                state[context] = null;
+            }
+        }
+        else
+            throw new NotImplementedException();
+        return null;
+    }
+
+    public override IParseTree VisitQualified_id([NotNull] SaveParser.Qualified_idContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitNested_name_specifier([NotNull] SaveParser.Nested_name_specifierContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitLambda_expression([NotNull] SaveParser.Lambda_expressionContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitLambda_introducer([NotNull] SaveParser.Lambda_introducerContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitLambda_capture([NotNull] SaveParser.Lambda_captureContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitCapture_default([NotNull] SaveParser.Capture_defaultContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitCapture_list([NotNull] SaveParser.Capture_listContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitCapture([NotNull] SaveParser.CaptureContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitSimple_capture([NotNull] SaveParser.Simple_captureContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    // § A.4 	 1215  c ISO/IEC 	 N4296
+
+    public override IParseTree VisitInit_capture([NotNull] SaveParser.Init_captureContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitLambda_declarator([NotNull] SaveParser.Lambda_declaratorContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitFold_expression([NotNull] SaveParser.Fold_expressionContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitFold_operator([NotNull] SaveParser.Fold_operatorContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitPostfix_expression([NotNull] SaveParser.Postfix_expressionContext context)
+    {
+        // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
+        var pri = context.primary_expression();
+        if (pri == null) throw new Exception();
+        Visit(pri);
+        state[context] = state[pri];
+        return null;
+    }
+
+    public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitPseudo_destructor_name([NotNull] SaveParser.Pseudo_destructor_nameContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override IParseTree VisitUnary_expression([NotNull] SaveParser.Unary_expressionContext context)
+    {
+        // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
+        var post = context.postfix_expression();
+        var cast = context.cast_expression();
+        if (post == null) throw new Exception();
+        Visit(post);
+        state[context] = state[post];
+        return null;
+    }
+
+    // § A.4 	 1216  c ISO/IEC 	 N4296
+
+    public override IParseTree VisitUnary_operator([NotNull] SaveParser.Unary_operatorContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+
+
+
+
+
+
+    public override IParseTree VisitNew_line([NotNull] SaveParser.New_lineContext context)
+    {
+        for (IParseTree p = context; p != null; p = p.Parent)
+        {
+            //if (p is SaveParser.Text_lineContext)
+            {
+                var p1 = TreeEdits.LeftMostToken(context);
+                var pp1 = p1.SourceInterval;
+                var pp2 = p1.Payload;
+                var index = pp2.TokenIndex;
+                if (index >= 0)
+                {
+                    var p2 = _stream.GetHiddenTokensToLeft(index);
+                    var p3 = TreeEdits.GetText(p2);
+                    sb.Append(p3);
+                }
+                sb.AppendLine();
+                break;
+            }
+        }
+        return null;
+    }
+    
     public override IParseTree VisitPreprocessing_file([NotNull] SaveParser.Preprocessing_fileContext context)
     {
         return base.VisitPreprocessing_file(context);
@@ -126,11 +352,14 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     public override IParseTree VisitIf_section([NotNull] SaveParser.If_sectionContext context)
     {
         // if_section: (Pound KWIf constant_expression new_line group ? | Pound KWIfdef Identifier new_line group ? | Pound KWIfndef Identifier new_line group ? ) elif_groups? else_group ? endif_line;
+        var type_if = context.KWIf();
+        var type_ifdef = context.KWIfdef();
+        var type_ifndef = context.KWIfndef();
         var test = context.constant_expression();
         var group = context.group();
         var elif = context.elif_groups();
         var els = context.else_group();
-        if (test != null)
+        if (type_if != null)
         {
             Visit(test);
             var v = state[test];
@@ -199,6 +428,36 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 }
             }
         }
+        else if (type_ifdef != null)
+        {
+            var id = context.Identifier();
+            // Get value. Null if undefined, otherwise "".
+            if (preprocessor_symbols.ContainsKey(id.GetText()))
+            {
+                state[context] = 1;
+                Visit(group);
+            }
+            else
+            {
+                state[context] = null;
+            }
+        }
+        else if (type_ifndef != null)
+        {
+            var id = context.Identifier();
+            // Get value. Null if undefined, otherwise "".
+            if (preprocessor_symbols.ContainsKey(id.GetText()))
+            {
+                state[context] = null;
+            }
+            else
+            {
+                state[context] = 1;
+                Visit(group);
+            }
+
+        }
+
         return null;
     }
 
@@ -389,11 +648,6 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    private bool Eval(IParseTree node)
-    {
-        throw new NotImplementedException();
-    }
-
     public override IParseTree VisitConstant_expression([NotNull] SaveParser.Constant_expressionContext context)
     {
         var child = context.conditional_expression();
@@ -530,11 +784,17 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         Visit(eq);
         var v2 = state[eq];
+        if (v2 is string)
+        {
+            v2 = int.Parse(v2 as string);
+        }
+        else if (v2 is int)
+        {
+        }
         var b2 = v2 == null ? 0 : (int)v2;
         state[context] = b & b2;
         return null;
     }
-
 
     public override IParseTree VisitCast_expression([NotNull] SaveParser.Cast_expressionContext context)
     {
@@ -553,6 +813,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     {
         throw new Exception();
     }
+    
     public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
     {
         throw new Exception();
@@ -600,16 +861,6 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    public override IParseTree VisitFold_expression([NotNull] SaveParser.Fold_expressionContext context)
-    {
-        throw new Exception();
-    }
-
-    public override IParseTree VisitId_expression([NotNull] SaveParser.Id_expressionContext context)
-    {
-        throw new Exception();
-    }
-
     public override IParseTree VisitInclusive_or_expression([NotNull] SaveParser.Inclusive_or_expressionContext context)
     {
         // inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( Or | KWBitOr ) exclusive_or_expression ;
@@ -627,11 +878,6 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         int b2 = v2 == null ? 0 : (int)v2;
         state[context] = b | b2;
         return null;
-    }
-
-    public override IParseTree VisitLambda_expression([NotNull] SaveParser.Lambda_expressionContext context)
-    {
-        throw new Exception();
     }
 
     public override IParseTree VisitLogical_and_expression([NotNull] SaveParser.Logical_and_expressionContext context)
@@ -732,26 +978,6 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    public override IParseTree VisitPostfix_expression([NotNull] SaveParser.Postfix_expressionContext context)
-    {
-        // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
-        var pri = context.primary_expression();
-        if (pri == null) throw new Exception();
-        Visit(pri);
-        state[context] = state[pri];
-        return null;
-    }
-
-    public override IParseTree VisitPrimary_expression([NotNull] SaveParser.Primary_expressionContext context)
-    {
-        // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
-        var literal = context.literal();
-        if (literal == null) throw new Exception();
-        Visit(literal);
-        state[context] = state[literal];
-        return null;
-    }
-
     public override IParseTree VisitRelational_expression([NotNull] SaveParser.Relational_expressionContext context)
     {
         // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
@@ -824,36 +1050,9 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         throw new Exception();
     }
 
-    public override IParseTree VisitUnary_expression([NotNull] SaveParser.Unary_expressionContext context)
-    {
-        // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
-        var post = context.postfix_expression();
-        var cast = context.cast_expression();
-        if (post == null) throw new Exception();
-        Visit(post);
-        state[context] = state[post];
-        return null;
-    }
-
-    public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
-    {
-        throw new Exception();
-    }
-
     public override IParseTree VisitExpression_statement([NotNull] SaveParser.Expression_statementContext context)
     {
         throw new Exception();
     }
 
-    public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
-    {
-        // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
-        var int_lit = context.Integer_literal();
-        var float_lit = context.Floating_literal();
-        if (float_lit == null) throw new Exception();
-        string s = float_lit.GetText();
-        int l = int.Parse(s);
-        state[context] = l;
-        return null;
-    }
 }

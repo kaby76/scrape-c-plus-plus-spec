@@ -5,6 +5,7 @@ using System.IO;
 public abstract class SaveParserBase : Parser
 {
     private readonly ITokenStream _input;
+    public bool SeeOutput { get; set; } = true;
 
     protected SaveParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput)
@@ -31,6 +32,7 @@ public abstract class SaveParserBase : Parser
         var visitor = new Preprocessor(tokens);
         visitor.Visit(tree);
         var real_input = visitor.sb.ToString();
+        if (SeeOutput) System.Console.Error.WriteLine(real_input);
         var new_str = CharStreams.fromString(real_input);
         var new_lexer = new SaveLexer(new_str);
         var new_tokens = new CommonTokenStream(new_lexer);

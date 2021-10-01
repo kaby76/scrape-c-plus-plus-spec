@@ -123,7 +123,7 @@ public class Program
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
-       // parser.Profile = true;
+        // parser.Profile = true;
         var tree = parser.start();
         DateTime after = DateTime.Now;
         System.Console.Error.WriteLine("Time: " + (after - before));
