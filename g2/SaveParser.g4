@@ -1,6 +1,6 @@
 parser grammar SaveParser;
 
-options { tokenVocab=SaveLexer; }
+options { tokenVocab=SaveLexer; superClass=SaveParserBase; }
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
