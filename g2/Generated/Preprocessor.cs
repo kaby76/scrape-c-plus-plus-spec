@@ -114,9 +114,22 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         var float_lit = context.Floating_literal();
         if (float_lit == null) throw new Exception();
         string s = float_lit.GetText();
-        int l = int.Parse(s);
+        ParseFloat(s, out int l);
         state[context] = l;
         return null;
+    }
+
+    private void ParseFloat(string s, out int l)
+    {
+        s = s.ToLower();
+        if (s.EndsWith("ll"))
+            s = s.Substring(0, s.Length - 2);
+        else if (s.EndsWith("l"))
+            s = s.Substring(0, s.Length - 1);
+        else if (char.IsDigit(s[s.Length - 1]))
+            ;
+        else throw new Exception();
+        l = int.Parse(s);
     }
 
     public override IParseTree VisitBoolean_literal([NotNull] SaveParser.Boolean_literalContext context)
@@ -144,6 +157,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
         var literal = context.literal();
         var id_expr = context.id_expression();
+        var lp = context.LeftParen();
         if (literal != null)
         {
             Visit(literal);
@@ -153,6 +167,12 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         {
             Visit(id_expr);
             state[context] = state[id_expr];
+        }
+        else if (lp != null)
+        {
+            var exp = context.expression();
+            Visit(exp);
+            state[context] = state[exp];
         }
         else throw new Exception();
         return null;
@@ -292,9 +312,31 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
         var post = context.postfix_expression();
         var cast = context.cast_expression();
-        if (post == null) throw new Exception();
-        Visit(post);
-        state[context] = state[post];
+        var plus = context.PlusPlus();
+        var minus = context.MinusMinus();
+        var unary = context.unary_operator();
+        var size = context.KWSizeof();
+        var align = context.KWAlignof();
+        var new_ex = context.new_expression();
+        var noexc = context.noexcept_expression();
+        var del = context.delete_expression();
+        if (post != null)
+        {
+            Visit(post);
+            state[context] = state[post];
+        }
+        else if (unary != null && cast != null)
+        {
+            Visit(unary);
+            Visit(cast);
+            if (unary.GetText() == "defined")
+            {
+                var v = state[cast];
+                state[context] = v;
+            }
+            else throw new Exception();
+        }
+        else throw new Exception();
         return null;
     }
 
@@ -302,7 +344,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitUnary_operator([NotNull] SaveParser.Unary_operatorContext context)
     {
-        throw new NotImplementedException();
+        return null;
     }
 
 
@@ -504,12 +546,31 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitElif_groups([NotNull] SaveParser.Elif_groupsContext context)
     {
-        return base.VisitElif_groups(context);
+        foreach (var g in context.elif_group())
+        {
+            Visit(g);
+            var v = state[g];
+            bool b = v != null && v is bool ? (bool)v : false;
+            state[context] = state[g];
+            if (b) break;
+        }
+        return null;
     }
 
     public override IParseTree VisitElif_group([NotNull] SaveParser.Elif_groupContext context)
     {
-        return base.VisitElif_group(context);
+        // elif_group :  Pound KWElif constant_expression new_line group ? ;
+        var exp = context.constant_expression();
+        Visit(exp);
+        var v = state[exp];
+        bool b = v != null && v is bool ? (bool)v : false;
+        state[context] = v;
+        if (b)
+        {
+            var group = context.group();
+            Visit(group);
+        }
+        return null;
     }
 
     public override IParseTree VisitElse_group([NotNull] SaveParser.Else_groupContext context)
@@ -791,6 +852,10 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         else if (v2 is int)
         {
         }
+        else if (v2 is bool)
+        {
+            v2 = (bool)v2 ? 1 : 0;
+        }
         var b2 = v2 == null ? 0 : (int)v2;
         state[context] = b & b2;
         return null;
@@ -993,19 +1058,31 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             var v2 = state[shift] as IComparable;
             if (context.Less() != null)
             {
-                state[context] = l.CompareTo(v2) < 0;
+                if (l != null)
+                    state[context] = l.CompareTo(v2) < 0;
+                else
+                    state[context] = v2.CompareTo(l) >= 0;
             }
             else if (context.LessEqual() != null)
             {
-                state[context] = l.CompareTo(v2) <= 0;
+                if (l != null)
+                    state[context] = l.CompareTo(v2) <= 0;
+                else
+                    state[context] = v2.CompareTo(l) > 0;
             }
             else if (context.Greater() != null)
             {
-                state[context] = l.CompareTo(v2) > 0;
+                if (l != null)
+                    state[context] = l.CompareTo(v2) > 0;
+                else
+                    state[context] = v2.CompareTo(l) <= 0;
             }
             else if (context.GreaterEqual() != null)
             {
-                state[context] = l.CompareTo(v2) >= 0;
+                if (l != null)
+                    state[context] = l.CompareTo(v2) >= 0;
+                else
+                    state[context] = v2.CompareTo(l) < 0;
             }
         }
         else
