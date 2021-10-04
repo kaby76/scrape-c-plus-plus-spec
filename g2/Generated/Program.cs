@@ -14,7 +14,7 @@ public class Program
     public static Lexer Lexer { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
-    public static string StartSymbol { get; set; } = "translation_unit";
+    public static string StartSymbol { get; set; } = "start";
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
@@ -24,13 +24,15 @@ public class Program
         TokenStream = tokens;
         var parser = new SaveParser(tokens);
         Parser = parser;
-        var tree = parser.translation_unit();
+        var tree = parser.start();
         Tree = tree;
         return tree;
     }
 
     static void Main(string[] args)
     {
+        args = new string[] { "-file", "/home/ken/qt/qt5/qtbase/src/corelib/global/qnamespace.h" };
+
         bool show_tree = false;
         bool show_tokens = false;
         bool old = false;
@@ -119,7 +121,7 @@ public class Program
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
-        var tree = parser.translation_unit();
+        var tree = parser.start();
         DateTime after = DateTime.Now;
         System.Console.Error.WriteLine("Time: " + (after - before));
         if (listener_lexer.had_error || listener_parser.had_error)

@@ -22,7 +22,7 @@ public abstract class SaveParserBase : Parser
         var strg = stream.ToString();
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
-
+        if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
@@ -30,6 +30,10 @@ public abstract class SaveParserBase : Parser
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
+        if (File.Exists(SourceName))
+        {
+            visitor.probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
+        }
         visitor.Visit(tree);
         var real_input = visitor.sb.ToString();
         if (SeeOutput) System.Console.Error.WriteLine(real_input);

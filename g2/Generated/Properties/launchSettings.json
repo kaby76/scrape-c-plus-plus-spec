@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "Test": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "commandLineArgs": "",
+      "distributionName": ""
+    },
+    "newProfile1": {
+      "commandName": "Project",
+      "commandLineArgs": "-file /home/ken/qt/qt5/qtbase/include/QtCore/qnamespace.h"
+    }
+  }
+}

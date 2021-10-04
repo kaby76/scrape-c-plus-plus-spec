@@ -13,6 +13,25 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
     public StringBuilder sb = new StringBuilder();
     BufferedTokenStream _stream;
+    public List<string> probe_locations = new List<string>()
+            {
+                "/usr/include/c++/9",
+                "/usr/include/x86_64-linux-gnu/c++/9",
+                "/usr/include/c++/9/backward",
+                "/usr/local/include",
+                "/usr/lib/llvm-10/lib/clang/10.0.0/include",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/x86_64-pc-msys",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/backward",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include-fixed",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/../../../../lib/../include/w32api",
+                "/home/ken/qt/qt5/qtbase/include",
+                "/home/ken/qt/qt5/qtbase",
+            };
 
     public Preprocessor(BufferedTokenStream stream)
     {
@@ -291,6 +310,11 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
     {
         // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
         var pri = context.primary_expression();
+        var post = context.postfix_expression();
+        var exp = context.expression();
+        var exp_list = context.expression_list();
+        var simp_type = context.simple_type_specifier();
+        var typename = context.typename_specifier();
         if (pri == null) throw new Exception();
         Visit(pri);
         state[context] = state[pri];
@@ -333,6 +357,25 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             {
                 var v = state[cast];
                 state[context] = v;
+            }
+            else if (unary.GetText() == "!")
+            {
+                var v = state[cast];
+                bool b = false;
+                if (v == null)
+                {
+                    b = false;
+                }
+                else if (v is int i)
+                {
+                    b = i != 0;
+                }
+                else if (v is string s)
+                {
+                    b = s != "";
+                }
+                else throw new Exception();
+                state[context] = ! b;
             }
             else throw new Exception();
         }
@@ -615,20 +658,10 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             // This list obtained from https://stackoverflow.com/questions/344317/where-does-gcc-look-for-c-and-c-header-files
             // echo "#include <bogus.h>" > t.cc; g++ -v t.cc; rm t.cc
             // echo "#include <bogus.h>" > t.c; gcc -v t.c; rm t.c
-            List<string> probe_locations = new List<string>()
-            {
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/x86_64-pc-msys",
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/backward",
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include",
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include-fixed",
-                "/usr/include",
-                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/../../../../lib/../include/w32api",
-            };
             // Fix for Windows.
             List<string> new_list = new List<string>();
-            foreach (var s in probe_locations) { new_list.Add("c:/msys64" + s); }
-            probe_locations = new_list;
+            //foreach (var s in probe_locations) { new_list.Add("c:/msys64" + s); }
+            //probe_locations = new_list;
             var header_string = state[header] as string;
             var angle_bracket_include = header_string[0] == '<';
             if (!angle_bracket_include)
@@ -638,13 +671,21 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
             }
             var stripped = header_string.Substring(1, header_string.Length - 2);
             // Find file.
+            bool found = false;
             foreach (var l in probe_locations)
             {
                 var dir = !l.EndsWith("/") ? l + "/" : l;
-                if (File.Exists(dir + stripped))
+                var p = Path.Combine(dir, stripped);
+                p = Path.GetFullPath(p);
+                System.Console.Error.WriteLine("Trying " + p);
+                if (File.Exists(p))
                 {
+                    found = true;
+                    System.Console.Error.WriteLine("Found at " + p);
+                    var to_add = Path.GetDirectoryName(p);
+                    probe_locations.Insert(0, to_add);
                     // Add file to input.
-                    var input = File.ReadAllText(dir + stripped);
+                    var input = File.ReadAllText(p);
                     var str = new AntlrInputStream(input);
                     var lexer = new SaveLexer(str);
                     lexer.PushMode(SaveLexer.PP);
@@ -659,12 +700,19 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
                     var visitor = new Preprocessor(tokens);
                     visitor.state = this.state;
                     visitor.preprocessor_symbols = this.preprocessor_symbols;
+                    visitor.probe_locations = this.probe_locations;
                     visitor.Visit(tree);
                     this.state = visitor.state;
                     this.preprocessor_symbols = visitor.preprocessor_symbols;
+                    this.probe_locations = visitor.probe_locations;
                     sb.AppendLine(visitor.sb.ToString());
+                    probe_locations.RemoveAt(0);
                     break;
                 }
+            }
+            if (!found)
+            {
+                System.Console.Error.WriteLine("Cannot find " + stripped);
             }
         }
         return null;
