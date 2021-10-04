@@ -1,6 +1,8 @@
 lexer grammar SaveLexer;
 
-tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning }
+tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
+
+KWGnuAttribute: '__attribute__';
 
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
@@ -88,7 +90,6 @@ KWWchar: 'wchar_t';
 KWWhile: 'while';
 KWXor: 'xor';
 KWXorEq: 'xor_eq';
-
 
 /*Operators*/
 And: '&';
@@ -206,11 +207,11 @@ User_defined_floating_literal :  FFractional_constant FExponent_part ? FUd_suffi
 User_defined_string_literal :  String_literal FUd_suffix ;
 User_defined_character_literal :  Character_literal FUd_suffix ;
 fragment FUd_suffix :  Identifier ;
-Newline: [\n\r];
 WS : [\n\r\t ]+ -> channel(HIDDEN);
+//Newline: [\n\r];
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
 ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
-//Prep : '#' ~[\n\r]* -> channel(HIDDEN);
+Prep : '#' ~[\n\r]* -> channel(HIDDEN);
 
 mode PP;
 

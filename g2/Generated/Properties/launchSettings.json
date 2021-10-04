@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Test": {
-      "commandName": "Project",
-      "commandLineArgs": "-file ../../test/c++config.h",
-      "workingDirectory": "c:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\g2\\generated"
-    }
-  }
-}

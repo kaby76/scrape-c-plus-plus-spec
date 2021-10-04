@@ -7,9 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Runtime.CompilerServices;
-using Antlr4.Runtime.Misc;
-using System.Collections.Generic;
-using LanguageServer;
 
 public class Program
 {
@@ -17,18 +14,17 @@ public class Program
     public static Lexer Lexer { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
-    public static string StartSymbol { get; set; } = "preprocessing_file";
+    public static string StartSymbol { get; set; } = "translation_unit";
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
         var lexer = new SaveLexer(str);
         Lexer = lexer;
-        lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
         TokenStream = tokens;
         var parser = new SaveParser(tokens);
         Parser = parser;
-        var tree = parser.preprocessing_file();
+        var tree = parser.translation_unit();
         Tree = tree;
         return tree;
     }
@@ -123,8 +119,7 @@ public class Program
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
-        // parser.Profile = true;
-        var tree = parser.start();
+        var tree = parser.translation_unit();
         DateTime after = DateTime.Now;
         System.Console.Error.WriteLine("Time: " + (after - before));
         if (listener_lexer.had_error || listener_parser.had_error)
@@ -139,17 +134,6 @@ public class Program
         {
             System.Console.Error.WriteLine(tree.ToStringTree(parser));
         }
-        //foreach (var xxx in parser.ParseInfo.getDecisionInfo().Select(d =>
-        //{
-        //    var t = d.timeInPrediction;
-        //    var z = parser.RuleNames[parser.Atn.GetDecisionState(d.decision).ruleIndex];
-        //    return z + " " + t + " " + d.ToString();
-        //}))
-        //{
-        //    System.Console.Out.WriteLine(xxx);
-        //}
-
-	    System.Environment.Exit(listener_lexer.had_error || listener_parser.had_error ? 1 : 0);
+        System.Environment.Exit(listener_lexer.had_error || listener_parser.had_error ? 1 : 0);
     }
 }
-

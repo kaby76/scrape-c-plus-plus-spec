@@ -116,7 +116,11 @@ block_declaration :  simple_declaration |  asm_definition |  namespace_alias_def
 // § A.6 	 1219  c ISO/IEC 	 N4296
 
 alias_declaration :  KWUsing Identifier attribute_specifier_seq ? Assign type_id Semi ;
-simple_declaration :  decl_specifier_seq ? init_declarator_list ? Semi |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi ;
+simple_declaration :  decl_specifier_seq ? init_declarator_list ? Semi
+ |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi
+// GNU
+ |  decl_specifier_seq attribute_specifier_seq
+    decl_specifier_seq ? init_declarator_list Semi ;
 static_assert_declaration :  KWStatic_assert LeftParen constant_expression RightParen Semi |  KWStatic_assert LeftParen constant_expression Comma String_literal RightParen Semi ;
 empty_declaration :  Semi ;
 attribute_declaration :  attribute_specifier_seq Semi ;
@@ -161,7 +165,11 @@ using_directive :  attribute_specifier_seq ? KWUsing KWNamespace nested_name_spe
 asm_definition :  KWAsm LeftParen String_literal RightParen Semi ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
 attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
-attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket RightBracket |  alignment_specifier ;
+attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket RightBracket |  alignment_specifier
+// GNU
+  | gnu_attribute_spec ;
+// GNU
+gnu_attribute_spec : KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen  { System.Console.Error.WriteLine("Contains GNU syntax. Not ISO14882:2014."); };
 alignment_specifier :  KWAlignas LeftParen type_id Ellipsis ? RightParen |  KWAlignas LeftParen constant_expression Ellipsis ? RightParen ;
 attribute_list :  attribute ? |  attribute_list Comma attribute ? |  attribute Ellipsis |  attribute_list Comma attribute Ellipsis ;
 attribute :  attribute_token attribute_argument_clause ? ;
