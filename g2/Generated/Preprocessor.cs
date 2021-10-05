@@ -767,18 +767,24 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitControl_line([NotNull] SaveParser.Control_lineContext context)
     {
+        // control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
+        var define = context.KWDefine();
+        var id = context.Identifier();
+        var lp = context.lparen();
+        var pp_tokens = context.pp_tokens();
+        var repl = context.replacement_list();
+        var idlist = context.identifier_list();
+        var ellip = context.Ellipsis();
         if (context.KWDefine() != null)
         {
-            var id = context.Identifier().GetText();
             SaveParser.Replacement_listContext list = context.replacement_list();
             var parms = context.identifier_list();
-            preprocessor_symbols[id] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>(parms, list);
+            preprocessor_symbols[id.GetText()] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>(parms, list);
             sb.AppendLine(); // Per spec, output blank line.
         }
         else if (context.KWUndef() != null)
         {
-            var id = context.Identifier().GetText();
-            preprocessor_symbols.Remove(id);
+            preprocessor_symbols.Remove(id.GetText());
         }
         else if (context.KWInclude() != null)
         {
