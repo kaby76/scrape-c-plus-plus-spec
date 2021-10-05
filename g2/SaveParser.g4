@@ -211,7 +211,7 @@ function_body :  ctor_initializer ? compound_statement |  function_try_block |  
 initializer :  brace_or_equal_initializer |  LeftParen expression_list RightParen ;
 brace_or_equal_initializer :  Assign initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
-initializer_list :  initializer_clause Ellipsis ? |  initializer_list Comma initializer_clause Ellipsis ? ;
+initializer_list :  initializer_clause Ellipsis ? ( Comma initializer_clause Ellipsis ? )* ;
 braced_init_list :  LeftBrace initializer_list Comma ? RightBrace |  LeftBrace RightBrace ;
 // § A.7 	 1224  c ISO/IEC 	 N4296
 
@@ -301,7 +301,7 @@ non_directive :  pp_tokens new_line ;
 lparen :  LeftParen;
 // § A.14 	 1228  c ISO/IEC 	 N4296
 
-identifier_list :  Identifier |  identifier_list Comma Identifier ;
+identifier_list :  Identifier (Comma Identifier)* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+?;
 new_line :  Newline;
