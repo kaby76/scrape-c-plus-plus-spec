@@ -1,11 +1,12 @@
 {
   "profiles": {
     "Test": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-file z",
+      "workingDirectory": "C:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\g2\\Generated"
     },
     "WSL": {
       "commandName": "WSL2",
-      "commandLineArgs": "",
       "distributionName": ""
     },
     "newProfile1": {

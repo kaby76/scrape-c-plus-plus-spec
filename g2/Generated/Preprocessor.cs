@@ -5,6 +5,7 @@ using LanguageServer;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 public class Preprocessor : SaveParserBaseVisitor<IParseTree>
@@ -380,9 +381,67 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         var exp_list = context.expression_list();
         var simp_type = context.simple_type_specifier();
         var typename = context.typename_specifier();
-        if (pri == null) throw new Exception();
-        Visit(pri);
-        state[context] = state[pri];
+        if (pri != null)
+        {
+            Visit(pri);
+            state[context] = state[pri];
+        }
+        else if (post != null && exp_list != null)
+        {
+            Visit(post);
+            Visit(exp_list);
+            // Find post in symbol table.
+            var v = state[post];
+            var s = v.ToString();
+            state[context] = EvalExpr(s, exp_list);
+        }
+        else throw new Exception();
+        return null;
+    }
+
+    object EvalExpr(string fun, SaveParser.Expression_listContext args)
+    {
+        if (this.preprocessor_symbols.TryGetValue(
+            fun, out Tuple<SaveParser.Identifier_listContext,
+                SaveParser.Replacement_listContext> parameters
+            ))
+        {
+            // evaluate fun(aa,ab,ac,...)
+            var lparms = parameters.Item1.Identifier()
+                .ToList()
+                .Select(p=>p.GetText())
+                .ToList();
+            var largs = args.initializer_list().initializer_clause()
+                .Select(p=>p.GetText())
+                .ToList();
+            Dictionary<string, string> map = new Dictionary<string, string>();
+            for (int i = 0; i < lparms.Count; ++i)
+            {
+                map[lparms[i]] = largs[i];
+            }
+            var pp_tokens = parameters.Item2.pp_tokens();
+            if (pp_tokens == null)
+            {
+                return null;
+            }
+            var toks = pp_tokens.preprocessing_token();
+            if (toks == null)
+            {
+                return null;
+            }
+            StringBuilder eval = new StringBuilder();
+            for (int i = 0; i < toks.Length; ++i)
+            {
+                var value = toks[i].GetText();
+                if (map.TryGetValue(value, out string xxx))
+                {
+                    sb.Append(" " + xxx);
+                }
+                else sb.Append(" " + value);
+            }
+            return sb.ToString();
+        }
+        else throw new Exception("undefined macro.");
         return null;
     }
 
@@ -742,16 +801,19 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 var dir = !l.EndsWith("/") ? l + "/" : l;
                 var p = Path.Combine(dir, stripped);
                 p = Path.GetFullPath(p);
-                System.Console.Error.WriteLine("Trying " + p);
+                //System.Console.Error.WriteLine("Trying " + p);
                 if (File.Exists(p))
                 {
                     found = true;
-                    System.Console.Error.WriteLine("Found at " + p);
+                    System.Console.Error.WriteLine("Include " + p);
                     var to_add = Path.GetDirectoryName(p);
                     probe_locations.Insert(0, to_add);
                     // Add file to input.
-                    var input = File.ReadAllText(p);
-                    var str = new AntlrInputStream(input);
+                    var strg = File.ReadAllText(p);
+                    strg = strg.Replace("\\\r\n", " ");
+                    strg = strg.Replace("\\\n", " ");
+                    strg = strg.Replace("\\\r", " ");
+                    var str = new AntlrInputStream(strg);
                     var lexer = new SaveLexer(str);
                     lexer.PushMode(SaveLexer.PP);
                     var tokens = new CommonTokenStream(lexer);
@@ -832,29 +894,29 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitConditional_expression([NotNull] SaveParser.Conditional_expressionContext context)
     {
+        // conditional_expression :  logical_or_expression |  logical_or_expression Question expression Colon assignment_expression ;
+        var lor = context.logical_or_expression();
+        var exp = context.expression();
+        var aexp = context.assignment_expression();
         if (context.Question() == null)
         {
-            var child = context.logical_or_expression();
-            Visit(child);
-            state[context] = state[child];
+            Visit(lor);
+            state[context] = state[lor];
         }
         else
         {
-            var c = context.logical_or_expression();
-            Visit(c);
-            var v = state[c];
-            bool b = (v is null) ? false : (bool)v;
+            Visit(lor);
+            var v = state[lor];
+            ConvertToBool(v, out bool b);
             if (b)
             {
-                var e = context.expression();
-                Visit(e);
-                state[context] = state[e];
+                Visit(exp);
+                state[context] = state[exp];
             }
             else
             {
-                var e = context.assignment_expression();
-                Visit(e);
-                state[context] = state[e];
+                Visit(aexp);
+                state[context] = state[aexp];
             }
         }
         return null;

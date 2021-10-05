@@ -30,6 +30,9 @@ public abstract class SaveParserBase : Parser
         var src = input.TokenSource;
         var stream = src.InputStream;
         var strg = stream.ToString();
+        strg = strg.Replace("\\\r\n", " ");
+        strg = strg.Replace("\\\n", " ");
+        strg = strg.Replace("\\\r", " ");
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
         if (SeeOutput) System.Console.Error.WriteLine(strg);
