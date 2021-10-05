@@ -1,17 +1,12 @@
 {
   "profiles": {
     "Test": {
-      "commandName": "Project",
-      "commandLineArgs": "-file z",
-      "workingDirectory": "C:\\Users\\kenne\\Documents\\scrape-c-plus-plus-spec\\g2\\Generated"
+      "commandName": "Project"
     },
     "WSL": {
       "commandName": "WSL2",
+      "environmentVariables": {},
       "distributionName": ""
-    },
-    "newProfile1": {
-      "commandName": "Project",
-      "commandLineArgs": "-file /home/ken/qt/qt5/qtbase/include/QtCore/qnamespace.h"
     }
   }
 }

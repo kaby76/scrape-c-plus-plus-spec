@@ -91,6 +91,7 @@ assignment_expression :  conditional_expression |  logical_or_expression assignm
 assignment_operator :  Assign | StarAssign | DivAssign | ModAssign | PlusAssign | MinusAssign | RightShiftAssign | LeftShiftAssign | AndAssign | XorAssign | OrAssign | KWAndEq | KWOrEq | KWXorEq ;
 expression :  assignment_expression |  expression Comma assignment_expression ;
 constant_expression :  conditional_expression ;
+constant_expression_eof :  conditional_expression EOF ;
 
 // A.5 Statements 	 [gram.stmt] 
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
