@@ -1,3 +1,4 @@
+// derived from echo "" > t.cc; clang++ -E -dM t.cc
 #define _GNU_SOURCE 1
 #define _LP64 1
 #define __ATOMIC_ACQUIRE 2
