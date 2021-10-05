@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-class Preprocessor : SaveParserBaseVisitor<IParseTree>
+public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 {
-    Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> preprocessor_symbols = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>>();
+    public Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> preprocessor_symbols = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>>();
     Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
     public StringBuilder sb = new StringBuilder();
     BufferedTokenStream _stream;

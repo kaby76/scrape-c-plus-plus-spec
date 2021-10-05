@@ -1,9 +1,12 @@
 <!-- Template generated code from trgen 0.10.0 -->
-<Project Sdk="Microsoft.NET.Sdk" >
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="clang++-init.h" />
+  </ItemGroup>
   <ItemGroup>
    <Antlr4 Include="SaveLexer.g4">
 </Antlr4>
@@ -11,14 +14,17 @@
 </Antlr4>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antlr4.Runtime.Standard" Version ="4.9.2" />
-    <PackageReference Include="Antlr4BuildTasks" Version = "8.16" PrivateAssets="all" />
+    <EmbeddedResource Include="clang++-init.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />
+    <PackageReference Include="Antlr4BuildTasks" Version="8.16" PrivateAssets="all" />
     <PackageReference Include="AntlrTreeEditing" Version="3.1.0" />
   </ItemGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" >
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;3021</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
@@ -47,11 +53,11 @@ for %%G in (..\examples\*) do (
 EXIT %ERR%
 ]]></MyTester>
   </PropertyGroup>
-  <Target Name="Test" >
+  <Target Name="Test">
     <Message Text="testing" />
-    <Exec Command="$(MyTester)" >
-       <Output TaskParameter="ExitCode" PropertyName ="ErrorCode" />
+    <Exec Command="$(MyTester)">
+       <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
     </Exec>
-    <Message Importance="high" Text="$(ErrorCode)"/>
+    <Message Importance="high" Text="$(ErrorCode)" />
   </Target>
 </Project>
