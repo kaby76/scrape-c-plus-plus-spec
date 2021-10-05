@@ -392,7 +392,9 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
             Visit(exp_list);
             // Find post in symbol table.
             var v = state[post];
-            var s = v.ToString();
+            // Symbol is actually unevaluated.
+            var s = post.GetText();
+            //var s = v.ToString();
             state[context] = EvalExpr(s, exp_list);
         }
         else throw new Exception();
@@ -447,7 +449,11 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
     {
-        throw new NotImplementedException();
+        // expression_list :  initializer_list ;
+        var init_list = context.initializer_list();
+        Visit(init_list);
+        state[context] = state[init_list];
+        return null;
     }
 
     public override IParseTree VisitPseudo_destructor_name([NotNull] SaveParser.Pseudo_destructor_nameContext context)
@@ -1114,12 +1120,40 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     {
         throw new Exception();
     }
-    
+
     public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
     {
-        throw new Exception();
+        // initializer_clause :  assignment_expression |  braced_init_list ;
+        var assign = context.assignment_expression();
+        var brace = context.braced_init_list();
+        if (assign != null)
+        {
+            Visit(assign);
+            var v = state[assign];
+            state[context] = v;
+        }
+        else
+        {
+            Visit(brace);
+            var v = state[brace];
+            state[context] = v;
+        }
+        return null;
     }
 
+    public override IParseTree VisitInitializer_list([NotNull] SaveParser.Initializer_listContext context)
+    {
+        // initializer_list :  initializer_clause Ellipsis ? ( Comma initializer_clause Ellipsis ? )* ;
+        var init_clauses = context.initializer_clause();
+        var init_states = new List<object>();
+        foreach (var ic in init_clauses)
+        {
+            Visit(ic);
+            init_states.Add(state[ic]);
+        }
+        state[context] = init_states;
+        return null;
+    }
     public override IParseTree VisitEquality_expression([NotNull] SaveParser.Equality_expressionContext context)
     {
         // equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
