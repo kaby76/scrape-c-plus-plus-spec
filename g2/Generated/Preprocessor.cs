@@ -38,7 +38,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         _stream = stream;
     }
 
-    // A.1 Keywords 	 [gram.key] 
+    // A.1 Keywords      [gram.key] 
     // typedef_name :  identifier ;
     // namespace_name :  original_namespace_name |  namespace_alias ;
 
@@ -114,7 +114,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    // § A.2 	 1210  c ISO/IEC 	 N4296
+    // § A.2     1210  c ISO/IEC     N4296
 
     public override IParseTree VisitToken([NotNull] SaveParser.TokenContext context)
     {
@@ -131,14 +131,47 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
         var int_lit = context.Integer_literal();
         var float_lit = context.Floating_literal();
-        if (float_lit == null) throw new Exception();
-        string s = float_lit.GetText();
-        ParseFloat(s, out int l);
-        state[context] = l;
+        var char_lit = context.Character_literal();
+        var str_lit = context.String_literal();
+        var bool_lit = context.boolean_literal();
+        if (int_lit != null)
+        {
+            string s = int_lit.GetText();
+            ParseNumber(s, out object l);
+            state[context] = l;
+        }
+        else if (float_lit != null)
+        {
+            string s = float_lit.GetText();
+            ParseNumber(s, out object l);
+            state[context] = l;
+        }
+        else if (bool_lit != null)
+        {
+            string s = bool_lit.GetText();
+            try
+            {
+                var b = bool.Parse(s);
+                state[context] = b;
+            }
+            catch
+            {
+                state[context] = false;
+            }
+        }
+        else if (str_lit != null)
+        {
+            state[context] = str_lit.GetText();
+        }
+        else if (char_lit != null)
+        {
+            state[context] = char_lit.GetText();
+        }
+        else throw new Exception();
         return null;
     }
 
-    private void ParseFloat(string s, out int l)
+    private void ParseNumber(string s, out object l)
     {
         s = s.ToLower();
         if (s.EndsWith("ll"))
@@ -148,7 +181,39 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         else if (char.IsDigit(s[s.Length - 1]))
             ;
         else throw new Exception();
-        l = int.Parse(s);
+        try
+        {
+            l = int.Parse(s);
+            return;
+        }
+        catch (Exception e)
+        {
+        }
+        try
+        {
+            l = long.Parse(s);
+            return;
+        }
+        catch (Exception e)
+        {
+        }
+        try
+        {
+            l = float.Parse(s);
+            return;
+        }
+        catch (Exception e)
+        {
+        }
+        try
+        {
+            l = double.Parse(s);
+            return;
+        }
+        catch (Exception e)
+        {
+        }
+        l = 0;
     }
 
     public override IParseTree VisitBoolean_literal([NotNull] SaveParser.Boolean_literalContext context)
@@ -161,15 +226,15 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         throw new NotImplementedException();
     }
 
-    // § A.2 	 1214  c ISO/IEC 	 N4296
-    // A.3 Basic concepts 	 [gram.basic] 
+    // § A.2     1214  c ISO/IEC     N4296
+    // A.3 Basic concepts    [gram.basic] 
 
     public override IParseTree VisitTranslation_unit([NotNull] SaveParser.Translation_unitContext context)
     {
         throw new NotImplementedException();
     }
 
-    // A.4 Expressions 	 [gram.expr] 
+    // A.4 Expressions   [gram.expr] 
 
     public override IParseTree VisitPrimary_expression([NotNull] SaveParser.Primary_expressionContext context)
     {
@@ -284,7 +349,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         throw new NotImplementedException();
     }
 
-    // § A.4 	 1215  c ISO/IEC 	 N4296
+    // § A.4     1215  c ISO/IEC     N4296
 
     public override IParseTree VisitInit_capture([NotNull] SaveParser.Init_captureContext context)
     {
@@ -383,7 +448,7 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    // § A.4 	 1216  c ISO/IEC 	 N4296
+    // § A.4     1216  c ISO/IEC     N4296
 
     public override IParseTree VisitUnary_operator([NotNull] SaveParser.Unary_operatorContext context)
     {
@@ -830,24 +895,69 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitLogical_or_expression([NotNull] SaveParser.Logical_or_expressionContext context)
     {
+        // logical_or_expression :  logical_and_expression |  logical_or_expression ( OrOr | KWOr ) logical_and_expression ;
         var or = context.logical_or_expression();
         var and = context.logical_and_expression();
         if (or != null)
         {
             Visit(or);
             var v = state[or];
-            bool b = v == null ? false : (bool)v;
+            ConvertToBool(v, out bool b);
             if (b)
             {
                 state[context] = b;
                 return null;
             }
+            Visit(and);
+            var v2 = state[and];
+            ConvertToBool(v2, out bool b2);
+            state[context] = b2;
+            return null;
         }
-        Visit(and);
-        var v2 = state[and];
-        bool b2 = v2 == null ? false : (bool)v2;
-        state[context] = b2;
+        else
+        {
+            Visit(and);
+            state[context] = state[and];
+        }
         return null;
+    }
+
+    private void ConvertToBool(object v, out bool b)
+    {
+        if (v == null)
+        {
+            b = false;
+        }
+        else if (v is bool)
+        {
+            b = (bool)v;
+        }
+        else if (v is int)
+        {
+            int i = (int)v;
+            b = i != 0;
+        }
+        else if (v is long)
+        {
+            long i = (long)v;
+            b = i != 0;
+        }
+        else if (v is string)
+        {
+            ParseNumber(v.ToString(), out object n);
+            if (n is int)
+            {
+                int i = (int)n;
+                b = i != 0;
+            }
+            else if (n is long)
+            {
+                long i = (long)n;
+                b = i != 0;
+            }
+            else throw new Exception();
+        }
+        else throw new Exception();
     }
 
     public override IParseTree VisitAdditive_expression([NotNull] SaveParser.Additive_expressionContext context)
@@ -855,21 +965,30 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
         var mul = context.multiplicative_expression();
         var add = context.additive_expression();
+        var plus = context.Plus();
         if (add != null)
         {
             Visit(add);
-            var v = state[add];
-            var l = (int)v;
             Visit(mul);
-            var v2 = (int)state[mul];
-            if (context.Plus() != null)
+            var lhs_v = state[add];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[mul];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
             {
-                state[context] = l + v2;
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = plus != null ? lhs + rhs : lhs - rhs;
+                state[context] = res;
             }
-            else if (context.Minus() != null)
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
             {
-                state[context] = l - v2;
+                long lhs = (long)lhs_n;
+                long rhs = (long)rhs_n;
+                long res = plus != null ? lhs + rhs : lhs - rhs;
+                state[context] = res;
             }
+            else throw new Exception();
         }
         else
         {
@@ -884,28 +1003,35 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // and_expression :  equality_expression |  and_expression ( And | KWBitAnd ) equality_expression ;
         var eq = context.equality_expression();
         var and = context.and_expression();
-        int b = -1;
         if (and != null)
         {
             Visit(and);
-            var v = state[and];
-            b = v == null ? 0 : (int)v;
+            Visit(eq);
+            var lhs_v = state[and];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[eq];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
+            {
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = lhs & rhs;
+                state[context] = res;
+            }
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            {
+                long lhs = (long)lhs_n;
+                long rhs = (long)rhs_n;
+                long res = lhs & rhs;
+                state[context] = res;
+            }
+            else throw new Exception();
         }
-        Visit(eq);
-        var v2 = state[eq];
-        if (v2 is string)
+        else
         {
-            v2 = int.Parse(v2 as string);
+            Visit(eq);
+            state[context] = state[eq];
         }
-        else if (v2 is int)
-        {
-        }
-        else if (v2 is bool)
-        {
-            v2 = (bool)v2 ? 1 : 0;
-        }
-        var b2 = v2 == null ? 0 : (int)v2;
-        state[context] = b & b2;
         return null;
     }
 
@@ -960,17 +1086,35 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // exclusive_or_expression :  and_expression |  exclusive_or_expression ( Caret | KWXor ) and_expression ;
         var and = context.and_expression();
         var xor = context.exclusive_or_expression();
-        int b = 0;
         if (xor != null)
         {
             Visit(xor);
-            var v = state[xor];
-            b = v == null ? 0 : (int)v;
+            Visit(and);
+            var lhs_v = state[xor];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[and];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
+            {
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = lhs ^ rhs;
+                state[context] = res;
+            }
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            {
+                long lhs = (long)lhs_n;
+                long rhs = (long)rhs_n;
+                long res = lhs ^ rhs;
+                state[context] = res;
+            }
+            else throw new Exception();
         }
-        Visit(and);
-        var v2 = state[and];
-        int b2 = v2 == null ? 0 : (int)v2;
-        state[context] = b ^ b2;
+        else
+        {
+            Visit(and);
+            state[context] = state[and];
+        }
         return null;
     }
 
@@ -979,43 +1123,64 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( Or | KWBitOr ) exclusive_or_expression ;
         var ior = context.inclusive_or_expression();
         var xor = context.exclusive_or_expression();
-        int b = 0;
         if (ior != null)
         {
             Visit(ior);
-            var v = state[ior];
-            b = v == null ? 0 : (int)v;
+            Visit(xor);
+            var lhs_v = state[ior];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[xor];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
+            {
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = lhs | rhs;
+                state[context] = res;
+            }
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            {
+                long lhs = (long)lhs_n;
+                long rhs = (long)rhs_n;
+                long res = lhs | rhs;
+                state[context] = res;
+            }
+            else throw new Exception();
         }
-        Visit(xor);
-        var v2 = state[xor];
-        int b2 = v2 == null ? 0 : (int)v2;
-        state[context] = b | b2;
+        else
+        {
+            Visit(xor);
+            state[context] = state[xor];
+        }
         return null;
     }
 
     public override IParseTree VisitLogical_and_expression([NotNull] SaveParser.Logical_and_expressionContext context)
     {
+        // logical_and_expression :  inclusive_or_expression |  logical_and_expression ( AndAnd | KWAnd ) inclusive_or_expression ;
         var ior = context.inclusive_or_expression();
         var and = context.logical_and_expression();
         if (and != null)
         {
             Visit(and);
             var v = state[and];
-            bool b = v == null ? false : (bool)v;
+            ConvertToBool(v, out bool b);
             if (!b)
             {
                 state[context] = b;
                 return null;
             }
+            Visit(ior);
+            var v2 = state[ior];
+            ConvertToBool(v2, out bool b2);
+            state[context] = b2;
+            return null;
         }
-        Visit(ior);
-        var v2 = state[ior];
-        bool b2;
-        if (v2 == null) b2 = false;
-        if (v2 is bool) b2 = (bool)v2;
-        else if (v2 is int) b2 = 0 != (int)v2;
-        else throw new Exception();
-        state[context] = b2;
+        else
+        {
+            Visit(ior);
+            state[context] = state[ior];
+        }
         return null;
     }
 
@@ -1096,41 +1261,45 @@ class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
         var shift = context.shift_expression();
         var rel = context.relational_expression();
-        IComparable l = null;
         if (rel != null)
         {
             Visit(rel);
-            var v = state[rel];
-            l = (v == null ? null : v) as IComparable;
             Visit(shift);
-            var v2 = state[shift] as IComparable;
+            var lhs_v = state[rel];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[shift];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
             if (context.Less() != null)
             {
-                if (l != null)
-                    state[context] = l.CompareTo(v2) < 0;
-                else
-                    state[context] = v2.CompareTo(l) >= 0;
+                if (lhs_n is int && rhs_n is int)
+                    state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
+                else if (lhs_n is long || rhs_n is long)
+                    state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
+                else throw new Exception();
             }
             else if (context.LessEqual() != null)
             {
-                if (l != null)
-                    state[context] = l.CompareTo(v2) <= 0;
-                else
-                    state[context] = v2.CompareTo(l) > 0;
+                if (lhs_n is int && rhs_n is int)
+                    state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
+                else if (lhs_n is long || rhs_n is long)
+                    state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
+                else throw new Exception();
             }
             else if (context.Greater() != null)
             {
-                if (l != null)
-                    state[context] = l.CompareTo(v2) > 0;
-                else
-                    state[context] = v2.CompareTo(l) <= 0;
+                if (lhs_n is int && rhs_n is int)
+                    state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
+                else if (lhs_n is long || rhs_n is long)
+                    state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
+                else throw new Exception();
             }
             else if (context.GreaterEqual() != null)
             {
-                if (l != null)
-                    state[context] = l.CompareTo(v2) >= 0;
-                else
-                    state[context] = v2.CompareTo(l) < 0;
+                if (lhs_n is int && rhs_n is int)
+                    state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
+                else if (lhs_n is long || rhs_n is long)
+                    state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
+                else throw new Exception();
             }
         }
         else
