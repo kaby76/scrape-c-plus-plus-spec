@@ -623,101 +623,75 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         {
             Visit(test);
             var v = state[test];
-            if (v is int)
+            ConvertToBool(v, out bool b);
+            state[context] = b;
+            if (b)
             {
-                bool b = 0 != (int)v;
-                state[context] = b;
-                if (b)
-                {
-                    Visit(group);
-                }
-                else if (elif != null)
-                {
-                    Visit(elif);
-                    var v2 = state[elif];
-                    if (v2 is int)
-                    {
-                        bool b2 = 0 != (int)v2;
-                        state[context] = b2;
-                        if (b2)
-                        {
-                        }
-                        else if (els != null)
-                        {
-                            Visit(els);
-                            var v3 = state[els];
-                            if (v3 is int)
-                            {
-                                var b3 = 0 != (int)v3;
-                                state[context] = b3;
-                            }
-                        }
-                    }
-                }
+                Visit(group);
             }
-            else if (v is bool)
+            if (elif != null && !b)
             {
-                bool b = (bool)v;
+                Visit(elif);
+                var v2 = state[elif];
+                ConvertToBool(v2, out bool b2);
+                b = b2;
                 state[context] = b;
-                if (b)
-                {
-                    Visit(group);
-                }
-                else if (elif != null)
-                {
-                    Visit(elif);
-                    var v2 = state[elif];
-                    if (v2 is int)
-                    {
-                        bool b2 = 0 != (int)v2;
-                        state[context] = b2;
-                        if (b2)
-                        {
-                        }
-                        else if (els != null)
-                        {
-                            Visit(els);
-                            var v3 = state[els];
-                            if (v3 is int)
-                            {
-                                var b3 = 0 != (int)v3;
-                                state[context] = b3;
-                            }
-                        }
-                    }
-                }
+            }
+            if (els != null && !b)
+            {
+                Visit(els);
+                //var v3 = state[els];
+                //state[context] = v3;
             }
         }
         else if (type_ifdef != null)
         {
             var id = context.Identifier();
-            // Get value. Null if undefined, otherwise "".
-            if (preprocessor_symbols.ContainsKey(id.GetText()))
+            bool b = preprocessor_symbols.ContainsKey(id.GetText());
+            state[context] = b;
+            if (b)
             {
-                state[context] = 1;
                 Visit(group);
             }
-            else
+            if (elif != null && !b)
             {
-                state[context] = null;
+                Visit(elif);
+                var v2 = state[elif];
+                ConvertToBool(v2, out bool b2);
+                b = b2;
+                state[context] = b;
+            }
+            if (els != null && !b)
+            {
+                Visit(els);
+                //var v3 = state[els];
+                //state[context] = v3;
             }
         }
         else if (type_ifndef != null)
         {
             var id = context.Identifier();
-            // Get value. Null if undefined, otherwise "".
-            if (preprocessor_symbols.ContainsKey(id.GetText()))
+            bool b = ! preprocessor_symbols.ContainsKey(id.GetText());
+            state[context] = b;
+            if (b)
             {
-                state[context] = null;
-            }
-            else
-            {
-                state[context] = 1;
                 Visit(group);
             }
-
+            if (elif != null && !b)
+            {
+                Visit(elif);
+                var v2 = state[elif];
+                ConvertToBool(v2, out bool b2);
+                b = b2;
+                state[context] = b;
+            }
+            if (els != null && !b)
+            {
+                Visit(els);
+                //var v3 = state[els];
+                //state[context] = v3;
+            }
         }
-
         return null;
     }
 
@@ -729,7 +703,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
             var c = context.constant_expression();
             Visit(c);
             var v = state[c];
-            bool b = (v is null) ? false : (bool)v;
+            ConvertToBool(v, out bool b);
             state[context] = b;
             state[context.Parent] = b;
             if (b)
@@ -796,7 +770,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         // Get state from ancestor if_section. Do not visit if true.
         var if_section = context.Parent as SaveParser.If_sectionContext;
         var v = state[if_section];
-        bool b = (v is null) ? false : (bool)v;
+        ConvertToBool(v, out bool b);
         if (!b)
         {
             var group = context.group();
