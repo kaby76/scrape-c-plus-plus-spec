@@ -437,13 +437,55 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 var value = toks[i].GetText();
                 if (map.TryGetValue(value, out string xxx))
                 {
-                    sb.Append(" " + xxx);
+                    eval.Append(" " + xxx);
                 }
-                else sb.Append(" " + value);
+                else eval.Append(" " + value);
             }
-            return sb.ToString();
+
+            // Reparse and call recursively until fix-point.
+            var todo = eval.ToString();
+            do
+            {
+                var str = new AntlrInputStream(todo);
+                var lexer = new SaveLexer(str);
+                lexer.PushMode(SaveLexer.PP);
+                var tokens = new CommonTokenStream(lexer);
+                var parser = new SaveParser(tokens);
+                var listener_lexer = new ErrorListener<int>();
+                var listener_parser = new ErrorListener<IToken>();
+                lexer.AddErrorListener(listener_lexer);
+                parser.AddErrorListener(listener_parser);
+                DateTime before = DateTime.Now;
+                var tree = parser.constant_expression_eof();
+                var visitor = new Preprocessor(tokens);
+                visitor.state = this.state;
+                visitor.preprocessor_symbols = this.preprocessor_symbols;
+                visitor.probe_locations = this.probe_locations;
+                visitor.Visit(tree);
+                this.state = visitor.state;
+                this.preprocessor_symbols = visitor.preprocessor_symbols;
+                this.probe_locations = visitor.probe_locations;
+                var new_todo = visitor.state[tree].ToString();
+                if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                {
+                    new_todo = new_todo.ToLower();
+                }
+                if (new_todo == todo)
+                    break;
+                todo = new_todo;
+            } while (true);
+            return todo;
         }
         else throw new Exception("undefined macro.");
+        return null;
+    }
+
+    public override IParseTree VisitConstant_expression_eof([NotNull] SaveParser.Constant_expression_eofContext context)
+    {
+        // constant_expression_eof :  conditional_expression EOF ;
+        var cond = context.conditional_expression();
+        VisitConditional_expression(cond);
+        state[context] = state[cond];
         return null;
     }
 
@@ -1018,18 +1060,25 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         else if (v is string)
         {
-            ParseNumber(v.ToString(), out object n);
-            if (n is int)
+            if (v.ToString().ToLower() == "true")
+                b = true;
+            else if (v.ToString().ToLower() == "false")
+                b = false;
+            else
             {
-                int i = (int)n;
-                b = i != 0;
+                ParseNumber(v.ToString(), out object n);
+                if (n is int)
+                {
+                    int i = (int)n;
+                    b = i != 0;
+                }
+                else if (n is long)
+                {
+                    long i = (long)n;
+                    b = i != 0;
+                }
+                else throw new Exception();
             }
-            else if (n is long)
-            {
-                long i = (long)n;
-                b = i != 0;
-            }
-            else throw new Exception();
         }
         else throw new Exception();
     }
@@ -1420,18 +1469,26 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         if (shift != null)
         {
             Visit(shift);
-            var v = state[shift];
-            var l = (int)v;
             Visit(add);
-            var v2 = (int)state[add];
-            if (context.LeftShift() != null)
+            var lhs_v = state[shift];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[add];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
             {
-                state[context] = l << v2;
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
+                state[context] = res;
             }
-            else if (context.RightShift() != null)
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
             {
-                state[context] = l >> v2;
+                long lhs = (long)lhs_n;
+                int rhs = (int)rhs_n;
+                long res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
+                state[context] = res;
             }
+            else throw new Exception();
         }
         else
         {

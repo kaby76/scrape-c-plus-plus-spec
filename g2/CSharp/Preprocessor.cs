@@ -392,7 +392,9 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
             Visit(exp_list);
             // Find post in symbol table.
             var v = state[post];
-            var s = v.ToString();
+            // Symbol is actually unevaluated.
+            var s = post.GetText();
+            //var s = v.ToString();
             state[context] = EvalExpr(s, exp_list);
         }
         else throw new Exception();
@@ -435,19 +437,65 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 var value = toks[i].GetText();
                 if (map.TryGetValue(value, out string xxx))
                 {
-                    sb.Append(" " + xxx);
+                    eval.Append(" " + xxx);
                 }
-                else sb.Append(" " + value);
+                else eval.Append(" " + value);
             }
-            return sb.ToString();
+
+            // Reparse and call recursively until fix-point.
+            var todo = eval.ToString();
+            do
+            {
+                var str = new AntlrInputStream(todo);
+                var lexer = new SaveLexer(str);
+                lexer.PushMode(SaveLexer.PP);
+                var tokens = new CommonTokenStream(lexer);
+                var parser = new SaveParser(tokens);
+                var listener_lexer = new ErrorListener<int>();
+                var listener_parser = new ErrorListener<IToken>();
+                lexer.AddErrorListener(listener_lexer);
+                parser.AddErrorListener(listener_parser);
+                DateTime before = DateTime.Now;
+                var tree = parser.constant_expression_eof();
+                var visitor = new Preprocessor(tokens);
+                visitor.state = this.state;
+                visitor.preprocessor_symbols = this.preprocessor_symbols;
+                visitor.probe_locations = this.probe_locations;
+                visitor.Visit(tree);
+                this.state = visitor.state;
+                this.preprocessor_symbols = visitor.preprocessor_symbols;
+                this.probe_locations = visitor.probe_locations;
+                var new_todo = visitor.state[tree].ToString();
+                if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                {
+                    new_todo = new_todo.ToLower();
+                }
+                if (new_todo == todo)
+                    break;
+                todo = new_todo;
+            } while (true);
+            return todo;
         }
         else throw new Exception("undefined macro.");
         return null;
     }
 
+    public override IParseTree VisitConstant_expression_eof([NotNull] SaveParser.Constant_expression_eofContext context)
+    {
+        // constant_expression_eof :  conditional_expression EOF ;
+        var cond = context.conditional_expression();
+        VisitConditional_expression(cond);
+        state[context] = state[cond];
+        return null;
+    }
+
     public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
     {
-        throw new NotImplementedException();
+        // expression_list :  initializer_list ;
+        var init_list = context.initializer_list();
+        Visit(init_list);
+        state[context] = state[init_list];
+        return null;
     }
 
     public override IParseTree VisitPseudo_destructor_name([NotNull] SaveParser.Pseudo_destructor_nameContext context)
@@ -761,18 +809,24 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitControl_line([NotNull] SaveParser.Control_lineContext context)
     {
+        // control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
+        var define = context.KWDefine();
+        var id = context.Identifier();
+        var lp = context.lparen();
+        var pp_tokens = context.pp_tokens();
+        var repl = context.replacement_list();
+        var idlist = context.identifier_list();
+        var ellip = context.Ellipsis();
         if (context.KWDefine() != null)
         {
-            var id = context.Identifier().GetText();
             SaveParser.Replacement_listContext list = context.replacement_list();
             var parms = context.identifier_list();
-            preprocessor_symbols[id] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>(parms, list);
+            preprocessor_symbols[id.GetText()] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>(parms, list);
             sb.AppendLine(); // Per spec, output blank line.
         }
         else if (context.KWUndef() != null)
         {
-            var id = context.Identifier().GetText();
-            preprocessor_symbols.Remove(id);
+            preprocessor_symbols.Remove(id.GetText());
         }
         else if (context.KWInclude() != null)
         {
@@ -1006,18 +1060,25 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         else if (v is string)
         {
-            ParseNumber(v.ToString(), out object n);
-            if (n is int)
+            if (v.ToString().ToLower() == "true")
+                b = true;
+            else if (v.ToString().ToLower() == "false")
+                b = false;
+            else
             {
-                int i = (int)n;
-                b = i != 0;
+                ParseNumber(v.ToString(), out object n);
+                if (n is int)
+                {
+                    int i = (int)n;
+                    b = i != 0;
+                }
+                else if (n is long)
+                {
+                    long i = (long)n;
+                    b = i != 0;
+                }
+                else throw new Exception();
             }
-            else if (n is long)
-            {
-                long i = (long)n;
-                b = i != 0;
-            }
-            else throw new Exception();
         }
         else throw new Exception();
     }
@@ -1114,12 +1175,40 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     {
         throw new Exception();
     }
-    
+
     public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
     {
-        throw new Exception();
+        // initializer_clause :  assignment_expression |  braced_init_list ;
+        var assign = context.assignment_expression();
+        var brace = context.braced_init_list();
+        if (assign != null)
+        {
+            Visit(assign);
+            var v = state[assign];
+            state[context] = v;
+        }
+        else
+        {
+            Visit(brace);
+            var v = state[brace];
+            state[context] = v;
+        }
+        return null;
     }
 
+    public override IParseTree VisitInitializer_list([NotNull] SaveParser.Initializer_listContext context)
+    {
+        // initializer_list :  initializer_clause Ellipsis ? ( Comma initializer_clause Ellipsis ? )* ;
+        var init_clauses = context.initializer_clause();
+        var init_states = new List<object>();
+        foreach (var ic in init_clauses)
+        {
+            Visit(ic);
+            init_states.Add(state[ic]);
+        }
+        state[context] = init_states;
+        return null;
+    }
     public override IParseTree VisitEquality_expression([NotNull] SaveParser.Equality_expressionContext context)
     {
         // equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
@@ -1380,18 +1469,26 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         if (shift != null)
         {
             Visit(shift);
-            var v = state[shift];
-            var l = (int)v;
             Visit(add);
-            var v2 = (int)state[add];
-            if (context.LeftShift() != null)
+            var lhs_v = state[shift];
+            ParseNumber(lhs_v.ToString(), out object lhs_n);
+            var rhs_v = state[add];
+            ParseNumber(rhs_v.ToString(), out object rhs_n);
+            if (lhs_n is int && rhs_n is int)
             {
-                state[context] = l << v2;
+                int lhs = (int)lhs_n;
+                int rhs = (int)rhs_n;
+                int res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
+                state[context] = res;
             }
-            else if (context.RightShift() != null)
+            else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
             {
-                state[context] = l >> v2;
+                long lhs = (long)lhs_n;
+                int rhs = (int)rhs_n;
+                long res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
+                state[context] = res;
             }
+            else throw new Exception();
         }
         else
         {

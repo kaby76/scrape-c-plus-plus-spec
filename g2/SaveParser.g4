@@ -91,6 +91,7 @@ assignment_expression :  conditional_expression |  logical_or_expression assignm
 assignment_operator :  Assign | StarAssign | DivAssign | ModAssign | PlusAssign | MinusAssign | RightShiftAssign | LeftShiftAssign | AndAssign | XorAssign | OrAssign | KWAndEq | KWOrEq | KWXorEq ;
 expression :  assignment_expression |  expression Comma assignment_expression ;
 constant_expression :  conditional_expression ;
+constant_expression_eof :  conditional_expression EOF ;
 
 // A.5 Statements 	 [gram.stmt] 
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
@@ -295,7 +296,17 @@ elif_groups :  elif_group+;
 elif_group :  Pound KWElif constant_expression new_line group ? ;
 else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound KWEndif new_line ;
-control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
+control_line
+:  Pound KWInclude pp_tokens new_line
+|  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line
+|  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line
+|  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line
+|  Pound KWDefine Identifier replacement_list new_line
+|  Pound KWUndef Identifier new_line
+|  Pound KWLine pp_tokens new_line
+|  Pound (KWError|KWWarning) pp_tokens ? new_line
+|  Pound KWPragma pp_tokens ? new_line
+|  Pound new_line ;
 text_line :  { InputStream.LA(1) != SaveLexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen;
