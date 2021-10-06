@@ -28,7 +28,8 @@ public abstract class SaveParserBase : Parser
         // Create preprocessor.
         var input = this.TokenStream;
         var src = input.TokenSource;
-        var stream = src.InputStream;
+        ICharStream stream = src.InputStream;
+        var fn = stream.SourceName;
         var strg = stream.ToString();
         strg = strg.Replace("\\\r\n", " ");
         strg = strg.Replace("\\\n", " ");
@@ -44,6 +45,7 @@ public abstract class SaveParserBase : Parser
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
         visitor.preprocessor_symbols = init_table;
+        visitor._current_file_name = fn;
         if (File.Exists(SourceName))
         {
             visitor.probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
@@ -89,6 +91,7 @@ public abstract class SaveParserBase : Parser
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
+        visitor._current_file_name = nnn;
         visitor.Visit(tree);
         System.Collections.Generic.Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> result = visitor.preprocessor_symbols;
         return result;

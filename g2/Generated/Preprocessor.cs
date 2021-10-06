@@ -14,6 +14,8 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
     public StringBuilder sb = new StringBuilder();
     BufferedTokenStream _stream;
+    public string _current_file_name;
+
     public List<string> probe_locations = new List<string>()
             {
                 "/usr/include/c++/9",
@@ -458,6 +460,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 DateTime before = DateTime.Now;
                 var tree = parser.constant_expression_eof();
                 var visitor = new Preprocessor(tokens);
+                visitor._current_file_name = this._current_file_name;
                 visitor.state = this.state;
                 visitor.preprocessor_symbols = this.preprocessor_symbols;
                 visitor.probe_locations = this.probe_locations;
@@ -476,7 +479,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
             } while (true);
             return todo;
         }
-        else throw new Exception("undefined macro.");
+        else throw new Exception("Use of undefined macro " + fun + " in file " + this._current_file_name);
         return null;
     }
 
@@ -879,6 +882,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                     DateTime before = DateTime.Now;
                     var tree = parser.preprocessing_file();
                     var visitor = new Preprocessor(tokens);
+                    visitor._current_file_name = p;
                     visitor.state = this.state;
                     visitor.preprocessor_symbols = this.preprocessor_symbols;
                     visitor.probe_locations = this.probe_locations;
