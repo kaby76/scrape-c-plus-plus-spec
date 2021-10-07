@@ -1,11 +1,11 @@
 {
   "profiles": {
     "Test": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-file c:/temp/simple.h"
     },
     "WSL": {
       "commandName": "WSL2",
-      "environmentVariables": {},
       "distributionName": ""
     }
   }

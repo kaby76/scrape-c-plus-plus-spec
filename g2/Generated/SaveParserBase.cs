@@ -44,7 +44,7 @@ public abstract class SaveParserBase : Parser
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Preprocessor(tokens);
-        visitor.preprocessor_symbols = init_table;
+        visitor.preprocessor_symbols = new PreprocessorSymbols(init_table);
         visitor._current_file_name = fn;
         if (File.Exists(SourceName))
         {
@@ -62,8 +62,10 @@ public abstract class SaveParserBase : Parser
         return result;
     }
 
-    System.Collections.Generic.Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> InitPreprocessor()
+    PreprocessorSymbols InitPreprocessor()
     {
+        PreprocessorSymbols result = new PreprocessorSymbols();
+        return result;
         // Create preprocessor.
         var assembly = Assembly.GetExecutingAssembly();
         var nnn = "clang++-init.h";
@@ -93,7 +95,7 @@ public abstract class SaveParserBase : Parser
         var visitor = new Preprocessor(tokens);
         visitor._current_file_name = nnn;
         visitor.Visit(tree);
-        System.Collections.Generic.Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> result = visitor.preprocessor_symbols;
+        result = visitor.preprocessor_symbols;
         return result;
     }
 }
