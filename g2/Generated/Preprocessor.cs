@@ -18,6 +18,68 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
     {
     }
 
+    public object Evaluate(string input)
+    {
+        var str = new AntlrInputStream(input);
+        var lexer = new SaveLexer(str);
+        lexer.PushMode(SaveLexer.PP);
+        var _tokens = new CommonTokenStream(lexer);
+        var parser = new SaveParser(_tokens);
+        var listener_lexer = new ErrorListener<int>();
+        var listener_parser = new ErrorListener<IToken>();
+        lexer.AddErrorListener(listener_lexer);
+        parser.AddErrorListener(listener_parser);
+        var subtree = parser.constant_expression_eof();
+        this.Visit(subtree);
+        return state[subtree];
+    }
+
+
+    public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
+    {
+        // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
+        var int_lit = context.Integer_literal();
+        var float_lit = context.Floating_literal();
+        var char_lit = context.Character_literal();
+        var str_lit = context.String_literal();
+        var bool_lit = context.boolean_literal();
+        if (int_lit != null)
+        {
+            string s = int_lit.GetText();
+            ParseNumber(s, out object l);
+            state[context] = l;
+        }
+        else if (float_lit != null)
+        {
+            string s = float_lit.GetText();
+            ParseNumber(s, out object l);
+            state[context] = l;
+        }
+        else if (bool_lit != null)
+        {
+            string s = bool_lit.GetText();
+            try
+            {
+                var b = bool.Parse(s);
+                state[context] = b;
+            }
+            catch
+            {
+                state[context] = false;
+            }
+        }
+        else if (str_lit != null)
+        {
+            state[context] = str_lit.GetText();
+        }
+        else if (char_lit != null)
+        {
+            state[context] = char_lit.GetText();
+        }
+        else throw new Exception();
+        return null;
+    }
+
 
     // A.4 Expressions   [gram.expr] 
 
@@ -2172,9 +2234,8 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
         ConstantExpressionMacroExpansion ccc = new ConstantExpressionMacroExpansion(preprocessor_symbols);
         var new_replacement = ccc.Expand(_stream, context);
-
-        Visit(child);
-        state[context] = state[child];
+        ConstantExpressionEvaluator ddd = new ConstantExpressionEvaluator();
+        state[context] = ddd.Evaluate(new_replacement);
         return null;
     }
 
