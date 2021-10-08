@@ -88,7 +88,11 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
         // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
         var literal = context.literal();
         var id_expr = context.id_expression();
+        var expr = context.expression();
         var lp = context.LeftParen();
+        var kwthis = context.KWThis();
+        var lambda = context.lambda_expression();
+        var fold = context.fold_expression();
         if (literal != null)
         {
             Visit(literal);
@@ -143,7 +147,7 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
             }
             else
             {
-                state[context] = null;
+                state[context] = 1;
             }
         }
         else
@@ -294,20 +298,7 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
             else if (unary.GetText() == "!")
             {
                 var v = state[cast];
-                bool b = false;
-                if (v == null)
-                {
-                    b = false;
-                }
-                else if (v is int i)
-                {
-                    b = i != 0;
-                }
-                else if (v is string s)
-                {
-                    b = s != "";
-                }
-                else throw new Exception();
+                ConvertToBool(v, out bool b);
                 state[context] = !b;
             }
             else throw new Exception();
@@ -842,6 +833,42 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
+
+
+    public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
+    {
+        // initializer_clause :  assignment_expression |  braced_init_list ;
+        var assign = context.assignment_expression();
+        var brace = context.braced_init_list();
+        if (assign != null)
+        {
+            Visit(assign);
+            var v = state[assign];
+            state[context] = v;
+        }
+        else
+        {
+            Visit(brace);
+            var v = state[brace];
+            state[context] = v;
+        }
+        return null;
+    }
+
+    public override IParseTree VisitInitializer_list([NotNull] SaveParser.Initializer_listContext context)
+    {
+        // initializer_list :  initializer_clause Ellipsis ? ( Comma initializer_clause Ellipsis ? )* ;
+        var init_clauses = context.initializer_clause();
+        var init_states = new List<object>();
+        foreach (var ic in init_clauses)
+        {
+            Visit(ic);
+            init_states.Add(state[ic]);
+        }
+        state[context] = init_states;
+        return null;
+    }
+
     private void ParseNumber(string s, out object l)
     {
         s = s.ToLower();
@@ -1038,12 +1065,14 @@ public class PreprocessorSymbols
         ITokenStream ts,
         string fn)
     {
+        System.Console.Error.WriteLine("Defining " + name);
         map[name] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, ITokenStream, string>(ids, repl, ts, fn);
     }
 
     public void Delete(string name)
     {
-        throw new NotImplementedException();
+        System.Console.Error.WriteLine("Undefining " + name);
+        this.map.Remove(name);
     }
 
     public (SaveParser.Identifier_listContext,
@@ -1052,6 +1081,7 @@ public class PreprocessorSymbols
         string)
         Find(string name)
     {
+        System.Console.Error.WriteLine("Find " + name);
         throw new NotImplementedException();
     }
 
@@ -1061,6 +1091,7 @@ public class PreprocessorSymbols
         out ITokenStream stream,
         out string fn)
     {
+        System.Console.Error.WriteLine("Find " + name);
         if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
             SaveParser.Replacement_listContext, // value of def
             ITokenStream, // token stream where define is.
@@ -1084,10 +1115,13 @@ public class PreprocessorSymbols
 
     public bool IsDefined(string name)
     {
-        return map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
+        System.Console.Error.WriteLine("IsDefined " + name);
+        var result = map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
             SaveParser.Replacement_listContext, // value of def
             ITokenStream, // token stream where define is.
             string> t);
+        System.Console.Error.WriteLine("returning " + result);
+        return result;
     }
 }
 
@@ -1108,10 +1142,12 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
         var input = Reconstruct(tokens, tree);
         do
         {
+            System.Console.Error.WriteLine("Input for expand is " + input);
             var str = new AntlrInputStream(input);
             var lexer = new SaveLexer(str);
             lexer.PushMode(SaveLexer.PP);
-            _tokens = new CommonTokenStream(lexer);
+            var cts = new CommonTokenStream(lexer);
+            _tokens = cts;
             _rewriter = new TokenStreamRewriter(_tokens);
             var parser = new SaveParser(_tokens);
             var listener_lexer = new ErrorListener<int>();
@@ -1119,10 +1155,20 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
             lexer.AddErrorListener(listener_lexer);
             parser.AddErrorListener(listener_parser);
             var subtree = parser.constant_expression_eof();
+            if (listener_lexer.had_error || listener_parser.had_error)
+            {
+                System.Console.Error.WriteLine("Error in parsing " + input);
+                System.Console.Error.WriteLine(Test.TreeOutput.OutputTokens(cts));
+                System.Console.Error.WriteLine(Test.TreeOutput.OutputTree(subtree, lexer, parser, cts).ToString());
+            }
             this.Visit(subtree);
             var other = _rewriter.GetText();
+            other = other.Replace("##", "");
             if (other == input)
+            {
+                System.Console.Error.WriteLine("Finished");
                 return other;
+            }
             input = other;
         } while (true);
     }
@@ -1169,7 +1215,9 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
                     out ITokenStream st,
                     out string fn);
                 var new_str = Reconstruct(st, repls);
-                _rewriter.Replace(id.Symbol.StartIndex, new_str);
+                var payload = id.Payload;
+                var common_token = payload as CommonToken;
+                _rewriter.Replace(common_token.TokenIndex, new_str);
             }
         }
         return null;
@@ -1205,6 +1253,44 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
         else throw new Exception();
         return null;
     }
+
+    public override IParseTree VisitUnary_operator([NotNull] SaveParser.Unary_operatorContext context)
+    {
+        return null;
+    }
+
+    public override IParseTree VisitUnary_expression([NotNull] SaveParser.Unary_expressionContext context)
+    {
+        // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
+        var post = context.postfix_expression();
+        var cast = context.cast_expression();
+        var plus = context.PlusPlus();
+        var minus = context.MinusMinus();
+        var unary = context.unary_operator();
+        var size = context.KWSizeof();
+        var align = context.KWAlignof();
+        var new_ex = context.new_expression();
+        var noexc = context.noexcept_expression();
+        var del = context.delete_expression();
+        if (post != null)
+        {
+            Visit(post);
+        }
+        else if (unary != null && cast != null)
+        {
+            Visit(unary);
+            if (unary.GetText() == "defined")
+            {
+            }
+            else
+            {
+                Visit(cast);
+            }
+        }
+        else throw new Exception();
+        return null;
+    }
+
 
     object EvalExpr(string fun, SaveParser.Expression_listContext args)
     {
