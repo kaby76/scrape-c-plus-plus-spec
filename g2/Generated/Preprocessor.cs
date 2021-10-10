@@ -34,7 +34,6 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
         return state[subtree];
     }
 
-
     public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
     {
         // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
@@ -833,8 +832,6 @@ public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-
-
     public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
     {
         // initializer_clause :  assignment_expression |  braced_init_list ;
@@ -1425,68 +1422,6 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitPreprocessing_token([NotNull] SaveParser.Preprocessing_tokenContext context)
     {
-        for (IParseTree p = context; p != null; p = p.Parent)
-        {
-            if (p is SaveParser.Text_lineContext)
-            {
-                var p1 = TreeEdits.LeftMostToken(context);
-                var pp1 = p1.SourceInterval;
-                var pp2 = p1.Payload;
-                var index = pp2.TokenIndex;
-                if (index >= 0)
-                {
-                    var p2 = _stream.GetHiddenTokensToLeft(index);
-                    var p3 = TreeEdits.GetText(p2);
-                    sb.Append(p3);
-                }
-                sb.Append(context.GetText());
-                break;
-            }
-        }
-        var pp_header = context.header_name();
-        var id = context.Identifier();
-        var pp_number = context.pp_number();
-        var char_lit = context.Character_literal();
-        var user_def_char_list = context.User_defined_character_literal();
-        var user_def_str_lit = context.User_defined_string_literal();
-        var str_lit = context.String_literal();
-        var pp_or = context.preprocessing_op_or_punc();
-        if (pp_header != null)
-        {
-            state[context] = pp_header.GetText();
-        }
-        else if (id != null)
-        {
-            state[context] = id.GetText();
-        }
-        else if (pp_number != null)
-        {
-            state[context] = pp_number.GetText();
-        }
-        else if (char_lit != null)
-        {
-            state[context] = char_lit.GetText();
-        }
-        else if (user_def_char_list != null)
-        {
-            state[context] = user_def_char_list.GetText();
-        }
-        else if (user_def_str_lit != null)
-        {
-            state[context] = user_def_str_lit.GetText();
-        }
-        else if (str_lit != null)
-        {
-            state[context] = str_lit.GetText();
-        }
-        else if (pp_or != null)
-        {
-            state[context] = pp_or.GetText();
-        }
-        else
-        {
-            state[context] = context.GetChild(0).GetText();
-        }
         return null;
     }
 
@@ -2242,31 +2177,32 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     public override IParseTree VisitConditional_expression([NotNull] SaveParser.Conditional_expressionContext context)
     {
         // conditional_expression :  logical_or_expression |  logical_or_expression Question expression Colon assignment_expression ;
-        var lor = context.logical_or_expression();
-        var exp = context.expression();
-        var aexp = context.assignment_expression();
-        if (context.Question() == null)
-        {
-            Visit(lor);
-            state[context] = state[lor];
-        }
-        else
-        {
-            Visit(lor);
-            var v = state[lor];
-            ConvertToBool(v, out bool b);
-            if (b)
-            {
-                Visit(exp);
-                state[context] = state[exp];
-            }
-            else
-            {
-                Visit(aexp);
-                state[context] = state[aexp];
-            }
-        }
-        return null;
+        //var lor = context.logical_or_expression();
+        //var exp = context.expression();
+        //var aexp = context.assignment_expression();
+        //if (context.Question() == null)
+        //{
+        //    Visit(lor);
+        //    state[context] = state[lor];
+        //}
+        //else
+        //{
+        //    Visit(lor);
+        //    var v = state[lor];
+        //    ConvertToBool(v, out bool b);
+        //    if (b)
+        //    {
+        //        Visit(exp);
+        //        state[context] = state[exp];
+        //    }
+        //    else
+        //    {
+        //        Visit(aexp);
+        //        state[context] = state[aexp];
+        //    }
+        //}
+        //return null;
+        throw new Exception("This should never be executed because macro expansion and evaluation perform by the two other classes in this file.");
     }
 
     public override IParseTree VisitThrow_expression([NotNull] SaveParser.Throw_expressionContext context)
@@ -2314,6 +2250,8 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitConstant_expression([NotNull] SaveParser.Constant_expressionContext context)
     {
+        // constant_expression :  conditional_expression ;
+
         var child = context.conditional_expression();
 
         // Do macro expansion+evaluation.
@@ -2812,21 +2750,9 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         return null;
     }
 
-    public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
-    {
-        var pp_tokens = context.pp_tokens();
-        var new_line = context.new_line();
-        if (pp_tokens != null)
-        {
-            Visit(pp_tokens);
-        }
-        if (new_line != null)
-        {
-            Visit(new_line);
-        }
-        state[context] = null;
-        return null;
-    }
+
+
+
 
     public override IParseTree VisitNon_directive([NotNull] SaveParser.Non_directiveContext context)
     {
@@ -2935,85 +2861,190 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         l = 0;
     }
 
-    object EvalExpr(string fun, SaveParser.Expression_listContext args)
+
+
+
+
+    public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
     {
-        if (this.preprocessor_symbols.Find(
-            fun,
-            out SaveParser.Identifier_listContext ids,
-            out SaveParser.Replacement_listContext repls,
-            out ITokenStream st,
-            out string fn))
+        //{
+        //    var p1 = TreeEdits.LeftMostToken(context);
+        //    var pp1 = p1.SourceInterval;
+        //    var pp2 = p1.Payload;
+        //    var index = pp2.TokenIndex;
+        //    if (index >= 0)
+        //    {
+        //        var p2 = _stream.GetHiddenTokensToLeft(index);
+        //        var p3 = TreeEdits.GetText(p2);
+        //        sb.Append(p3);
+        //    }
+        //    sb.Append(context.GetText());
+        //}
+       
+        //var pp_header = context.header_name();
+        //var id = context.Identifier();
+        //var pp_number = context.pp_number();
+        //var char_lit = context.Character_literal();
+        //var user_def_char_list = context.User_defined_character_literal();
+        //var user_def_str_lit = context.User_defined_string_literal();
+        //var str_lit = context.String_literal();
+        //var pp_or = context.preprocessing_op_or_punc();
+        //if (pp_header != null)
+        //{
+        //    state[context] = pp_header.GetText();
+        //}
+        //else if (id != null)
+        //{
+        //    state[context] = id.GetText();
+        //}
+        //else if (pp_number != null)
+        //{
+        //    state[context] = pp_number.GetText();
+        //}
+        //else if (char_lit != null)
+        //{
+        //    state[context] = char_lit.GetText();
+        //}
+        //else if (user_def_char_list != null)
+        //{
+        //    state[context] = user_def_char_list.GetText();
+        //}
+        //else if (user_def_str_lit != null)
+        //{
+        //    state[context] = user_def_str_lit.GetText();
+        //}
+        //else if (str_lit != null)
+        //{
+        //    state[context] = str_lit.GetText();
+        //}
+        //else if (pp_or != null)
+        //{
+        //    state[context] = pp_or.GetText();
+        //}
+        //else
+        //{
+        //    state[context] = context.GetChild(0).GetText();
+        //}
+        
+        StringBuilder eval = new StringBuilder();
+        var toks = context.pp_tokens()?.preprocessing_token();
+        var new_line = context.new_line();
+        if (toks != null)
         {
-            // evaluate fun(aa,ab,ac,...)
-            var lparms = ids.Identifier()
-                .ToList()
-                .Select(p => p.GetText())
-                .ToList();
-            var largs = args.initializer_list().initializer_clause()
-                .Select(p => p.GetText())
-                .ToList();
-            Dictionary<string, string> map = new Dictionary<string, string>();
-            for (int i = 0; i < lparms.Count; ++i)
-            {
-                map[lparms[i]] = largs[i];
-            }
-            var pp_tokens = repls.pp_tokens();
-            if (pp_tokens == null)
-            {
-                return null;
-            }
-            var toks = pp_tokens.preprocessing_token();
-            if (toks == null)
-            {
-                return null;
-            }
-            StringBuilder eval = new StringBuilder();
             for (int i = 0; i < toks.Length; ++i)
             {
-                var value = toks[i].GetText();
-                if (map.TryGetValue(value, out string xxx))
+                var tok = toks[i];
+                if (tok.Identifier() != null)
                 {
-                    eval.Append(" " + xxx);
+                    var fun = tok.Identifier().GetText();
+                    if (this.preprocessor_symbols.Find(
+                     fun,
+                     out SaveParser.Identifier_listContext ids,
+                     out SaveParser.Replacement_listContext repls,
+                     out ITokenStream st,
+                     out string fn))
+                    {
+                        // evaluate fun(aa,ab,ac,...)
+                        var lparms = ids?.Identifier()
+                            ?.ToList()
+                            ?.Select(p => p.GetText())
+                            ?.ToList();
+                        if (lparms == null || lparms.Count == 0)
+                        {
+                            foreach (var s in repls.pp_tokens().preprocessing_token())
+                            {
+                                var p1 = TreeEdits.LeftMostToken(new_line);
+                                var pp1 = p1.SourceInterval;
+                                var pp2 = p1.Payload;
+                                var index = pp2.TokenIndex;
+                                if (index >= 0)
+                                {
+                                    var p2 = _stream.GetHiddenTokensToLeft(index);
+                                    var p3 = TreeEdits.GetText(p2);
+                                    sb.Append(p3);
+                                }
+                                sb.Append(s.GetText());
+                            }
+                        }
+                        else
+                        {
+                        }
+                        // Reparse and call recursively until fix-point.
+                        //var todo = eval.ToString();
+                        //do
+                        //{
+                        //    var str = new AntlrInputStream(todo);
+                        //    var lexer = new SaveLexer(str);
+                        //    lexer.PushMode(SaveLexer.PP);
+                        //    var tokens = new CommonTokenStream(lexer);
+                        //    var parser = new SaveParser(tokens);
+                        //    var listener_lexer = new ErrorListener<int>();
+                        //    var listener_parser = new ErrorListener<IToken>();
+                        //    lexer.AddErrorListener(listener_lexer);
+                        //    parser.AddErrorListener(listener_parser);
+                        //    DateTime before = DateTime.Now;
+                        //    var tree = parser.constant_expression_eof();
+                        //    var visitor = new Preprocessor(tokens);
+                        //    visitor._current_file_name = this._current_file_name;
+                        //    visitor.state = this.state;
+                        //    visitor.preprocessor_symbols = this.preprocessor_symbols;
+                        //    visitor.probe_locations = this.probe_locations;
+                        //    visitor.Visit(tree);
+                        //    this.state = visitor.state;
+                        //    this.preprocessor_symbols = visitor.preprocessor_symbols;
+                        //    this.probe_locations = visitor.probe_locations;
+                        //    var new_todo = visitor.state[tree].ToString();
+                        //    if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                        //    {
+                        //        new_todo = new_todo.ToLower();
+                        //    }
+                        //    if (new_todo == todo)
+                        //        break;
+                        //    todo = new_todo;
+                        //} while (true);
+                    }
+                    else
+                    {
+                        sb.Append(" " + fun);
+                    }
                 }
-                else eval.Append(" " + value);
+                else
+                {
+                    var p1 = TreeEdits.LeftMostToken(tok);
+                    var pp1 = p1.SourceInterval;
+                    var pp2 = p1.Payload;
+                    var index = pp2.TokenIndex;
+                    if (index >= 0)
+                    {
+                        var p2 = _stream.GetHiddenTokensToLeft(index);
+                        var p3 = TreeEdits.GetText(p2);
+                        sb.Append(p3);
+                    }
+                    sb.Append(tok.GetText());
+                }
             }
-
-            // Reparse and call recursively until fix-point.
-            var todo = eval.ToString();
-            do
-            {
-                var str = new AntlrInputStream(todo);
-                var lexer = new SaveLexer(str);
-                lexer.PushMode(SaveLexer.PP);
-                var tokens = new CommonTokenStream(lexer);
-                var parser = new SaveParser(tokens);
-                var listener_lexer = new ErrorListener<int>();
-                var listener_parser = new ErrorListener<IToken>();
-                lexer.AddErrorListener(listener_lexer);
-                parser.AddErrorListener(listener_parser);
-                DateTime before = DateTime.Now;
-                var tree = parser.constant_expression_eof();
-                var visitor = new Preprocessor(tokens);
-                visitor._current_file_name = this._current_file_name;
-                visitor.state = this.state;
-                visitor.preprocessor_symbols = this.preprocessor_symbols;
-                visitor.probe_locations = this.probe_locations;
-                visitor.Visit(tree);
-                this.state = visitor.state;
-                this.preprocessor_symbols = visitor.preprocessor_symbols;
-                this.probe_locations = visitor.probe_locations;
-                var new_todo = visitor.state[tree].ToString();
-                if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
-                {
-                    new_todo = new_todo.ToLower();
-                }
-                if (new_todo == todo)
-                    break;
-                todo = new_todo;
-            } while (true);
-            return todo;
         }
-        else throw new Exception("Use of undefined macro " + fun + " in file " + this._current_file_name);
+
+        {
+            var p1 = TreeEdits.LeftMostToken(new_line);
+            var pp1 = p1.SourceInterval;
+            var pp2 = p1.Payload;
+            var index = pp2.TokenIndex;
+            if (index >= 0)
+            {
+                var p2 = _stream.GetHiddenTokensToLeft(index);
+                var p3 = TreeEdits.GetText(p2);
+                sb.Append(p3);
+            }
+            sb.Append(new_line.GetText());
+        }
+
+        return null;
+    }
+
+
+    object EvalExpr(string fun, SaveParser.Expression_listContext args)
+    {
         return null;
     }
 
