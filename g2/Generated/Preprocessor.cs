@@ -2927,11 +2927,11 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         //}
         
         StringBuilder eval = new StringBuilder();
-        var toks = context.pp_tokens()?.preprocessing_token();
+        var toks = context.pp_tokens()?.preprocessing_token().ToList();
         var new_line = context.new_line();
         if (toks != null)
         {
-            for (int i = 0; i < toks.Length; ++i)
+            for (int i = 0; i < toks.Count; ++i)
             {
                 var tok = toks[i];
                 if (tok.Identifier() != null)
@@ -2953,21 +2953,13 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                         {
                             foreach (var s in repls.pp_tokens().preprocessing_token())
                             {
-                                var p1 = TreeEdits.LeftMostToken(new_line);
-                                var pp1 = p1.SourceInterval;
-                                var pp2 = p1.Payload;
-                                var index = pp2.TokenIndex;
-                                if (index >= 0)
-                                {
-                                    var p2 = _stream.GetHiddenTokensToLeft(index);
-                                    var p3 = TreeEdits.GetText(p2);
-                                    sb.Append(p3);
-                                }
-                                sb.Append(s.GetText());
+                                Add(sb, s);
                             }
                         }
                         else
                         {
+                            // Scan ahead for args.
+                            var get_args = GetArgs(lparms, toks, i);
                         }
                         // Reparse and call recursively until fix-point.
                         //var todo = eval.ToString();
@@ -3010,38 +3002,72 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 }
                 else
                 {
-                    var p1 = TreeEdits.LeftMostToken(tok);
-                    var pp1 = p1.SourceInterval;
-                    var pp2 = p1.Payload;
-                    var index = pp2.TokenIndex;
-                    if (index >= 0)
-                    {
-                        var p2 = _stream.GetHiddenTokensToLeft(index);
-                        var p3 = TreeEdits.GetText(p2);
-                        sb.Append(p3);
-                    }
-                    sb.Append(tok.GetText());
+                    Add(sb, tok);
                 }
             }
         }
 
-        {
-            var p1 = TreeEdits.LeftMostToken(new_line);
-            var pp1 = p1.SourceInterval;
-            var pp2 = p1.Payload;
-            var index = pp2.TokenIndex;
-            if (index >= 0)
-            {
-                var p2 = _stream.GetHiddenTokensToLeft(index);
-                var p3 = TreeEdits.GetText(p2);
-                sb.Append(p3);
-            }
-            sb.Append(new_line.GetText());
-        }
+        Add(sb, new_line);
 
         return null;
     }
 
+    private void Add(StringBuilder sb, IParseTree tree)
+    {
+        var p1 = TreeEdits.LeftMostToken(tree);
+        var pp1 = p1.SourceInterval;
+        var pp2 = p1.Payload;
+        var index = pp2.TokenIndex;
+        if (index >= 0)
+        {
+            var p2 = _stream.GetHiddenTokensToLeft(index);
+            var p3 = TreeEdits.GetText(p2);
+            sb.Append(p3);
+        }
+        sb.Append(tree.GetText());
+    }
+
+    private List<string> GetArgs(List<string> lparms, List<SaveParser.Preprocessing_tokenContext> toks, int i)
+    {
+        List<string> args = new List<string>();
+        int last = i;
+        int level = 0;
+        StringBuilder sb = new StringBuilder();
+        for (int j = i+2; j < toks.Count; ++j)
+        {
+            if (toks[j].GetText() == ",")
+            {
+                if (level == 0)
+                {
+                    args.Add(sb.ToString());
+                    sb = new StringBuilder();
+                }
+                else
+                    Add(sb, toks[j]);
+            }
+            else if (toks[j].GetText() == "(")
+            {
+                Add(sb, toks[j]);
+                level++;
+            }
+            else if (toks[j].GetText() == ")")
+            {
+                if (level == 0)
+                {
+                    args.Add(sb.ToString());
+                    break;
+                }
+                else
+                    Add(sb, toks[j]);
+                level--;
+            }
+            else
+            {
+                Add(sb, toks[j]);
+            }
+        }
+        return args;
+    }
 
     object EvalExpr(string fun, SaveParser.Expression_listContext args)
     {
