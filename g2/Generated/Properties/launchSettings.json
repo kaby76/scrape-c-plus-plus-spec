@@ -2,7 +2,7 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "commandLineArgs": "-file c:/Users/kenne/Documents/scrape-c-plus-plus-spec/g2/tests/simple2.cc"
+      "commandLineArgs": "-file c:/Users/kenne/Documents/github/scrape-c-plus-plus-spec/g2/tests/simple2.cc"
     },
     "WSL": {
       "commandName": "WSL2",
