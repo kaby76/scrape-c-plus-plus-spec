@@ -249,7 +249,7 @@ PPKWXor: 'xor' -> type(KWXor);
 PPKWXorEq: 'xor_eq' -> type(KWXorEq);
 
 fragment H_char_sequence :  H_char+;
-fragment H_char :  ~[ \t\n>] ;
+fragment H_char :  ~[ <\t\n>] ;
 fragment Q_char_sequence :  Q_char+ ;
 fragment Q_char :  ~[ \t\n"] ;
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
