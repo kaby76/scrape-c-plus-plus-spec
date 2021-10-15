@@ -1,6 +1,7 @@
 
 #define FOO(a) a
-#define FOO2(a,b,c) a; b; c;
+#define DOUBLE(x) (2*x)
+#define FOO2(a,b,c) a + DOUBLE(b) + c
 
 FOO(main)
 {

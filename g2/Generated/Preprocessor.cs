@@ -1042,28 +1042,28 @@ public class PreprocessorSymbols
     private Dictionary<string,
         Tuple<SaveParser.Identifier_listContext, // params
             SaveParser.Replacement_listContext, // value of def
-            ITokenStream, // token stream where define is.
+            CommonTokenStream, // token stream where define is.
             string>> map; // file name where define is.
-    public ITokenStream Tokens { get; private set; }
+    public CommonTokenStream Tokens { get; private set; }
 
     public PreprocessorSymbols(PreprocessorSymbols copy)
     {
-        map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, ITokenStream, string>>(copy.map);
+        map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>>(copy.map);
     }
 
     public PreprocessorSymbols()
     {
-        map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, ITokenStream, string>>();
+        map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>>();
     }
 
     public void Add(string name,
         SaveParser.Identifier_listContext ids,
         SaveParser.Replacement_listContext repl,
-        ITokenStream ts,
+        CommonTokenStream ts,
         string fn)
     {
         System.Console.Error.WriteLine("Defining " + name);
-        map[name] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, ITokenStream, string>(ids, repl, ts, fn);
+        map[name] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
     }
 
     public void Delete(string name)
@@ -1074,7 +1074,7 @@ public class PreprocessorSymbols
 
     public (SaveParser.Identifier_listContext,
         SaveParser.Replacement_listContext,
-        ITokenStream,
+        CommonTokenStream,
         string)
         Find(string name)
     {
@@ -1085,13 +1085,13 @@ public class PreprocessorSymbols
     public bool Find(string name,
         out SaveParser.Identifier_listContext ids,
         out SaveParser.Replacement_listContext repls,
-        out ITokenStream stream,
+        out CommonTokenStream stream,
         out string fn)
     {
         System.Console.Error.WriteLine("Find " + name);
         if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
             SaveParser.Replacement_listContext, // value of def
-            ITokenStream, // token stream where define is.
+            CommonTokenStream, // token stream where define is.
             string> t))
         {
             ids = t.Item1;
@@ -1115,7 +1115,7 @@ public class PreprocessorSymbols
         System.Console.Error.WriteLine("IsDefined " + name);
         var result = map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
             SaveParser.Replacement_listContext, // value of def
-            ITokenStream, // token stream where define is.
+            CommonTokenStream, // token stream where define is.
             string> t);
         System.Console.Error.WriteLine("returning " + result);
         return result;
@@ -1170,21 +1170,6 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
         } while (true);
     }
 
-    void Rewrite(IParseTree tree)
-    {
-        if (tree as TerminalNodeImpl != null)
-        {
-        }
-        else
-        {
-            for (int i = 0; i < tree.ChildCount; ++i)
-            {
-                var c = tree.GetChild(i);
-                Rewrite(c);
-            }
-        }
-    }
-
     public string Reconstruct(ITokenStream tokens, IParseTree tree)
     {
         StringBuilder sb = new StringBuilder();
@@ -1209,7 +1194,7 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
                 var b = _preprocessor_symbols.Find(id.GetText(),
                     out SaveParser.Identifier_listContext ids,
                     out SaveParser.Replacement_listContext repls,
-                    out ITokenStream st,
+                    out CommonTokenStream st,
                     out string fn);
                 var new_str = Reconstruct(st, repls);
                 var payload = id.Payload;
@@ -1294,7 +1279,7 @@ public class ConstantExpressionMacroExpansion : SaveParserBaseVisitor<IParseTree
         if (_preprocessor_symbols.Find(
             fun, out SaveParser.Identifier_listContext ids,
             out SaveParser.Replacement_listContext repls,
-            out ITokenStream st,
+            out CommonTokenStream st,
             out string fn))
         {
             // evaluate fun(aa,ab,ac,...)
@@ -1383,7 +1368,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     public PreprocessorSymbols preprocessor_symbols = new PreprocessorSymbols();
     Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
     public StringBuilder sb = new StringBuilder();
-    BufferedTokenStream _stream;
+    CommonTokenStream _stream;
     public string _current_file_name;
 
     public List<string> probe_locations = new List<string>()
@@ -1406,7 +1391,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 "/home/ken/qt/qt5/qtbase",
             };
 
-    public Preprocessor(BufferedTokenStream stream)
+    public Preprocessor(CommonTokenStream stream)
     {
         _stream = stream;
     }
@@ -1652,9 +1637,9 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         }
         else if (context.KWInclude() != null)
         {
-            var header = context.pp_tokens();
-            VisitPp_tokens(header);
-            // Get pp_tokens state.
+            var header = context.pp_tokens()?.preprocessing_token().ToList();
+            if (header.Count > 1 || header.Count == 0) throw new Exception();
+            var inc_file_name = header.First().GetText();
             // This list obtained from https://stackoverflow.com/questions/344317/where-does-gcc-look-for-c-and-c-header-files
             // echo "#include <bogus.h>" > t.cc; g++ -v t.cc; rm t.cc
             // echo "#include <bogus.h>" > t.c; gcc -v t.c; rm t.c
@@ -1662,7 +1647,7 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
             List<string> new_list = new List<string>();
             //foreach (var s in probe_locations) { new_list.Add("c:/msys64" + s); }
             //probe_locations = new_list;
-            var header_string = state[header] as string;
+            var header_string = inc_file_name as string;
             var angle_bracket_include = header_string[0] == '<';
             if (!angle_bracket_include)
             {
@@ -1744,17 +1729,136 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
     
     public override IParseTree VisitPp_tokens([NotNull] SaveParser.Pp_tokensContext context)
     {
-        var preprocessing_tokens = context.preprocessing_token();
-        foreach (var pp in preprocessing_tokens)
+        bool is_text = false;
+        IParseTree parent = context;
+        for (; parent != null; parent = parent.Parent)
         {
-            VisitPreprocessing_token(pp);
-            if (state.TryGetValue(pp, out object v))
+            if (parent is SaveParser.Text_lineContext)
             {
-                state[context] = v;
+                is_text = true;
+                break;
             }
-            else
+        }
+        if (!is_text && context.Parent != null)
+        {
+            return null;
+        }
+        else if (parent == null)
+        {
+
+        }
+        StringBuilder eval = new StringBuilder();
+        var toks = context.preprocessing_token().ToList();
+        if (toks != null)
+        {
+            for (int i = 0; i < toks.Count; ++i)
             {
-                state[context] = null;
+                var tok = toks[i];
+                if (tok.Identifier() != null)
+                {
+                    var fun = tok.Identifier().GetText();
+                    if (this.preprocessor_symbols.Find(
+                     fun,
+                     out SaveParser.Identifier_listContext ids,
+                     out SaveParser.Replacement_listContext repls,
+                     out CommonTokenStream st,
+                     out string fn))
+                    {
+                        // First, get the parameters of the macro.
+                        var lparms = ids?.Identifier()
+                            ?.ToList()
+                            ?.Select(p => p.GetText())
+                            ?.ToList();
+                        // If there are no parameters, then just add the macro value to the output.
+                        if (lparms == null || lparms.Count == 0)
+                        {
+                            foreach (var s in repls.pp_tokens().preprocessing_token())
+                            {
+                                Add(sb, st, s);
+                            }
+                        }
+                        else
+                        {
+                            // There are some parameters of the macro.
+                            // Scan ahead for the argument values of the macro. We'll use this
+                            // to make substitutions.
+                            var (get_args, end) = GetArgs(lparms, toks, i);
+                            // Instantiate the macro.
+                            StringBuilder sb2 = new StringBuilder();
+                            Dictionary<string, string> map = new Dictionary<string, string>();
+                            for (int k = 0; k < lparms.Count; ++k)
+                            {
+                                map[lparms[k]] = get_args[k];
+                            }
+                            var pp_tokens = repls.pp_tokens();
+                            if (pp_tokens == null)
+                            {
+                                continue;
+                            }
+                            var frontier = TreeEdits.Frontier(
+                                pp_tokens)
+                                .ToList();
+                            var toks2 = frontier.ToList();
+                            if (toks2 == null)
+                            {
+                                continue;
+                            }
+                            foreach (var t in toks2)
+                            {
+                                var value = t.Symbol.Text;
+                                if (map.TryGetValue(value, out string xxx))
+                                {
+                                    Add(sb2, st, t, xxx);
+                                }
+                                else
+                                {
+                                    Add(sb2, st, t);
+                                }
+                            }
+                            i = end;
+                            // Reparse and call recursively until fix-point.
+                            var todo = sb2.ToString();
+                            do
+                            {
+                                var str = new AntlrInputStream(todo);
+                                var lexer = new SaveLexer(str);
+                                lexer.PushMode(SaveLexer.PP);
+                                var tokens = new CommonTokenStream(lexer);
+                                var parser = new SaveParser(tokens);
+                                var listener_lexer = new ErrorListener<int>();
+                                var listener_parser = new ErrorListener<IToken>();
+                                lexer.AddErrorListener(listener_lexer);
+                                parser.AddErrorListener(listener_parser);
+                                DateTime before = DateTime.Now;
+                                var tree = parser.pp_tokens();
+                                var visitor = new Preprocessor(tokens);
+                                visitor._current_file_name = this._current_file_name;
+                                visitor.preprocessor_symbols = this.preprocessor_symbols;
+                                visitor.probe_locations = this.probe_locations;
+                                visitor.Visit(tree);
+                                this.preprocessor_symbols = visitor.preprocessor_symbols;
+                                this.probe_locations = visitor.probe_locations;
+                                var new_todo = visitor.sb.ToString();
+                                if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                                {
+                                    new_todo = new_todo.ToLower();
+                                }
+                                if (new_todo == todo)
+                                    break;
+                                todo = new_todo;
+                            } while (true);
+                            sb.Append(todo);
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(" " + fun);
+                    }
+                }
+                else
+                {
+                    Add(sb, this._stream, tok);
+                }
             }
         }
         return null;
@@ -1830,152 +1934,16 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
 
     public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
     {
-        //{
-        //    var p1 = TreeEdits.LeftMostToken(context);
-        //    var pp1 = p1.SourceInterval;
-        //    var pp2 = p1.Payload;
-        //    var index = pp2.TokenIndex;
-        //    if (index >= 0)
-        //    {
-        //        var p2 = _stream.GetHiddenTokensToLeft(index);
-        //        var p3 = TreeEdits.GetText(p2);
-        //        sb.Append(p3);
-        //    }
-        //    sb.Append(context.GetText());
-        //}
-       
-        //var pp_header = context.header_name();
-        //var id = context.Identifier();
-        //var pp_number = context.pp_number();
-        //var char_lit = context.Character_literal();
-        //var user_def_char_list = context.User_defined_character_literal();
-        //var user_def_str_lit = context.User_defined_string_literal();
-        //var str_lit = context.String_literal();
-        //var pp_or = context.preprocessing_op_or_punc();
-        //if (pp_header != null)
-        //{
-        //    state[context] = pp_header.GetText();
-        //}
-        //else if (id != null)
-        //{
-        //    state[context] = id.GetText();
-        //}
-        //else if (pp_number != null)
-        //{
-        //    state[context] = pp_number.GetText();
-        //}
-        //else if (char_lit != null)
-        //{
-        //    state[context] = char_lit.GetText();
-        //}
-        //else if (user_def_char_list != null)
-        //{
-        //    state[context] = user_def_char_list.GetText();
-        //}
-        //else if (user_def_str_lit != null)
-        //{
-        //    state[context] = user_def_str_lit.GetText();
-        //}
-        //else if (str_lit != null)
-        //{
-        //    state[context] = str_lit.GetText();
-        //}
-        //else if (pp_or != null)
-        //{
-        //    state[context] = pp_or.GetText();
-        //}
-        //else
-        //{
-        //    state[context] = context.GetChild(0).GetText();
-        //}
-        
-        StringBuilder eval = new StringBuilder();
-        var toks = context.pp_tokens()?.preprocessing_token().ToList();
-        var new_line = context.new_line();
-        if (toks != null)
+        var pp_toks = context.pp_tokens();
+        if (pp_toks != null)
         {
-            for (int i = 0; i < toks.Count; ++i)
-            {
-                var tok = toks[i];
-                if (tok.Identifier() != null)
-                {
-                    var fun = tok.Identifier().GetText();
-                    if (this.preprocessor_symbols.Find(
-                     fun,
-                     out SaveParser.Identifier_listContext ids,
-                     out SaveParser.Replacement_listContext repls,
-                     out ITokenStream st,
-                     out string fn))
-                    {
-                        // evaluate fun(aa,ab,ac,...)
-                        var lparms = ids?.Identifier()
-                            ?.ToList()
-                            ?.Select(p => p.GetText())
-                            ?.ToList();
-                        if (lparms == null || lparms.Count == 0)
-                        {
-                            foreach (var s in repls.pp_tokens().preprocessing_token())
-                            {
-                                Add(sb, s);
-                            }
-                        }
-                        else
-                        {
-                            // Scan ahead for args.
-                            var get_args = GetArgs(lparms, toks, i);
-                        }
-                        // Reparse and call recursively until fix-point.
-                        //var todo = eval.ToString();
-                        //do
-                        //{
-                        //    var str = new AntlrInputStream(todo);
-                        //    var lexer = new SaveLexer(str);
-                        //    lexer.PushMode(SaveLexer.PP);
-                        //    var tokens = new CommonTokenStream(lexer);
-                        //    var parser = new SaveParser(tokens);
-                        //    var listener_lexer = new ErrorListener<int>();
-                        //    var listener_parser = new ErrorListener<IToken>();
-                        //    lexer.AddErrorListener(listener_lexer);
-                        //    parser.AddErrorListener(listener_parser);
-                        //    DateTime before = DateTime.Now;
-                        //    var tree = parser.constant_expression_eof();
-                        //    var visitor = new Preprocessor(tokens);
-                        //    visitor._current_file_name = this._current_file_name;
-                        //    visitor.state = this.state;
-                        //    visitor.preprocessor_symbols = this.preprocessor_symbols;
-                        //    visitor.probe_locations = this.probe_locations;
-                        //    visitor.Visit(tree);
-                        //    this.state = visitor.state;
-                        //    this.preprocessor_symbols = visitor.preprocessor_symbols;
-                        //    this.probe_locations = visitor.probe_locations;
-                        //    var new_todo = visitor.state[tree].ToString();
-                        //    if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
-                        //    {
-                        //        new_todo = new_todo.ToLower();
-                        //    }
-                        //    if (new_todo == todo)
-                        //        break;
-                        //    todo = new_todo;
-                        //} while (true);
-                    }
-                    else
-                    {
-                        sb.Append(" " + fun);
-                    }
-                }
-                else
-                {
-                    Add(sb, tok);
-                }
-            }
+            Visit(pp_toks);
         }
-
-        Add(sb, new_line);
-
+        Visit(context.new_line());
         return null;
     }
 
-    private void Add(StringBuilder sb, IParseTree tree)
+    private void Add(StringBuilder sb, CommonTokenStream stream, IParseTree tree, string replacement = null)
     {
         var p1 = TreeEdits.LeftMostToken(tree);
         var pp1 = p1.SourceInterval;
@@ -1983,17 +1951,22 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
         var index = pp2.TokenIndex;
         if (index >= 0)
         {
-            var p2 = _stream.GetHiddenTokensToLeft(index);
+            var p2 = stream.GetHiddenTokensToLeft(index);
             var p3 = TreeEdits.GetText(p2);
             sb.Append(p3);
         }
-        sb.Append(tree.GetText());
+        if (replacement == null)
+            sb.Append(tree.GetText());
+        else
+            sb.Append(replacement);
     }
 
-    private List<string> GetArgs(List<string> lparms, List<SaveParser.Preprocessing_tokenContext> toks, int i)
+    private (List<string>, int) GetArgs(List<string> lparms, List<SaveParser.Preprocessing_tokenContext> toks, int i)
     {
+        // "i" points to the name of macro call. We need to skip past this name, and the "(", to
+        // get to the first argument.
         List<string> args = new List<string>();
-        int last = i;
+        int last = i + 3;
         int level = 0;
         StringBuilder sb = new StringBuilder();
         for (int j = i+2; j < toks.Count; ++j)
@@ -2006,11 +1979,11 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                     sb = new StringBuilder();
                 }
                 else
-                    Add(sb, toks[j]);
+                    Add(sb, this._stream, toks[j]);
             }
             else if (toks[j].GetText() == "(")
             {
-                Add(sb, toks[j]);
+                Add(sb, this._stream, toks[j]);
                 level++;
             }
             else if (toks[j].GetText() == ")")
@@ -2018,18 +1991,19 @@ public class Preprocessor : SaveParserBaseVisitor<IParseTree>
                 if (level == 0)
                 {
                     args.Add(sb.ToString());
+                    last = j;
                     break;
                 }
                 else
-                    Add(sb, toks[j]);
+                    Add(sb, this._stream, toks[j]);
                 level--;
             }
             else
             {
-                Add(sb, toks[j]);
+                Add(sb, this._stream, toks[j]);
             }
         }
-        return args;
+        return (args, last);
     }
 
     object EvalExpr(string fun, SaveParser.Expression_listContext args)
