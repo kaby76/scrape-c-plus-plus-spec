@@ -32,7 +32,7 @@ public class Program
     static void Main(string[] args)
     {
 
-        //args = new string[] { "-file", "/home/ken/qt/qt5/qtbase/src/corelib/global/qnamespace.h" };
+        args = new string[] { "-file", "/home/ken/qtbase/src/corelib/global/qnamespace.h" };
 
         bool show_tree = false;
         bool show_tokens = false;

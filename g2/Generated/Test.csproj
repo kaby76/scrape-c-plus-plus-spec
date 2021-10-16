@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="clang++-init.h" />
+    <None Remove="g++-ubuntu-init.h" />
   </ItemGroup>
   <ItemGroup>
    <Antlr4 Include="SaveLexer.g4">
@@ -15,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="clang++-init.h" />
+    <EmbeddedResource Include="g++-ubuntu-init.h" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.2" />

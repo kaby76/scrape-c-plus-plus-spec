@@ -132,5 +132,17 @@
             }
             return sb.ToString();
         }
+
+        public static string Reconstruct(ITokenStream tokens, IParseTree tree)
+        {
+            StringBuilder sb = new StringBuilder();
+            ParserRuleContext con = tree as ParserRuleContext;
+            var val = con.SourceInterval;
+            for (int i = val.a; i <= val.b; ++i)
+            {
+                sb.Append(tokens.Get(i).Text);
+            }
+            return sb.ToString();
+        }
     }
 }
