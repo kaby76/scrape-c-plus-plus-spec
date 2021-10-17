@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Test
 {
@@ -1059,7 +1060,8 @@ namespace Test
 
     public class PreprocessorSymbols
     {
-        bool debug = true;
+        bool debug = false;
+
         public Dictionary<string,
             Tuple<SaveParser.Identifier_listContext, // params
                 SaveParser.Replacement_listContext, // value of def
@@ -1569,6 +1571,8 @@ namespace Test
                                         i = e;
                                         // Reparse and call recursively until fix-point.
                                         var todo = sb2.ToString();
+                                        var regex = new Regex("[ \t]*[#][#][ \t]*");
+                                        todo = regex.Replace(todo, "");
                                         do
                                         {
                                             var str = new AntlrInputStream(todo);
@@ -1592,6 +1596,7 @@ namespace Test
                                             this._preprocessor_symbols = visitor._preprocessor_symbols;
                                             this._probe_locations = visitor._probe_locations;
                                             var new_todo = visitor.sb.ToString();
+                                            new_todo = regex.Replace(new_todo, "");
                                             if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
                                             {
                                                 new_todo = new_todo.ToLower();
