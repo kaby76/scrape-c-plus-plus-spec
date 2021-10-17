@@ -1,15 +1,9 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
-using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 public abstract class SaveParserBase : Parser
 {
@@ -37,7 +31,7 @@ public abstract class SaveParserBase : Parser
         strg = strg.Replace("\\\r", " ");
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
-        if (SeeOutput) System.Console.Error.WriteLine(strg);
+        //if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
@@ -116,7 +110,7 @@ public abstract class SaveParserBase : Parser
         }
         if (strg == null) throw new Exception("Resource not added.");
         var str = CharStreams.fromString(strg);
-        if (SeeOutput) System.Console.Error.WriteLine(strg);
+        //if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);

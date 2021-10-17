@@ -1,3 +1,4 @@
+#define __GNUC__
 #define __LP64__
 #define __SSP_STRONG__ 3
 #define __DBL_MIN_EXP__ (-1021)

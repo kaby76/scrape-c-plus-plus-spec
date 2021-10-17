@@ -290,15 +290,23 @@ namespace Test
             }
             else if (unary != null && cast != null)
             {
-                Visit(unary);
-                Visit(cast);
                 if (unary.GetText() == "defined")
                 {
-                    var variable = cast.GetText();
-                    state[context] = _preprocessor_symbols.IsDefined(variable);
+                    if (cast?.unary_expression()?.postfix_expression()?.primary_expression()?.LeftParen() != null)
+                    {
+                        var variable = cast?.unary_expression()?.postfix_expression()?.primary_expression()?.expression()?.GetText();
+                        state[context] = _preprocessor_symbols.IsDefined(variable);
+                    }
+                    else
+                    {
+                        var variable = cast.GetText();
+                        state[context] = _preprocessor_symbols.IsDefined(variable);
+                    }
                 }
                 else if (unary.GetText() == "!")
                 {
+                    Visit(unary);
+                    Visit(cast);
                     var v = state[cast];
                     ConvertToBool(v, out bool b);
                     state[context] = !b;
@@ -1051,6 +1059,7 @@ namespace Test
 
     public class PreprocessorSymbols
     {
+        bool debug = true;
         public Dictionary<string,
             Tuple<SaveParser.Identifier_listContext, // params
                 SaveParser.Replacement_listContext, // value of def
@@ -1074,25 +1083,14 @@ namespace Test
             CommonTokenStream ts,
             string fn)
         {
-            System.Console.Error.WriteLine("Defining " + name);
+            if (debug) System.Console.Error.WriteLine("Defining " + name);
             map[name] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
-            //System.Console.Error.WriteLine("Entries");
-            //int n = 1;
-            //foreach (var p in map)
-            //{
-            //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-            //}
         }
 
         public void Delete(string name)
         {
-            System.Console.Error.WriteLine("Undefining " + name);
+            if (debug) System.Console.Error.WriteLine("Undefining " + name);
             this.map.Remove(name);
-            //int n = 1;
-            //foreach (var p in map)
-            //{
-            //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-            //}
         }
 
         public (SaveParser.Identifier_listContext,
@@ -1101,18 +1099,13 @@ namespace Test
             string)
             Find(string name)
         {
-            System.Console.Error.WriteLine("Find " + name);
+            if (debug) System.Console.Error.WriteLine("Find " + name);
             if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
               SaveParser.Replacement_listContext, // value of def
               CommonTokenStream, // token stream where define is.
               string> t))
             {
-                System.Console.Error.WriteLine("Yes!");
-                //int n = 1;
-                //foreach (var p in map)
-                //{
-                //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-                //}
+                if (debug) System.Console.Error.WriteLine("Yes!");
                 var ids = t.Item1;
                 var repls = t.Item2;
                 var stream = t.Item3;
@@ -1121,12 +1114,7 @@ namespace Test
             }
             else
             {
-                System.Console.Error.WriteLine("Nope!");
-                //int n = 1;
-                //foreach (var p in map)
-                //{
-                //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-                //}
+                if (debug) System.Console.Error.WriteLine("Nope!");
                 return (null, null, null, null);
             }
         }
@@ -1137,18 +1125,13 @@ namespace Test
             out CommonTokenStream stream,
             out string fn)
         {
-            System.Console.Error.WriteLine("Find " + name);
+            if (debug) System.Console.Error.WriteLine("Find " + name);
             if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
                 SaveParser.Replacement_listContext, // value of def
                 CommonTokenStream, // token stream where define is.
                 string> t))
             {
-                System.Console.Error.WriteLine("Yes!");
-                //int n = 1;
-                //foreach (var p in map)
-                //{
-                //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-                //}
+                if (debug) System.Console.Error.WriteLine("Yes!");
                 ids = t.Item1;
                 repls = t.Item2;
                 stream = t.Item3;
@@ -1161,29 +1144,19 @@ namespace Test
                 repls = null;
                 stream = null;
                 fn = null;
-                System.Console.Error.WriteLine("Nope!");
-                //int n = 1;
-                //foreach (var p in map)
-                //{
-                //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-                //}
+                if (debug) System.Console.Error.WriteLine("Nope!");
                 return false;
             }
         }
 
         public bool IsDefined(string name)
         {
-            System.Console.Error.WriteLine("IsDefined " + name);
+            if (debug) System.Console.Error.WriteLine("IsDefined " + name);
             var result = map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
                 SaveParser.Replacement_listContext, // value of def
                 CommonTokenStream, // token stream where define is.
                 string> t);
-            System.Console.Error.WriteLine("returning " + result);
-            //int n = 1;
-            //foreach (var p in map)
-            //{
-            //    System.Console.Error.WriteLine(n++ + " " + p.Key);
-            //}
+            if (debug) System.Console.Error.WriteLine("returning " + result);
             return result;
         }
     }
@@ -1516,7 +1489,10 @@ namespace Test
                             var text = ch.GetChild(0) as SaveParser.Text_lineContext;
                             if (text == null) return new SaveParser.Preprocessing_tokenContext[0];
                             else if (text.pp_tokens() == null) return new SaveParser.Preprocessing_tokenContext[0];
-                            else return text.pp_tokens().preprocessing_token();
+                            var list = text.pp_tokens().preprocessing_token().Select(x => x.GetChild(0)).ToList();
+                            list.Add(text.new_line());
+                            var arr = list.ToArray();
+                            return arr;
                         }).ToList();
 
                     StringBuilder eval = new StringBuilder();
@@ -1525,9 +1501,9 @@ namespace Test
                         for (int i = 0; i < toks.Count; ++i)
                         {
                             var tok = toks[i];
-                            if (tok.Identifier() != null)
+                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == SaveParser.Identifier)
                             {
-                                var fun = tok.Identifier().GetText();
+                                var fun = tok.GetText();
                                 if (this._preprocessor_symbols.Find(
                                  fun,
                                  out SaveParser.Identifier_listContext ids,
@@ -1629,7 +1605,7 @@ namespace Test
                                 }
                                 else
                                 {
-                                    sb.Append(" " + fun);
+                                    Add(sb, this._stream, tok);
                                 }
                             }
                             else
@@ -2036,6 +2012,7 @@ namespace Test
 
         public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
         {
+            throw new Exception("Should not be here");
             if (context.GetText().Contains("QT_VERSION_CHECK"))
             {
 
@@ -2062,12 +2039,16 @@ namespace Test
                 sb.Append(p3);
             }
             if (replacement == null)
-                sb.Append(tree.GetText());
+            {
+                //sb.Append(tree.GetText());
+                var str = TreeOutput.Reconstruct(stream, tree);
+                sb.Append(str);
+            }
             else
                 sb.Append(replacement);
         }
 
-        private (List<string>, int) GetArgs(List<string> lparms, List<SaveParser.Preprocessing_tokenContext> toks, int i)
+        private (List<string>, int) GetArgs(List<string> lparms, List<IParseTree> toks, int i)
         {
             // "i" points to the name of macro call. We need to skip past this name, and the "(", to
             // get to the first argument.
