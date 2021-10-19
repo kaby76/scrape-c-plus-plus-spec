@@ -114,13 +114,11 @@ public abstract class SaveParserBase : Parser
         }
         if (strg == null) throw new Exception("Resource not added.");
         var str = CharStreams.fromString(strg);
-        //if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
         var pp = new SaveParser(tokens);
         var tree = pp.preprocessing_file();
-        // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Test.Preprocessor(tokens, gpp_locations);
         visitor._current_file_name = nnn;
         visitor.Visit(tree);

@@ -1069,12 +1069,12 @@ namespace Test
         bool debug = false;
 
         public Dictionary<
-            string,
+            string,  // name of the macro for fast lookup.
             Tuple<
-                List<string>, // params
-                SaveParser.Replacement_listContext, // value of def
-                CommonTokenStream, // token stream where define is.
-                string>> map; // file name where define is.
+                List<string>, // a list of parameter names to the macro.
+                SaveParser.Replacement_listContext, // value of macro.
+                CommonTokenStream, // token stream where the macro is defined.
+                string>> map; // file name where the macro is defined.
         public CommonTokenStream Tokens { get; private set; }
 
         public PreprocessorSymbols(PreprocessorSymbols copy)
@@ -1093,10 +1093,6 @@ namespace Test
             CommonTokenStream ts,
             string fn)
         {
-            if (ids.Contains("..."))
-            {
-
-            }
             if (debug) System.Console.Error.WriteLine("Defining " + name);
             map[name] = new Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
         }
@@ -1111,20 +1107,17 @@ namespace Test
             SaveParser.Replacement_listContext,
             CommonTokenStream,
             string)
-            Find(string name)
+            Find(string macro_name)
         {
-            if (debug) System.Console.Error.WriteLine("Find " + name);
-            if (map.TryGetValue(name, out Tuple<List<string>, // params
-              SaveParser.Replacement_listContext, // value of def
-              CommonTokenStream, // token stream where define is.
-              string> t))
+            if (debug) System.Console.Error.WriteLine("Find " + macro_name);
+            if (map.TryGetValue(macro_name, out Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string> entry))
             {
                 if (debug) System.Console.Error.WriteLine("Yes!");
-                var ids = t.Item1;
-                var repls = t.Item2;
-                var stream = t.Item3;
-                var fn = t.Item4;
-                return (ids, repls, stream, fn);
+                var parameters = entry.Item1;
+                var macro_value = entry.Item2;
+                var stream = entry.Item3;
+                var fn = entry.Item4;
+                return (parameters, macro_value, stream, fn);
             }
             else
             {
@@ -1133,29 +1126,29 @@ namespace Test
             }
         }
 
-        public bool Find(string name,
-            out List<string> ids,
-            out SaveParser.Replacement_listContext repls,
+        public bool Find(string macro_name,
+            out List<string> parameters,
+            out SaveParser.Replacement_listContext macro_value,
             out CommonTokenStream stream,
             out string fn)
         {
-            if (debug) System.Console.Error.WriteLine("Find " + name);
-            if (map.TryGetValue(name, out Tuple<List<string>, // params
-                SaveParser.Replacement_listContext, // value of def
-                CommonTokenStream, // token stream where define is.
+            if (debug) System.Console.Error.WriteLine("Find " + macro_name);
+            if (map.TryGetValue(macro_name, out Tuple<List<string>,
+                SaveParser.Replacement_listContext,
+                CommonTokenStream,
                 string> t))
             {
                 if (debug) System.Console.Error.WriteLine("Yes!");
-                ids = t.Item1;
-                repls = t.Item2;
+                parameters = t.Item1;
+                macro_value = t.Item2;
                 stream = t.Item3;
                 fn = t.Item4;
                 return true;
             }
             else
             {
-                ids = null;
-                repls = null;
+                parameters = null;
+                macro_value = null;
                 stream = null;
                 fn = null;
                 if (debug) System.Console.Error.WriteLine("Nope!");
@@ -1163,12 +1156,12 @@ namespace Test
             }
         }
 
-        public bool IsDefined(string name)
+        public bool IsDefined(string macro_name)
         {
-            if (debug) System.Console.Error.WriteLine("IsDefined " + name);
-            var result = map.TryGetValue(name, out Tuple<List<string>, // params
-                SaveParser.Replacement_listContext, // value of def
-                CommonTokenStream, // token stream where define is.
+            if (debug) System.Console.Error.WriteLine("IsDefined " + macro_name);
+            var result = map.TryGetValue(macro_name, out Tuple<List<string>,
+                SaveParser.Replacement_listContext,
+                CommonTokenStream,
                 string> t);
             if (debug) System.Console.Error.WriteLine("returning " + result);
             return result;
