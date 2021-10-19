@@ -931,23 +931,29 @@ namespace Test
         {
             if (this._preprocessor_symbols.Find(
                 fun,
-                out SaveParser.Identifier_listContext ids,
+                out List<string> ids,
                 out SaveParser.Replacement_listContext repls,
                 out CommonTokenStream st,
                 out string fn))
             {
                 // evaluate fun(aa,ab,ac,...)
-                var lparms = ids.Identifier()
-                    .ToList()
-                    .Select(p => p.GetText())
-                    .ToList();
+                var lparms = ids;
                 var largs = args.initializer_list().initializer_clause()
                     .Select(p => p.GetText())
                     .ToList();
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 for (int i = 0; i < lparms.Count; ++i)
                 {
-                    map[lparms[i]] = largs[i];
+                    if (lparms[i] == "...")
+                    {
+                        // all args from this point on are matched to this parameter.
+                        map["__VA_ARGS__"] = string.Join("", largs.Skip(i));
+                        break;
+                    }
+                    else
+                    {
+                        map[lparms[i]] = largs[i];
+                    }
                 }
                 var pp_tokens = repls.pp_tokens();
                 if (pp_tokens == null)
@@ -1062,8 +1068,10 @@ namespace Test
     {
         bool debug = false;
 
-        public Dictionary<string,
-            Tuple<SaveParser.Identifier_listContext, // params
+        public Dictionary<
+            string,
+            Tuple<
+                List<string>, // params
                 SaveParser.Replacement_listContext, // value of def
                 CommonTokenStream, // token stream where define is.
                 string>> map; // file name where define is.
@@ -1071,22 +1079,26 @@ namespace Test
 
         public PreprocessorSymbols(PreprocessorSymbols copy)
         {
-            map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>>(copy.map);
+            map = new Dictionary<string, Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>>(copy.map);
         }
 
         public PreprocessorSymbols()
         {
-            map = new Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>>();
+            map = new Dictionary<string, Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>>();
         }
 
         public void Add(string name,
-            SaveParser.Identifier_listContext ids,
+            List<string> ids,
             SaveParser.Replacement_listContext repl,
             CommonTokenStream ts,
             string fn)
         {
+            if (ids.Contains("..."))
+            {
+
+            }
             if (debug) System.Console.Error.WriteLine("Defining " + name);
-            map[name] = new Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
+            map[name] = new Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
         }
 
         public void Delete(string name)
@@ -1095,14 +1107,14 @@ namespace Test
             this.map.Remove(name);
         }
 
-        public (SaveParser.Identifier_listContext,
+        public (List<string>,
             SaveParser.Replacement_listContext,
             CommonTokenStream,
             string)
             Find(string name)
         {
             if (debug) System.Console.Error.WriteLine("Find " + name);
-            if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
+            if (map.TryGetValue(name, out Tuple<List<string>, // params
               SaveParser.Replacement_listContext, // value of def
               CommonTokenStream, // token stream where define is.
               string> t))
@@ -1122,13 +1134,13 @@ namespace Test
         }
 
         public bool Find(string name,
-            out SaveParser.Identifier_listContext ids,
+            out List<string> ids,
             out SaveParser.Replacement_listContext repls,
             out CommonTokenStream stream,
             out string fn)
         {
             if (debug) System.Console.Error.WriteLine("Find " + name);
-            if (map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
+            if (map.TryGetValue(name, out Tuple<List<string>, // params
                 SaveParser.Replacement_listContext, // value of def
                 CommonTokenStream, // token stream where define is.
                 string> t))
@@ -1154,7 +1166,7 @@ namespace Test
         public bool IsDefined(string name)
         {
             if (debug) System.Console.Error.WriteLine("IsDefined " + name);
-            var result = map.TryGetValue(name, out Tuple<SaveParser.Identifier_listContext, // params
+            var result = map.TryGetValue(name, out Tuple<List<string>, // params
                 SaveParser.Replacement_listContext, // value of def
                 CommonTokenStream, // token stream where define is.
                 string> t);
@@ -1220,7 +1232,7 @@ namespace Test
                 if (_preprocessor_symbols.IsDefined(id.GetText()))
                 {
                     var b = _preprocessor_symbols.Find(id.GetText(),
-                        out SaveParser.Identifier_listContext ids,
+                        out List<string> ids,
                         out SaveParser.Replacement_listContext repls,
                         out CommonTokenStream st,
                         out string fn);
@@ -1305,23 +1317,29 @@ namespace Test
         object EvalExpr(string fun, SaveParser.Expression_listContext args)
         {
             if (_preprocessor_symbols.Find(
-                fun, out SaveParser.Identifier_listContext ids,
+                fun, out List<string> ids,
                 out SaveParser.Replacement_listContext repls,
                 out CommonTokenStream st,
                 out string fn))
             {
                 // evaluate fun(aa,ab,ac,...)
-                var lparms = ids.Identifier()
-                    .ToList()
-                    .Select(p => p.GetText())
-                    .ToList();
+                var lparms = ids;
                 var largs = args.initializer_list().initializer_clause()
                     .Select(p => p.GetText())
                     .ToList();
                 Dictionary<string, string> map = new Dictionary<string, string>();
                 for (int i = 0; i < lparms.Count; ++i)
                 {
-                    map[lparms[i]] = largs[i];
+                    if (lparms[i] == "...")
+                    {
+                        // all args from this point on are matched to this parameter.
+                        map["__VA_ARGS__"] = string.Join("", largs.Skip(i));
+                        break;
+                    }
+                    else
+                    {
+                        map[lparms[i]] = largs[i];
+                    }
                 }
                 var pp_tokens = repls.pp_tokens();
                 if (pp_tokens == null)
@@ -1506,18 +1524,19 @@ namespace Test
                             if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == SaveParser.Identifier)
                             {
                                 var fun = tok.GetText();
+                                if (fun == "Q_NAMESPACE_EXPORT")
+                                {
+
+                                }
                                 if (this._preprocessor_symbols.Find(
                                  fun,
-                                 out SaveParser.Identifier_listContext ids,
+                                 out List<string> ids,
                                  out SaveParser.Replacement_listContext repls,
                                  out CommonTokenStream st,
                                  out string fn))
                                 {
                                     // First, get the parameters of the macro.
-                                    var lparms = ids?.Identifier()
-                                        ?.ToList()
-                                        ?.Select(p => p.GetText())
-                                        ?.ToList();
+                                    var lparms = ids;
                                     // If there are no parameters, then just add the macro value to the output.
                                     if (lparms == null || lparms.Count == 0)
                                     {
@@ -1536,12 +1555,22 @@ namespace Test
                                         // Scan ahead for the argument values of the macro. We'll use this
                                         // to make substitutions.
                                         var (get_args, e) = GetArgs(lparms, toks, i);
+                                        i = e;
                                         // Instantiate the macro.
                                         StringBuilder sb2 = new StringBuilder();
                                         Dictionary<string, string> map = new Dictionary<string, string>();
                                         for (int k = 0; k < lparms.Count; ++k)
                                         {
-                                            map[lparms[k]] = get_args[k];
+                                            if (lparms[k] == "...")
+                                            {
+                                                // all args from this point on are matched to this parameter.
+                                                map["__VA_ARGS__"] = string.Join("", get_args.Skip(k));
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                map[lparms[k]] = get_args[k];
+                                            }
                                         }
                                         var pp_tokens = repls.pp_tokens();
                                         if (pp_tokens == null)
@@ -1568,13 +1597,13 @@ namespace Test
                                                 Add(sb2, st, t);
                                             }
                                         }
-                                        i = e;
                                         // Reparse and call recursively until fix-point.
                                         var todo = sb2.ToString();
                                         var regex = new Regex("[ \t]*[#][#][ \t]*");
                                         todo = regex.Replace(todo, "");
                                         do
                                         {
+                                            System.Console.Error.WriteLine("Input reparse and expand " + todo);
                                             var str = new AntlrInputStream(todo);
                                             var lexer = new SaveLexer(str);
                                             lexer.PushMode(SaveLexer.PP);
@@ -1601,6 +1630,7 @@ namespace Test
                                             {
                                                 new_todo = new_todo.ToLower();
                                             }
+                                            System.Console.Error.WriteLine("Got back " + new_todo);
                                             if (new_todo == todo)
                                                 break;
                                             todo = new_todo;
@@ -1832,7 +1862,13 @@ namespace Test
                 {
 
                 }
-                var parms = context.identifier_list();
+                var parms1 = context.identifier_list();
+                var parms2 = context.Ellipsis();
+                var parms = new List<string>();
+                if (parms1 != null)
+                    parms.AddRange(parms1.Identifier().Select(p => p.GetText()));
+                if (parms2 != null)
+                    parms.Add(parms2.GetText());
                 _preprocessor_symbols.Add(id.GetText(),
                     parms, list, _stream, _current_file_name);
                 sb.AppendLine(); // Per spec, output blank line.
@@ -2094,10 +2130,6 @@ namespace Test
                 {
                     Add(sb, this._stream, toks[j]);
                 }
-            }
-            if (args.Count < lparms.Count)
-            {
-                throw new Exception("Mismatch macro arg counts");
             }
             return (args, last);
         }

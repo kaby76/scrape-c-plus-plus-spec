@@ -47,7 +47,11 @@ public abstract class SaveParserBase : Parser
         }
         visitor.Visit(tree);
         var real_input = visitor.sb.ToString();
-        if (SeeOutput) System.Console.Error.WriteLine(real_input);
+        System.Console.WriteLine("FINISHED PREPROCESSING ENTIRE INPUT.");
+        if (SeeOutput)
+        {
+            System.Console.Error.WriteLine(real_input);
+        }
         var new_str = CharStreams.fromString(real_input);
         var new_lexer = new SaveLexer(new_str);
         var new_tokens = new CommonTokenStream(new_lexer);
