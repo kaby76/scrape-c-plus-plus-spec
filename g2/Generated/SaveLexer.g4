@@ -5,7 +5,10 @@ tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWE
 KWGnuAttribute: '__attribute__';
 
 KWAlignas: 'alignas';
-KWAlignof: 'alignof';
+KWAlignof: 'alignof'
+// GNU
+| '__alignof__'
+;
 KWAnd: 'and';
 KWAndEq: 'and_eq';
 KWAsm: 'asm';
@@ -142,7 +145,7 @@ Question: '?';
 RightBrace: '}';
 RightBracket: ']';
 RightParen: ')';
-RightShift: '>>';
+//RightShift: '>>';
 RightShiftAssign: '>>=';
 Semi: ';';
 Star: '*';
@@ -301,7 +304,7 @@ PPXorAssign: '^=' -> type(XorAssign);
 PPAndAssign: '&=' -> type(AndAssign);
 PPOrAssign: '|=' -> type(OrAssign);
 PPLeftShift: '<<' -> type(LeftShift);
-PPRightShift: '>>' -> type(RightShift);
+//PPRightShift: '>>' -> type(RightShift);
 PPRightShiftAssign: '>>=' -> type(RightShiftAssign);
 PPLeftShiftAssign: '<<=' -> type(LeftShiftAssign);
 PPEqual: '==' -> type(Equal);
