@@ -974,9 +974,16 @@ namespace Test
                     var value = toks[i].GetText();
                     if (map.TryGetValue(value, out string xxx))
                     {
+                        if (xxx.Contains("\n"))
+                        { }
                         eval.Append(" " + xxx);
                     }
-                    else eval.Append(" " + value);
+                    else
+                    {
+                        if (value.Contains("\n"))
+                        { }
+                        eval.Append(" " + value);
+                    }
                 }
 
                 // Reparse and call recursively until fix-point.
@@ -1361,9 +1368,16 @@ namespace Test
                     var value = t.Text;
                     if (map.TryGetValue(value, out string xxx))
                     {
+                        if (xxx.Contains("\n"))
+                        { }
                         sb.Append(xxx);
                     }
-                    else sb.Append(value);
+                    else
+                    {
+                        if (value.Contains("\n"))
+                        { }
+                        sb.Append(value);
+                    }
                 }
                 return sb.ToString();
             }
@@ -1484,19 +1498,26 @@ namespace Test
                         for (int i = 0; i < toks.Count; ++i)
                         {
                             var tok = toks[i];
+                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Text == "\\")
+                            {
+                                var next_tok = toks[i + 1];
+                                if (next_tok.GetText() == "n")
+                                {
+                                    i += 1;
+                                    Add(sb, this._stream, tok, "");
+                                    sb.AppendLine();
+                                    continue;
+                                }
+                            }
                             if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == SaveParser.Identifier)
                             {
                                 var fun = tok.GetText();
-                                if (fun == "Q_NAMESPACE_EXPORT")
-                                {
-
-                                }
                                 if (this._preprocessor_symbols.Find(
-                                 fun,
-                                 out List<string> ids,
-                                 out SaveParser.Replacement_listContext repls,
-                                 out CommonTokenStream st,
-                                 out string fn))
+                                    fun,
+                                    out List<string> ids,
+                                    out SaveParser.Replacement_listContext repls,
+                                    out CommonTokenStream st,
+                                    out string fn))
                                 {
                                     // First, get the parameters of the macro.
                                     var lparms = ids;
@@ -1548,17 +1569,27 @@ namespace Test
                                         {
                                             continue;
                                         }
+                                        bool stringize = false;
                                         foreach (var t in toks2)
                                         {
                                             var value = t.Symbol.Text;
+                                            if (value == "#")
+                                            {
+                                                stringize = true;
+                                                continue;
+                                            }
                                             if (map.TryGetValue(value, out string xxx))
                                             {
-                                                Add(sb2, st, t, xxx);
+                                                if (stringize)
+                                                    Add(sb2, st, t, '"' + xxx + '"');
+                                                else
+                                                    Add(sb2, st, t, xxx);
                                             }
                                             else
                                             {
                                                 Add(sb2, st, t);
                                             }
+                                            stringize = false;
                                         }
                                         // Reparse and call recursively until fix-point.
                                         var todo = sb2.ToString();
@@ -1878,11 +1909,8 @@ namespace Test
                         _probe_locations.Insert(0, to_add);
                         // Add file to input.
                         var strg = File.ReadAllText(p);
-                        if (strg.Contains("QT_VERSION_CHECK"))
-                        {
-
-                        }
                         strg = strg.Replace("\\\r\n", " ");
+                        strg = strg.Replace("\\\n\r", " ");
                         strg = strg.Replace("\\\n", " ");
                         strg = strg.Replace("\\\r", " ");
                         var str = new AntlrInputStream(strg);
@@ -1964,6 +1992,8 @@ namespace Test
                     {
                         var p2 = _stream.GetHiddenTokensToLeft(index);
                         var p3 = TreeEdits.GetText(p2);
+                        if (p3.Contains("\\\n"))
+                        { }
                         sb.Append(p3);
                     }
                     sb.AppendLine();
@@ -2044,16 +2074,24 @@ namespace Test
             {
                 var p2 = stream.GetHiddenTokensToLeft(index);
                 var p3 = TreeEdits.GetText(p2);
+                if (p3.Contains("\\\n"))
+                { }
                 sb.Append(p3);
             }
             if (replacement == null)
             {
                 //sb.Append(tree.GetText());
                 var str = TreeOutput.Reconstruct(stream, tree);
+                if (str.Contains("\\\n"))
+                { }
                 sb.Append(str);
             }
             else
+            {
+                if (replacement.Contains("\\\n"))
+                { }
                 sb.Append(replacement);
+            }
         }
 
         private (List<string>, int) GetArgs(List<string> lparms, List<IParseTree> toks, int i)

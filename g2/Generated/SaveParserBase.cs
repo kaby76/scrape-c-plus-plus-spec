@@ -27,6 +27,7 @@ public abstract class SaveParserBase : Parser
         var fn = stream.SourceName;
         var strg = stream.ToString();
         strg = strg.Replace("\\\r\n", " ");
+        strg = strg.Replace("\\\n\r", " ");
         strg = strg.Replace("\\\n", " ");
         strg = strg.Replace("\\\r", " ");
         var str = CharStreams.fromString(strg);

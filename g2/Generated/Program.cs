@@ -10,6 +10,8 @@ using System.Runtime.CompilerServices;
 
 public class Program
 {
+    private static bool _noisy = false;
+
     public static Parser Parser { get; set; }
     public static Lexer Lexer { get; set; }
     public static ITokenStream TokenStream { get; set; }
@@ -124,7 +126,7 @@ public class Program
         DateTime before = DateTime.Now;
         var tree = parser.start();
         DateTime after = DateTime.Now;
-        System.Console.Error.WriteLine("Time: " + (after - before));
+        if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
         if (listener_lexer.had_error || listener_parser.had_error)
         {
             System.Console.Error.WriteLine("Parse failed.");

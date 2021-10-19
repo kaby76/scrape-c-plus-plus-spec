@@ -254,7 +254,7 @@ fragment Q_char_sequence :  Q_char+ ;
 fragment Q_char :  ~[ \t\n"] ;
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
 Header_name :  ( '<' H_char_sequence '>' |  '"' Q_char_sequence '"' ) -> type(String_literal) ;
-PPEOL: [\r\n']+ -> type(Newline);
+PPEOL: [\r\n]+ -> type(Newline);
 PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);
 
@@ -317,5 +317,7 @@ PPArrowStar: '->*' -> type(ArrowStar);
 PPNotEqual: '!=' -> type(NotEqual);
 
 PPContinue : [\\][\r\n]+ -> channel(HIDDEN);
+PPString_literal : ( FEncoding_prefix ? '"' FS_char_sequence ? '"' | FEncoding_prefix ? 'R' FRaw_string ) -> type(String_literal) ;
+PPCharacter_literal :  ( FEncoding_prefix ? '\'' FC_char_sequence '\'' ) -> type(Character_literal) ;
 
 PPAny : .;
