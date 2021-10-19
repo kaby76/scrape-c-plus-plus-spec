@@ -1,4 +1,4 @@
-﻿namespace Test
+namespace Test
 {
     using Antlr4.Runtime;
     using Antlr4.Runtime.Misc;
