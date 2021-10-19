@@ -81,7 +81,11 @@ KWThrow: 'throw';
 KWTrue_: 'true';
 KWTry: 'try';
 KWTypedef: 'typedef';
-KWTypeid_: 'typeid';
+KWTypeid_: 'typeid'
+// GNU
+| '__typeof__'
+| '__typeof'
+;
 KWTypename_: 'typename';
 KWUnion: 'union';
 KWUnsigned: 'unsigned';

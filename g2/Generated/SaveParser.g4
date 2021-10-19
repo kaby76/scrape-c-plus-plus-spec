@@ -40,7 +40,7 @@ translation_unit :  declaration_seq ? EOF ;
 // A.4 Expressions 	 [gram.expr] 
 primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
 id_expression :  unqualified_id |  qualified_id ;
-unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Minus class_name |  Minus decltype_specifier |  template_id ;
+unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde class_name |  Tilde decltype_specifier |  template_id ;
 qualified_id :  nested_name_specifier KWTemplate ? unqualified_id ;
 nested_name_specifier :  Doublecolon |  type_name Doublecolon |  namespace_name Doublecolon |  decltype_specifier Doublecolon |  nested_name_specifier Identifier Doublecolon |  nested_name_specifier KWTemplate ? simple_template_id Doublecolon ;
 lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
