@@ -111,7 +111,7 @@ jump_statement :  KWBreak Semi |  KWContinue Semi |  KWReturn expression ? Semi 
 declaration_statement :  block_declaration ;
 
 // A.6 Declarations 	 [gram.dcl] 
-declaration_seq :  declaration |  declaration_seq declaration ;
+declaration_seq :  declaration+ ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 // § A.6 	 1219  c ISO/IEC 	 N4296
@@ -153,7 +153,10 @@ enumerator_definition :  enumerator |  enumerator Assign constant_expression ;
 enumerator :  Identifier attribute_specifier_seq ? ;
 namespace_name :  Identifier |  namespace_alias ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition nested_namespace_definition ;
-named_namespace_definition :  KWInline ? KWNamespace attribute_specifier_seq ? Identifier LeftBrace namespace_body RightBrace ;
+named_namespace_definition : 
+ KWInline ? KWNamespace attribute_specifier_seq ? Identifier LeftBrace namespace_body RightBrace
+ | KWInline ? KWNamespace Identifier gnu_attribute_specifier_seq ? LeftBrace namespace_body RightBrace
+ ;
 unnamed_namespace_definition :  KWInline ? KWNamespace attribute_specifier_seq ? LeftBrace namespace_body RightBrace ;
 nested_namespace_definition :  KWNamespace enclosing_namespace_specifier Doublecolon Identifier LeftBrace namespace_body RightBrace ;
 enclosing_namespace_specifier :  Identifier enclosing_namespace_specifier Doublecolon Identifier ;
@@ -165,12 +168,16 @@ using_declaration :  KWUsing KWTypename_ ? nested_name_specifier unqualified_id 
 using_directive :  attribute_specifier_seq ? KWUsing KWNamespace nested_name_specifier ? namespace_name Semi ;
 asm_definition :  KWAsm LeftParen String_literal RightParen Semi ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
-attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
-attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket RightBracket |  alignment_specifier
-// GNU
-  | gnu_attribute_spec ;
-// GNU
-gnu_attribute_spec : KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen  { System.Console.Error.WriteLine("Contains GNU syntax. Not ISO14882:2014."); };
+attribute_specifier_seq : attribute_specifier+ ;
+gnu_attribute_specifier_seq : gnu_attribute_specifier+ ;
+attribute_specifier :
+    LeftBracket LeftBracket attribute_list RightBracket RightBracket
+    | alignment_specifier
+    ;
+gnu_attribute_specifier :
+    KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen
+    | alignment_specifier
+    ;
 alignment_specifier :  KWAlignas LeftParen type_id Ellipsis ? RightParen |  KWAlignas LeftParen constant_expression Ellipsis ? RightParen ;
 attribute_list :  attribute ? |  attribute_list Comma attribute ? |  attribute Ellipsis |  attribute_list Comma attribute Ellipsis ;
 attribute :  attribute_token attribute_argument_clause ? ;

@@ -16,6 +16,7 @@ namespace Test
     {
         Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
         public PreprocessorSymbols _preprocessor_symbols;
+        private bool _noisy = false;
 
         public ConstantExpressionEvaluator(PreprocessorSymbols preprocessor_symbols)
         {
@@ -29,8 +30,10 @@ namespace Test
             lexer.PushMode(SaveLexer.PP);
             var _tokens = new CommonTokenStream(lexer);
             var parser = new SaveParser(_tokens);
-            var listener_lexer = new ErrorListener<int>();
-            var listener_parser = new ErrorListener<IToken>();
+            var listener_lexer = new ErrorListener<int>(true);
+            var listener_parser = new ErrorListener<IToken>(true);
+            lexer.RemoveErrorListeners();
+            parser.RemoveErrorListeners();
             lexer.AddErrorListener(listener_lexer);
             parser.AddErrorListener(listener_parser);
             var subtree = parser.constant_expression_eof();
@@ -986,14 +989,16 @@ namespace Test
                     lexer.PushMode(SaveLexer.PP);
                     var tokens = new CommonTokenStream(lexer);
                     var parser = new SaveParser(tokens);
-                    var listener_lexer = new ErrorListener<int>();
-                    var listener_parser = new ErrorListener<IToken>();
+                    var listener_lexer = new ErrorListener<int>(true);
+                    var listener_parser = new ErrorListener<IToken>(true);
+                    lexer.RemoveErrorListeners();
+                    parser.RemoveErrorListeners();
                     lexer.AddErrorListener(listener_lexer);
                     parser.AddErrorListener(listener_parser);
                     DateTime before = DateTime.Now;
                     var tree = parser.constant_expression_eof();
                     DateTime after = DateTime.Now;
-                    System.Console.Error.WriteLine("Time: " + (after - before));
+                    if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                     //var visitor = new ConstantExpressionMacroExpansion(tokens);
                     //visitor._current_file_name = this._current_file_name;
                     //visitor.state = this.state;
@@ -1173,6 +1178,7 @@ namespace Test
         PreprocessorSymbols _preprocessor_symbols;
         Antlr4.Runtime.TokenStreamRewriter _rewriter;
         ITokenStream _tokens;
+        bool _noisy = false;
 
         public ConstantExpressionMacroExpansion(PreprocessorSymbols preprocessor_symbols)
         {
@@ -1184,7 +1190,7 @@ namespace Test
             var input = TreeOutput.Reconstruct(tokens, tree);
             do
             {
-                System.Console.Error.WriteLine("Input for expand is " + input);
+                if (_noisy) System.Console.Error.WriteLine("Input for expand is " + input);
                 var str = new AntlrInputStream(input);
                 var lexer = new SaveLexer(str);
                 lexer.PushMode(SaveLexer.PP);
@@ -1192,8 +1198,10 @@ namespace Test
                 _tokens = cts;
                 _rewriter = new TokenStreamRewriter(_tokens);
                 var parser = new SaveParser(_tokens);
-                var listener_lexer = new ErrorListener<int>();
-                var listener_parser = new ErrorListener<IToken>();
+                var listener_lexer = new ErrorListener<int>(true);
+                var listener_parser = new ErrorListener<IToken>(true);
+                lexer.RemoveErrorListeners();
+                parser.RemoveErrorListeners();
                 lexer.AddErrorListener(listener_lexer);
                 parser.AddErrorListener(listener_parser);
                 var subtree = parser.constant_expression_eof();
@@ -1208,7 +1216,7 @@ namespace Test
                 other = other.Replace("##", "");
                 if (other == input)
                 {
-                    System.Console.Error.WriteLine("Finished");
+                    if (_noisy) System.Console.Error.WriteLine("Finished");
                     return other;
                 }
                 input = other;
@@ -1358,48 +1366,9 @@ namespace Test
                     else sb.Append(value);
                 }
                 return sb.ToString();
-
-                //// Reparse and call recursively until fix-point.
-                //var todo = eval.ToString();
-                //do
-                //{
-                //    var str = new AntlrInputStream(todo);
-                //    var lexer = new SaveLexer(str);
-                //    lexer.PushMode(SaveLexer.PP);
-                //    var tokens = new CommonTokenStream(lexer);
-                //    var parser = new SaveParser(tokens);
-                //    var listener_lexer = new ErrorListener<int>();
-                //    var listener_parser = new ErrorListener<IToken>();
-                //    lexer.AddErrorListener(listener_lexer);
-                //    parser.AddErrorListener(listener_parser);
-                //    DateTime before = DateTime.Now;
-                //    var tree = parser.constant_expression_eof();
-                //    var visitor = new Preprocessor(tokens);
-                //    visitor._current_file_name = this._current_file_name;
-                //    visitor.state = this.state;
-                //    visitor.preprocessor_symbols = this.preprocessor_symbols;
-                //    visitor.probe_locations = this.probe_locations;
-                //    visitor.Visit(tree);
-                //    this.state = visitor.state;
-                //    this.preprocessor_symbols = visitor.preprocessor_symbols;
-                //    this.probe_locations = visitor.probe_locations;
-                //    var new_todo = visitor.state[tree].ToString();
-                //    if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
-                //    {
-                //        new_todo = new_todo.ToLower();
-                //    }
-                //    if (new_todo == todo)
-                //        break;
-                //    todo = new_todo;
-                //} while (true);
-                //return todo;
             }
-            //else throw new Exception("Use of undefined macro " + fun + " in file " + this._current_file_name);
             return null;
         }
-
-        ////////////////////////////////////////////
-
     }
 
     public class Preprocessor : SaveParserBaseVisitor<IParseTree>
@@ -1410,6 +1379,7 @@ namespace Test
         CommonTokenStream _stream;
         public string _current_file_name;
         public List<string> _probe_locations;
+        private bool _noisy = false;
 
         public Preprocessor(CommonTokenStream stream, List<string> probe_locations)
         {
@@ -1596,20 +1566,22 @@ namespace Test
                                         todo = regex.Replace(todo, "");
                                         do
                                         {
-                                            System.Console.Error.WriteLine("Input reparse and expand " + todo);
+                                            if (_noisy) System.Console.Error.WriteLine("Input reparse and expand " + todo);
                                             var str = new AntlrInputStream(todo);
                                             var lexer = new SaveLexer(str);
                                             lexer.PushMode(SaveLexer.PP);
                                             var tokens = new CommonTokenStream(lexer);
                                             var parser = new SaveParser(tokens);
-                                            var listener_lexer = new ErrorListener<int>();
-                                            var listener_parser = new ErrorListener<IToken>();
+                                            var listener_lexer = new ErrorListener<int>(true);
+                                            var listener_parser = new ErrorListener<IToken>(true);
+                                            lexer.RemoveErrorListeners();
+                                            parser.RemoveErrorListeners();
                                             lexer.AddErrorListener(listener_lexer);
                                             parser.AddErrorListener(listener_parser);
                                             DateTime before = DateTime.Now;
                                             var tree = parser.group();
                                             DateTime after = DateTime.Now;
-                                            System.Console.Error.WriteLine("Time: " + (after - before));
+                                            if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                                             var visitor = new Preprocessor(tokens, this._probe_locations);
                                             visitor._current_file_name = this._current_file_name;
                                             visitor._preprocessor_symbols = this._preprocessor_symbols;
@@ -1623,7 +1595,7 @@ namespace Test
                                             {
                                                 new_todo = new_todo.ToLower();
                                             }
-                                            System.Console.Error.WriteLine("Got back " + new_todo);
+                                            if (_noisy) System.Console.Error.WriteLine("Got back " + new_todo);
                                             if (new_todo == todo)
                                                 break;
                                             todo = new_todo;
@@ -1918,14 +1890,16 @@ namespace Test
                         lexer.PushMode(SaveLexer.PP);
                         var tokens = new CommonTokenStream(lexer);
                         var parser = new SaveParser(tokens);
-                        var listener_lexer = new ErrorListener<int>();
-                        var listener_parser = new ErrorListener<IToken>();
+                        var listener_lexer = new ErrorListener<int>(true);
+                        var listener_parser = new ErrorListener<IToken>(true);
+                        lexer.RemoveErrorListeners();
+                        parser.RemoveErrorListeners();
                         lexer.AddErrorListener(listener_lexer);
                         parser.AddErrorListener(listener_parser);
                         DateTime before = DateTime.Now;
                         var tree = parser.preprocessing_file();
                         DateTime after = DateTime.Now;
-                        System.Console.Error.WriteLine("Time: " + (after - before));
+                        if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                         var visitor = new Preprocessor(tokens, this._probe_locations);
                         visitor._current_file_name = p;
                         visitor.state = this.state;
@@ -1938,7 +1912,7 @@ namespace Test
                         var replacement_text = visitor.sb.ToString();
                         sb.AppendLine(replacement_text);
                         _probe_locations.RemoveAt(0);
-                        System.Console.Error.WriteLine("Back on " + this._current_file_name);
+                        if (_noisy) System.Console.Error.WriteLine("Back on " + this._current_file_name);
                         break;
                     }
                 }
