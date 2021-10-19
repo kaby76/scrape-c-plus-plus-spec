@@ -1,14 +1,9 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
-using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Runtime.CompilerServices;
 
 public abstract class SaveParserBase : Parser
 {
@@ -24,7 +19,7 @@ public abstract class SaveParserBase : Parser
     public IParseTree start()
     {
         // Initialize preprocessor with predefines.
-        var init_table = InitPreprocessor();
+        var (init_table, locations) = InitPreprocessor();
         // Create preprocessor.
         var input = this.TokenStream;
         var src = input.TokenSource;
@@ -36,23 +31,27 @@ public abstract class SaveParserBase : Parser
         strg = strg.Replace("\\\r", " ");
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
-        if (SeeOutput) System.Console.Error.WriteLine(strg);
+        //if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
         var pp = new SaveParser(tokens);
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
-        var visitor = new Preprocessor(tokens);
-        visitor.preprocessor_symbols = init_table;
+        var visitor = new Test.Preprocessor(tokens, locations);
+        visitor._preprocessor_symbols = new Test.PreprocessorSymbols(init_table);
         visitor._current_file_name = fn;
         if (File.Exists(SourceName))
         {
-            visitor.probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
+            visitor._probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
         }
         visitor.Visit(tree);
         var real_input = visitor.sb.ToString();
-        if (SeeOutput) System.Console.Error.WriteLine(real_input);
+        System.Console.WriteLine("FINISHED PREPROCESSING ENTIRE INPUT.");
+        if (SeeOutput)
+        {
+            System.Console.Error.WriteLine(real_input);
+        }
         var new_str = CharStreams.fromString(real_input);
         var new_lexer = new SaveLexer(new_str);
         var new_tokens = new CommonTokenStream(new_lexer);
@@ -62,11 +61,42 @@ public abstract class SaveParserBase : Parser
         return result;
     }
 
-    System.Collections.Generic.Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> InitPreprocessor()
+    (Test.PreprocessorSymbols, List<string>) InitPreprocessor()
     {
+        var clang_locations = new List<string>()
+            {
+                "/usr/include/c++/9",
+                "/usr/include/x86_64-linux-gnu/c++/9",
+                "/usr/include/c++/9/backward",
+                "/usr/local/include",
+                "/usr/lib/llvm-10/lib/clang/10.0.0/include",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/x86_64-pc-msys",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/backward",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include-fixed",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/../../../../lib/../include/w32api",
+                "/home/ken/qtbase/include",
+                "/home/ken/qtbase",
+            };
+        var gpp_locations = new List<string>() {
+            "/usr/include/c++/9",
+            "/usr/include/x86_64-linux-gnu/c++/9",
+            "/usr/include/c++/9/backward",
+            "/usr/lib/gcc/x86_64-linux-gnu/9/include",
+            "/usr/local/include",
+            "/usr/include/x86_64-linux-gnu",
+            "/usr/include",
+            "/home/ken/qtbase/include",
+            "/home/ken/qtbase",
+        };
         // Create preprocessor.
         var assembly = Assembly.GetExecutingAssembly();
-        var nnn = "clang++-init.h";
+        // Derive clang++-init.h by clang++ -dM -E -x c++ - < /dev/null
+        var nnn = "g++-ubuntu-init.h";
         string strg = null;
         var manifestResourceNames = assembly.GetManifestResourceNames();
         foreach (var resourceName in manifestResourceNames)
@@ -82,18 +112,17 @@ public abstract class SaveParserBase : Parser
                 }
             }
         }
+        if (strg == null) throw new Exception("Resource not added.");
         var str = CharStreams.fromString(strg);
-        if (SeeOutput) System.Console.Error.WriteLine(strg);
         var lexer = new SaveLexer(str);
         lexer.PushMode(SaveLexer.PP);
         var tokens = new CommonTokenStream(lexer);
         var pp = new SaveParser(tokens);
         var tree = pp.preprocessing_file();
-        // Walk parse tree and collect tokens from preprocessor.
-        var visitor = new Preprocessor(tokens);
+        var visitor = new Test.Preprocessor(tokens, gpp_locations);
         visitor._current_file_name = nnn;
         visitor.Visit(tree);
-        System.Collections.Generic.Dictionary<string, Tuple<SaveParser.Identifier_listContext, SaveParser.Replacement_listContext>> result = visitor.preprocessor_symbols;
-        return result;
+        var result = visitor._preprocessor_symbols;
+        return (result, gpp_locations);
     }
 }
