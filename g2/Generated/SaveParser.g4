@@ -272,11 +272,14 @@ literal_operator_id :  KWOperator String_literal Identifier |  KWOperator User_d
 
 // A.12 Templates 	 [gram.temp] 
 template_declaration :  KWTemplate Less template_parameter_list Greater declaration ;
-template_parameter_list :  template_parameter |  template_parameter_list Comma template_parameter ;
+template_parameter_list :  template_parameter ( Comma template_parameter ) * ;
 // § A.12 	 1226  c ISO/IEC 	 N4296
 
 template_parameter :  type_parameter |  parameter_declaration ;
-type_parameter :  type_parameter_key Ellipsis ? Identifier ? |  type_parameter_key Identifier ? Assign type_id |  KWTemplate Less template_parameter_list Greater type_parameter_key Ellipsis ? |  Identifier ? |  KWTemplate Less template_parameter_list Greater type_parameter_key Identifier ? Assign id_expression ;
+type_parameter :  type_parameter_key Ellipsis ? Identifier ?
+ |  type_parameter_key Identifier ? Assign type_id
+ |  KWTemplate Less template_parameter_list Greater type_parameter_key Ellipsis ? Identifier ?
+ |  KWTemplate Less template_parameter_list Greater type_parameter_key Identifier ? Assign id_expression ;
 type_parameter_key :  KWClass |  KWTypename_ ;
 simple_template_id :  template_name Less template_argument_list ? Greater ;
 template_id :  simple_template_id |  operator_function_id Less template_argument_list ? Greater |  literal_operator_id Less template_argument_list ? Greater ;
