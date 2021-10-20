@@ -324,7 +324,7 @@ control_line
 |  Pound (KWError|KWWarning) pp_tokens ? new_line
 |  Pound KWPragma pp_tokens ? new_line
 |  Pound new_line ;
-text_line :  { InputStream.LA(1) != SaveLexer.Pound }? pp_tokens ? new_line ;
+text_line :  { InputStream.LA(1) != Cpp14Lexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen;
 // § A.14 	 1228  c ISO/IEC 	 N4296

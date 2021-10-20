@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-public abstract class SaveParserBase : Parser
+public abstract class Cpp14ParserBase : Parser
 {
     private readonly ITokenStream _input;
     public bool SeeOutput { get; set; } = true;
 
-    protected SaveParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
+    protected Cpp14ParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput)
     {
         _input = input;
@@ -33,10 +33,10 @@ public abstract class SaveParserBase : Parser
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
         //if (SeeOutput) System.Console.Error.WriteLine(strg);
-        var lexer = new SaveLexer(str);
-        lexer.PushMode(SaveLexer.PP);
+        var lexer = new Cpp14Lexer(str);
+        lexer.PushMode(Cpp14Lexer.PP);
         var tokens = new CommonTokenStream(lexer);
-        var pp = new SaveParser(tokens);
+        var pp = new Cpp14Parser(tokens);
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Test.Preprocessor(tokens, locations);
@@ -54,10 +54,10 @@ public abstract class SaveParserBase : Parser
             System.Console.Error.WriteLine(real_input);
         }
         var new_str = CharStreams.fromString(real_input);
-        var new_lexer = new SaveLexer(new_str);
+        var new_lexer = new Cpp14Lexer(new_str);
         var new_tokens = new CommonTokenStream(new_lexer);
         this.TokenStream = new_tokens;
-        var real_this = this as SaveParser;
+        var real_this = this as Cpp14Parser;
         IParseTree result = real_this.translation_unit();
         return result;
     }
@@ -115,10 +115,10 @@ public abstract class SaveParserBase : Parser
         }
         if (strg == null) throw new Exception("Resource not added.");
         var str = CharStreams.fromString(strg);
-        var lexer = new SaveLexer(str);
-        lexer.PushMode(SaveLexer.PP);
+        var lexer = new Cpp14Lexer(str);
+        lexer.PushMode(Cpp14Lexer.PP);
         var tokens = new CommonTokenStream(lexer);
-        var pp = new SaveParser(tokens);
+        var pp = new Cpp14Parser(tokens);
         var tree = pp.preprocessing_file();
         var visitor = new Test.Preprocessor(tokens, gpp_locations);
         visitor._current_file_name = nnn;

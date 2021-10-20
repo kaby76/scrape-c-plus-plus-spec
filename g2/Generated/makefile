@@ -1,5 +1,5 @@
 # Generated code from trgen 0.10.0
-GENERATED = SaveLexer.cs SaveParser.cs 
+GENERATED = Cpp14Lexer.cs Cpp14Parser.cs 
 default:
 	dotnet restore
 	dotnet build
