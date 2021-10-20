@@ -606,26 +606,19 @@ namespace Test
 
         public override IParseTree VisitNew_line([NotNull] SaveParser.New_lineContext context)
         {
-            for (IParseTree p = context; p != null; p = p.Parent)
+            var p1 = TreeEdits.LeftMostToken(context);
+            var pp1 = p1.SourceInterval;
+            var pp2 = p1.Payload;
+            var index = pp2.TokenIndex;
+            if (index >= 0)
             {
-                //if (p is SaveParser.Text_lineContext)
-                {
-                    var p1 = TreeEdits.LeftMostToken(context);
-                    var pp1 = p1.SourceInterval;
-                    var pp2 = p1.Payload;
-                    var index = pp2.TokenIndex;
-                    if (index >= 0)
-                    {
-                        var p2 = _stream.GetHiddenTokensToLeft(index);
-                        var p3 = TreeEdits.GetText(p2);
-                        if (p3.Contains("\\\n"))
-                        { }
-                        sb.Append(p3);
-                    }
-                    sb.AppendLine();
-                    break;
-                }
+                var p2 = _stream.GetHiddenTokensToLeft(index);
+                var p3 = TreeEdits.GetText(p2);
+                if (p3.Contains("\\\n"))
+                { }
+                sb.Append(p3);
             }
+            sb.AppendLine();
             return null;
         }
 
@@ -637,14 +630,14 @@ namespace Test
             else if (s.EndsWith("l"))
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
-                ;
+            { }
             else throw new Exception();
             try
             {
                 l = int.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -652,7 +645,7 @@ namespace Test
                 l = long.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -660,7 +653,7 @@ namespace Test
                 l = float.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -668,7 +661,7 @@ namespace Test
                 l = double.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             l = 0;
@@ -677,17 +670,6 @@ namespace Test
         public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
         {
             throw new Exception("Should not be here");
-            if (context.GetText().Contains("QT_VERSION_CHECK"))
-            {
-
-            }
-            var pp_toks = context.pp_tokens();
-            if (pp_toks != null)
-            {
-                Visit(pp_toks);
-            }
-            Visit(context.new_line());
-            return null;
         }
 
         private void Add(StringBuilder sb, CommonTokenStream stream, IParseTree tree, string replacement = null)

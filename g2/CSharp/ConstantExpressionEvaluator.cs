@@ -12,6 +12,7 @@ namespace Test
     {
         Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
         public PreprocessorSymbols _preprocessor_symbols;
+        private bool _noisy = false;
 
         public ConstantExpressionEvaluator(PreprocessorSymbols preprocessor_symbols)
         {
@@ -888,14 +889,14 @@ namespace Test
             else if (s.EndsWith("l"))
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
-            { }
+                ;
             else throw new Exception();
             try
             {
                 l = int.Parse(s);
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
             try
@@ -903,7 +904,7 @@ namespace Test
                 l = long.Parse(s);
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
             try
@@ -911,7 +912,7 @@ namespace Test
                 l = float.Parse(s);
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
             try
@@ -919,7 +920,7 @@ namespace Test
                 l = double.Parse(s);
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
             l = 0;
@@ -986,8 +987,40 @@ namespace Test
                 do
                 {
                     throw new Exception();
+                    var str = new AntlrInputStream(todo);
+                    var lexer = new SaveLexer(str);
+                    lexer.PushMode(SaveLexer.PP);
+                    var tokens = new CommonTokenStream(lexer);
+                    var parser = new SaveParser(tokens);
+                    var listener_lexer = new ErrorListener<int>(true);
+                    var listener_parser = new ErrorListener<IToken>(true);
+                    lexer.RemoveErrorListeners();
+                    parser.RemoveErrorListeners();
+                    lexer.AddErrorListener(listener_lexer);
+                    parser.AddErrorListener(listener_parser);
+                    DateTime before = DateTime.Now;
+                    var tree = parser.constant_expression_eof();
+                    DateTime after = DateTime.Now;
+                    if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
+                    //var visitor = new ConstantExpressionMacroExpansion(tokens);
+                    //visitor._current_file_name = this._current_file_name;
+                    //visitor.state = this.state;
+                    //visitor.preprocessor_symbols = this.preprocessor_symbols;
+                    //visitor.probe_locations = this.probe_locations;
+                    //visitor.Visit(tree);
+                    //this.state = visitor.state;
+                    //this.preprocessor_symbols = visitor.preprocessor_symbols;
+                    //this.probe_locations = visitor.probe_locations;
+                    //var new_todo = visitor.state[tree].ToString();
+                    //if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                    //{
+                    //    new_todo = new_todo.ToLower();
+                    //}
+                    //if (new_todo == todo)
+                    //    break;
+                    //todo = new_todo;
                 } while (true);
-                //return todo;
+                return todo;
             }
             //  else throw new Exception("Use of undefined macro " + fun + " in file " + this._current_file_name);
             return null;
