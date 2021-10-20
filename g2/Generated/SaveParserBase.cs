@@ -126,4 +126,20 @@ public abstract class SaveParserBase : Parser
         var result = visitor._preprocessor_symbols;
         return (result, gpp_locations);
     }
+
+    static DateTime _last_time = DateTime.Now;
+    bool Time()
+    {
+        var now = DateTime.Now;
+        System.TimeSpan diff = now.Subtract(_last_time);
+        var one = new System.TimeSpan(0, 0, 1);
+        _last_time = now;
+        if (System.TimeSpan.Compare(diff, one) > 0)
+        {
+            var tok = this.TokenStream.LT(1);
+            System.Console.WriteLine(tok.Line + " " + tok.Column);
+        }
+        //System.Console.WriteLine(DateTime.Now.ToString());
+        return true;
+    }
 }
