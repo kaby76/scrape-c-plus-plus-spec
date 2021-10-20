@@ -1,11 +1,14 @@
-lexer grammar SaveLexer;
+lexer grammar Cpp14Lexer;
 
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
 KWGnuAttribute: '__attribute__';
 
 KWAlignas: 'alignas';
-KWAlignof: 'alignof';
+KWAlignof: 'alignof'
+// GNU
+| '__alignof__'
+;
 KWAnd: 'and';
 KWAndEq: 'and_eq';
 KWAsm: 'asm';
@@ -78,7 +81,11 @@ KWThrow: 'throw';
 KWTrue_: 'true';
 KWTry: 'try';
 KWTypedef: 'typedef';
-KWTypeid_: 'typeid';
+KWTypeid_: 'typeid'
+// GNU
+| '__typeof__'
+| '__typeof'
+;
 KWTypename_: 'typename';
 KWUnion: 'union';
 KWUnsigned: 'unsigned';
@@ -142,7 +149,7 @@ Question: '?';
 RightBrace: '}';
 RightBracket: ']';
 RightParen: ')';
-RightShift: '>>';
+//RightShift: '>>';
 RightShiftAssign: '>>=';
 Semi: ';';
 Star: '*';
@@ -254,7 +261,7 @@ fragment Q_char_sequence :  Q_char+ ;
 fragment Q_char :  ~[ \t\n"] ;
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
 Header_name :  ( '<' H_char_sequence '>' |  '"' Q_char_sequence '"' ) -> type(String_literal) ;
-PPEOL: [\r\n']+ -> type(Newline);
+PPEOL: [\r\n]+ -> type(Newline);
 PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);
 
@@ -301,7 +308,7 @@ PPXorAssign: '^=' -> type(XorAssign);
 PPAndAssign: '&=' -> type(AndAssign);
 PPOrAssign: '|=' -> type(OrAssign);
 PPLeftShift: '<<' -> type(LeftShift);
-PPRightShift: '>>' -> type(RightShift);
+//PPRightShift: '>>' -> type(RightShift);
 PPRightShiftAssign: '>>=' -> type(RightShiftAssign);
 PPLeftShiftAssign: '<<=' -> type(LeftShiftAssign);
 PPEqual: '==' -> type(Equal);
@@ -317,5 +324,7 @@ PPArrowStar: '->*' -> type(ArrowStar);
 PPNotEqual: '!=' -> type(NotEqual);
 
 PPContinue : [\\][\r\n]+ -> channel(HIDDEN);
+PPString_literal : ( FEncoding_prefix ? '"' FS_char_sequence ? '"' | FEncoding_prefix ? 'R' FRaw_string ) -> type(String_literal) ;
+PPCharacter_literal :  ( FEncoding_prefix ? '\'' FC_char_sequence '\'' ) -> type(Character_literal) ;
 
 PPAny : .;

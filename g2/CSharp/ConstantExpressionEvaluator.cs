@@ -8,11 +8,10 @@ using System.Text;
 
 namespace Test
 {
-    public class ConstantExpressionEvaluator : SaveParserBaseVisitor<IParseTree>
+    public class ConstantExpressionEvaluator : Cpp14ParserBaseVisitor<IParseTree>
     {
         Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
         public PreprocessorSymbols _preprocessor_symbols;
-        private bool _noisy = false;
 
         public ConstantExpressionEvaluator(PreprocessorSymbols preprocessor_symbols)
         {
@@ -22,10 +21,10 @@ namespace Test
         public object Evaluate(string input)
         {
             var str = new AntlrInputStream(input);
-            var lexer = new SaveLexer(str);
-            lexer.PushMode(SaveLexer.PP);
+            var lexer = new Cpp14Lexer(str);
+            lexer.PushMode(Cpp14Lexer.PP);
             var _tokens = new CommonTokenStream(lexer);
-            var parser = new SaveParser(_tokens);
+            var parser = new Cpp14Parser(_tokens);
             var listener_lexer = new ErrorListener<int>(true);
             var listener_parser = new ErrorListener<IToken>(true);
             lexer.RemoveErrorListeners();
@@ -37,7 +36,7 @@ namespace Test
             return state[subtree];
         }
 
-        public override IParseTree VisitLiteral([NotNull] SaveParser.LiteralContext context)
+        public override IParseTree VisitLiteral([NotNull] Cpp14Parser.LiteralContext context)
         {
             // literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
             var int_lit = context.Integer_literal();
@@ -85,7 +84,7 @@ namespace Test
 
         // A.4 Expressions   [gram.expr] 
 
-        public override IParseTree VisitPrimary_expression([NotNull] SaveParser.Primary_expressionContext context)
+        public override IParseTree VisitPrimary_expression([NotNull] Cpp14Parser.Primary_expressionContext context)
         {
             // primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
             var literal = context.literal();
@@ -115,7 +114,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitId_expression([NotNull] SaveParser.Id_expressionContext context)
+        public override IParseTree VisitId_expression([NotNull] Cpp14Parser.Id_expressionContext context)
         {
             // id_expression :  unqualified_id |  qualified_id ;
             var unqual = context.unqualified_id();
@@ -134,7 +133,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitUnqualified_id([NotNull] SaveParser.Unqualified_idContext context)
+        public override IParseTree VisitUnqualified_id([NotNull] Cpp14Parser.Unqualified_idContext context)
         {
             // unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Minus class_name |  Minus decltype_specifier |  template_id ;
             var id = context.Identifier();
@@ -157,72 +156,72 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitQualified_id([NotNull] SaveParser.Qualified_idContext context)
+        public override IParseTree VisitQualified_id([NotNull] Cpp14Parser.Qualified_idContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNested_name_specifier([NotNull] SaveParser.Nested_name_specifierContext context)
+        public override IParseTree VisitNested_name_specifier([NotNull] Cpp14Parser.Nested_name_specifierContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitLambda_expression([NotNull] SaveParser.Lambda_expressionContext context)
+        public override IParseTree VisitLambda_expression([NotNull] Cpp14Parser.Lambda_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitLambda_introducer([NotNull] SaveParser.Lambda_introducerContext context)
+        public override IParseTree VisitLambda_introducer([NotNull] Cpp14Parser.Lambda_introducerContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitLambda_capture([NotNull] SaveParser.Lambda_captureContext context)
+        public override IParseTree VisitLambda_capture([NotNull] Cpp14Parser.Lambda_captureContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitCapture_default([NotNull] SaveParser.Capture_defaultContext context)
+        public override IParseTree VisitCapture_default([NotNull] Cpp14Parser.Capture_defaultContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitCapture_list([NotNull] SaveParser.Capture_listContext context)
+        public override IParseTree VisitCapture_list([NotNull] Cpp14Parser.Capture_listContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitCapture([NotNull] SaveParser.CaptureContext context)
+        public override IParseTree VisitCapture([NotNull] Cpp14Parser.CaptureContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitSimple_capture([NotNull] SaveParser.Simple_captureContext context)
+        public override IParseTree VisitSimple_capture([NotNull] Cpp14Parser.Simple_captureContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitInit_capture([NotNull] SaveParser.Init_captureContext context)
+        public override IParseTree VisitInit_capture([NotNull] Cpp14Parser.Init_captureContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitLambda_declarator([NotNull] SaveParser.Lambda_declaratorContext context)
+        public override IParseTree VisitLambda_declarator([NotNull] Cpp14Parser.Lambda_declaratorContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitFold_expression([NotNull] SaveParser.Fold_expressionContext context)
+        public override IParseTree VisitFold_expression([NotNull] Cpp14Parser.Fold_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitFold_operator([NotNull] SaveParser.Fold_operatorContext context)
+        public override IParseTree VisitFold_operator([NotNull] Cpp14Parser.Fold_operatorContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitPostfix_expression([NotNull] SaveParser.Postfix_expressionContext context)
+        public override IParseTree VisitPostfix_expression([NotNull] Cpp14Parser.Postfix_expressionContext context)
         {
             // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
             var pri = context.primary_expression();
@@ -251,7 +250,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitExpression_list([NotNull] SaveParser.Expression_listContext context)
+        public override IParseTree VisitExpression_list([NotNull] Cpp14Parser.Expression_listContext context)
         {
             // expression_list :  initializer_list ;
             var init_list = context.initializer_list();
@@ -260,17 +259,17 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitPseudo_destructor_name([NotNull] SaveParser.Pseudo_destructor_nameContext context)
+        public override IParseTree VisitPseudo_destructor_name([NotNull] Cpp14Parser.Pseudo_destructor_nameContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitUnary_operator([NotNull] SaveParser.Unary_operatorContext context)
+        public override IParseTree VisitUnary_operator([NotNull] Cpp14Parser.Unary_operatorContext context)
         {
             return null;
         }
 
-        public override IParseTree VisitUnary_expression([NotNull] SaveParser.Unary_expressionContext context)
+        public override IParseTree VisitUnary_expression([NotNull] Cpp14Parser.Unary_expressionContext context)
         {
             // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
             var post = context.postfix_expression();
@@ -317,47 +316,47 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitNew_expression([NotNull] SaveParser.New_expressionContext context)
+        public override IParseTree VisitNew_expression([NotNull] Cpp14Parser.New_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNew_placement([NotNull] SaveParser.New_placementContext context)
+        public override IParseTree VisitNew_placement([NotNull] Cpp14Parser.New_placementContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNew_type_id([NotNull] SaveParser.New_type_idContext context)
+        public override IParseTree VisitNew_type_id([NotNull] Cpp14Parser.New_type_idContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNew_declarator([NotNull] SaveParser.New_declaratorContext context)
+        public override IParseTree VisitNew_declarator([NotNull] Cpp14Parser.New_declaratorContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNoptr_abstract_declarator([NotNull] SaveParser.Noptr_abstract_declaratorContext context)
+        public override IParseTree VisitNoptr_abstract_declarator([NotNull] Cpp14Parser.Noptr_abstract_declaratorContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNew_initializer([NotNull] SaveParser.New_initializerContext context)
+        public override IParseTree VisitNew_initializer([NotNull] Cpp14Parser.New_initializerContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitDelete_expression([NotNull] SaveParser.Delete_expressionContext context)
+        public override IParseTree VisitDelete_expression([NotNull] Cpp14Parser.Delete_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitNoexcept_expression([NotNull] SaveParser.Noexcept_expressionContext context)
+        public override IParseTree VisitNoexcept_expression([NotNull] Cpp14Parser.Noexcept_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitCast_expression([NotNull] SaveParser.Cast_expressionContext context)
+        public override IParseTree VisitCast_expression([NotNull] Cpp14Parser.Cast_expressionContext context)
         {
             // cast_expression :  unary_expression |  LeftParen type_id RightParen cast_expression ;
             if (context.unary_expression() != null)
@@ -370,7 +369,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitPm_expression([NotNull] SaveParser.Pm_expressionContext context)
+        public override IParseTree VisitPm_expression([NotNull] Cpp14Parser.Pm_expressionContext context)
         {
             // pm_expression :  cast_expression |  pm_expression DotStar cast_expression |  pm_expression ArrowStar cast_expression ;
             var cast = context.cast_expression();
@@ -399,7 +398,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitMultiplicative_expression([NotNull] SaveParser.Multiplicative_expressionContext context)
+        public override IParseTree VisitMultiplicative_expression([NotNull] Cpp14Parser.Multiplicative_expressionContext context)
         {
             // multiplicative_expression :  pm_expression |  multiplicative_expression Star pm_expression |  multiplicative_expression Div pm_expression |  multiplicative_expression Mod pm_expression ;
             var pm = context.pm_expression();
@@ -432,7 +431,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitAdditive_expression([NotNull] SaveParser.Additive_expressionContext context)
+        public override IParseTree VisitAdditive_expression([NotNull] Cpp14Parser.Additive_expressionContext context)
         {
             // additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
             var mul = context.multiplicative_expression();
@@ -470,7 +469,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitShift_expression([NotNull] SaveParser.Shift_expressionContext context)
+        public override IParseTree VisitShift_expression([NotNull] Cpp14Parser.Shift_expressionContext context)
         {
             // shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression RightShift additive_expression ;
             var add = context.additive_expression();
@@ -507,7 +506,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitRelational_expression([NotNull] SaveParser.Relational_expressionContext context)
+        public override IParseTree VisitRelational_expression([NotNull] Cpp14Parser.Relational_expressionContext context)
         {
             // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
             var shift = context.shift_expression();
@@ -565,7 +564,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitEquality_expression([NotNull] SaveParser.Equality_expressionContext context)
+        public override IParseTree VisitEquality_expression([NotNull] Cpp14Parser.Equality_expressionContext context)
         {
             // equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
             var rel = context.relational_expression();
@@ -588,7 +587,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitAnd_expression([NotNull] SaveParser.And_expressionContext context)
+        public override IParseTree VisitAnd_expression([NotNull] Cpp14Parser.And_expressionContext context)
         {
             // and_expression :  equality_expression |  and_expression ( And | KWBitAnd ) equality_expression ;
             var eq = context.equality_expression();
@@ -625,7 +624,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitExclusive_or_expression([NotNull] SaveParser.Exclusive_or_expressionContext context)
+        public override IParseTree VisitExclusive_or_expression([NotNull] Cpp14Parser.Exclusive_or_expressionContext context)
         {
             // exclusive_or_expression :  and_expression |  exclusive_or_expression ( Caret | KWXor ) and_expression ;
             var and = context.and_expression();
@@ -662,7 +661,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitInclusive_or_expression([NotNull] SaveParser.Inclusive_or_expressionContext context)
+        public override IParseTree VisitInclusive_or_expression([NotNull] Cpp14Parser.Inclusive_or_expressionContext context)
         {
             // inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( Or | KWBitOr ) exclusive_or_expression ;
             var ior = context.inclusive_or_expression();
@@ -699,7 +698,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitLogical_and_expression([NotNull] SaveParser.Logical_and_expressionContext context)
+        public override IParseTree VisitLogical_and_expression([NotNull] Cpp14Parser.Logical_and_expressionContext context)
         {
             // logical_and_expression :  inclusive_or_expression |  logical_and_expression ( AndAnd | KWAnd ) inclusive_or_expression ;
             var ior = context.inclusive_or_expression();
@@ -728,7 +727,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitLogical_or_expression([NotNull] SaveParser.Logical_or_expressionContext context)
+        public override IParseTree VisitLogical_or_expression([NotNull] Cpp14Parser.Logical_or_expressionContext context)
         {
             // logical_or_expression :  logical_and_expression |  logical_or_expression ( OrOr | KWOr ) logical_and_expression ;
             var or = context.logical_or_expression();
@@ -757,7 +756,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitConditional_expression([NotNull] SaveParser.Conditional_expressionContext context)
+        public override IParseTree VisitConditional_expression([NotNull] Cpp14Parser.Conditional_expressionContext context)
         {
             // conditional_expression :  logical_or_expression |  logical_or_expression Question expression Colon assignment_expression ;
             var lor = context.logical_or_expression();
@@ -787,12 +786,12 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitThrow_expression([NotNull] SaveParser.Throw_expressionContext context)
+        public override IParseTree VisitThrow_expression([NotNull] Cpp14Parser.Throw_expressionContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitAssignment_expression([NotNull] SaveParser.Assignment_expressionContext context)
+        public override IParseTree VisitAssignment_expression([NotNull] Cpp14Parser.Assignment_expressionContext context)
         {
             var first = context.conditional_expression();
             var thrw = context.throw_expression();
@@ -817,12 +816,12 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitAssignment_operator([NotNull] SaveParser.Assignment_operatorContext context)
+        public override IParseTree VisitAssignment_operator([NotNull] Cpp14Parser.Assignment_operatorContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitExpression([NotNull] SaveParser.ExpressionContext context)
+        public override IParseTree VisitExpression([NotNull] Cpp14Parser.ExpressionContext context)
         {
             var child = context.assignment_expression();
             Visit(child);
@@ -830,7 +829,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitConstant_expression([NotNull] SaveParser.Constant_expressionContext context)
+        public override IParseTree VisitConstant_expression([NotNull] Cpp14Parser.Constant_expressionContext context)
         {
             var child = context.conditional_expression();
             Visit(child);
@@ -838,7 +837,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitConstant_expression_eof([NotNull] SaveParser.Constant_expression_eofContext context)
+        public override IParseTree VisitConstant_expression_eof([NotNull] Cpp14Parser.Constant_expression_eofContext context)
         {
             // constant_expression_eof :  conditional_expression EOF ;
             var cond = context.conditional_expression();
@@ -847,7 +846,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitInitializer_clause([NotNull] SaveParser.Initializer_clauseContext context)
+        public override IParseTree VisitInitializer_clause([NotNull] Cpp14Parser.Initializer_clauseContext context)
         {
             // initializer_clause :  assignment_expression |  braced_init_list ;
             var assign = context.assignment_expression();
@@ -867,7 +866,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitInitializer_list([NotNull] SaveParser.Initializer_listContext context)
+        public override IParseTree VisitInitializer_list([NotNull] Cpp14Parser.Initializer_listContext context)
         {
             // initializer_list :  initializer_clause Ellipsis ? ( Comma initializer_clause Ellipsis ? )* ;
             var init_clauses = context.initializer_clause();
@@ -889,14 +888,14 @@ namespace Test
             else if (s.EndsWith("l"))
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
-                ;
+            { }
             else throw new Exception();
             try
             {
                 l = int.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -904,7 +903,7 @@ namespace Test
                 l = long.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -912,7 +911,7 @@ namespace Test
                 l = float.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -920,18 +919,18 @@ namespace Test
                 l = double.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             l = 0;
         }
 
-        object EvalExpr(string fun, SaveParser.Expression_listContext args)
+        object EvalExpr(string fun, Cpp14Parser.Expression_listContext args)
         {
             if (this._preprocessor_symbols.Find(
                 fun,
                 out List<string> ids,
-                out SaveParser.Replacement_listContext repls,
+                out Cpp14Parser.Replacement_listContext repls,
                 out CommonTokenStream st,
                 out string fn))
             {
@@ -987,40 +986,8 @@ namespace Test
                 do
                 {
                     throw new Exception();
-                    var str = new AntlrInputStream(todo);
-                    var lexer = new SaveLexer(str);
-                    lexer.PushMode(SaveLexer.PP);
-                    var tokens = new CommonTokenStream(lexer);
-                    var parser = new SaveParser(tokens);
-                    var listener_lexer = new ErrorListener<int>(true);
-                    var listener_parser = new ErrorListener<IToken>(true);
-                    lexer.RemoveErrorListeners();
-                    parser.RemoveErrorListeners();
-                    lexer.AddErrorListener(listener_lexer);
-                    parser.AddErrorListener(listener_parser);
-                    DateTime before = DateTime.Now;
-                    var tree = parser.constant_expression_eof();
-                    DateTime after = DateTime.Now;
-                    if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
-                    //var visitor = new ConstantExpressionMacroExpansion(tokens);
-                    //visitor._current_file_name = this._current_file_name;
-                    //visitor.state = this.state;
-                    //visitor.preprocessor_symbols = this.preprocessor_symbols;
-                    //visitor.probe_locations = this.probe_locations;
-                    //visitor.Visit(tree);
-                    //this.state = visitor.state;
-                    //this.preprocessor_symbols = visitor.preprocessor_symbols;
-                    //this.probe_locations = visitor.probe_locations;
-                    //var new_todo = visitor.state[tree].ToString();
-                    //if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
-                    //{
-                    //    new_todo = new_todo.ToLower();
-                    //}
-                    //if (new_todo == todo)
-                    //    break;
-                    //todo = new_todo;
                 } while (true);
-                return todo;
+                //return todo;
             }
             //  else throw new Exception("Use of undefined macro " + fun + " in file " + this._current_file_name);
             return null;

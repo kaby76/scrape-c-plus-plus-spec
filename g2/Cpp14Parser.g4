@@ -1,6 +1,6 @@
-parser grammar SaveParser;
+parser grammar Cpp14Parser;
 
-options { tokenVocab=SaveLexer; superClass=SaveParserBase; }
+options { tokenVocab=Cpp14Lexer; superClass=Cpp14ParserBase; }
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
@@ -21,7 +21,7 @@ preprocessing_op_or_punc :  LeftBrace | RightBrace | LeftBracket | RightBracket
  | Plus | Minus | Assign | Star | Less | Div | Greater
  | Mod | PlusAssign | Tilde | Not | Caret | MinusAssign
  | And | StarAssign | Or | DivAssign | ModAssign | XorAssign
- | AndAssign | OrAssign | LeftShift | RightShift
+ | AndAssign | OrAssign | LeftShift //| RightShift
  | RightShiftAssign | LeftShiftAssign | Equal | NotEqual
  | LessEqual | KWAnd | KWOr | GreaterEqual | KWAndEq | KWOrEq
  | AndAnd | KWBitAnd | KWXor | OrOr | KWBitOr | KWXorEq
@@ -40,7 +40,7 @@ translation_unit :  declaration_seq ? EOF ;
 // A.4 Expressions 	 [gram.expr] 
 primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression |  fold_expression ;
 id_expression :  unqualified_id |  qualified_id ;
-unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Minus class_name |  Minus decltype_specifier |  template_id ;
+unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde class_name |  Tilde decltype_specifier |  template_id ;
 qualified_id :  nested_name_specifier KWTemplate ? unqualified_id ;
 nested_name_specifier :  Doublecolon |  type_name Doublecolon |  namespace_name Doublecolon |  decltype_specifier Doublecolon |  nested_name_specifier Identifier Doublecolon |  nested_name_specifier KWTemplate ? simple_template_id Doublecolon ;
 lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
@@ -55,10 +55,15 @@ simple_capture :  Identifier |  And Identifier |  KWThis ;
 init_capture :  Identifier initializer |  And Identifier initializer ;
 lambda_declarator :  LeftParen parameter_declaration_clause RightParen KWMutable ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 fold_expression :  LeftParen cast_expression fold_operator Ellipsis RightParen |  LeftParen Ellipsis fold_operator cast_expression RightParen |  LeftParen cast_expression fold_operator Ellipsis fold_operator cast_expression RightParen ;
-fold_operator :  Plus | Minus | Star | Div | Mod | Caret | And | Or | LeftShift | RightShift | PlusAssign | MinusAssign | StarAssign | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShiftAssign | RightShiftAssign | Assign | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | AndAnd | OrOr | Comma | DotStar | ArrowStar ;
+fold_operator :  Plus | Minus | Star | Div | Mod | Caret | And | Or | LeftShift | 
+ Greater Greater // RightShift
+ | PlusAssign | MinusAssign | StarAssign | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShiftAssign | RightShiftAssign | Assign | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | AndAnd | OrOr | Comma | DotStar | ArrowStar ;
 postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
 expression_list :  initializer_list ;
-pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Minus type_name |  nested_name_specifier KWTemplate simple_template_id Doublecolon Minus type_name |  Minus type_name |  Minus decltype_specifier ;
+pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Tilde type_name
+  |  nested_name_specifier KWTemplate simple_template_id Doublecolon Tilde type_name
+  |  Tilde type_name
+  |  Tilde decltype_specifier ;
 unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
 // § A.4 	 1216  c ISO/IEC 	 N4296
 
@@ -75,7 +80,9 @@ cast_expression :  unary_expression |  LeftParen type_id RightParen cast_express
 pm_expression :  cast_expression |  pm_expression DotStar cast_expression |  pm_expression ArrowStar cast_expression ;
 multiplicative_expression :  pm_expression |  multiplicative_expression Star pm_expression |  multiplicative_expression Div pm_expression |  multiplicative_expression Mod pm_expression ;
 additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
-shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression RightShift additive_expression ;
+shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression
+  Greater Greater // RightShift
+  additive_expression ;
 relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
 equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
 // § A.4 	 1217  c ISO/IEC 	 N4296
@@ -111,7 +118,7 @@ jump_statement :  KWBreak Semi |  KWContinue Semi |  KWReturn expression ? Semi 
 declaration_statement :  block_declaration ;
 
 // A.6 Declarations 	 [gram.dcl] 
-declaration_seq :  declaration |  declaration_seq declaration ;
+declaration_seq :  declaration+ ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 // § A.6 	 1219  c ISO/IEC 	 N4296
@@ -153,7 +160,11 @@ enumerator_definition :  enumerator |  enumerator Assign constant_expression ;
 enumerator :  Identifier attribute_specifier_seq ? ;
 namespace_name :  Identifier |  namespace_alias ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition nested_namespace_definition ;
-named_namespace_definition :  KWInline ? KWNamespace attribute_specifier_seq ? Identifier LeftBrace namespace_body RightBrace ;
+named_namespace_definition : 
+ KWInline ? KWNamespace attribute_specifier_seq ? Identifier LeftBrace namespace_body RightBrace
+ // GNU
+ | KWInline ? KWNamespace Identifier attribute_specifier_seq ? LeftBrace namespace_body RightBrace
+ ;
 unnamed_namespace_definition :  KWInline ? KWNamespace attribute_specifier_seq ? LeftBrace namespace_body RightBrace ;
 nested_namespace_definition :  KWNamespace enclosing_namespace_specifier Doublecolon Identifier LeftBrace namespace_body RightBrace ;
 enclosing_namespace_specifier :  Identifier enclosing_namespace_specifier Doublecolon Identifier ;
@@ -165,12 +176,15 @@ using_declaration :  KWUsing KWTypename_ ? nested_name_specifier unqualified_id 
 using_directive :  attribute_specifier_seq ? KWUsing KWNamespace nested_name_specifier ? namespace_name Semi ;
 asm_definition :  KWAsm LeftParen String_literal RightParen Semi ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
-attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;
-attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket RightBracket |  alignment_specifier
-// GNU
-  | gnu_attribute_spec ;
-// GNU
-gnu_attribute_spec : KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen  { System.Console.Error.WriteLine("Contains GNU syntax. Not ISO14882:2014."); };
+attribute_specifier_seq : (attribute_specifier | gnu_attribute_specifier)+ ;
+attribute_specifier :
+    LeftBracket LeftBracket attribute_list RightBracket RightBracket
+    | alignment_specifier
+    ;
+gnu_attribute_specifier :
+    KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen
+    | alignment_specifier
+    ;
 alignment_specifier :  KWAlignas LeftParen type_id Ellipsis ? RightParen |  KWAlignas LeftParen constant_expression Ellipsis ? RightParen ;
 attribute_list :  attribute ? |  attribute_list Comma attribute ? |  attribute Ellipsis |  attribute_list Comma attribute Ellipsis ;
 attribute :  attribute_token attribute_argument_clause ? ;
@@ -253,16 +267,19 @@ mem_initializer_id :  class_or_decltype |  Identifier ;
 
 // A.11 Overloading 	 [gram.over] 
 operator_function_id :  KWOperator operator ;
-operator :  KWNew | KWDelete | KWNew LeftBracket RightBracket | KWDelete LeftBracket RightBracket | Plus | Minus | Assign | Star | Less | Div | Greater | Mod | PlusAssign | Tilde | Not | Caret | MinusAssign | And | StarAssign | Or | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShift | RightShift | RightShiftAssign | LeftShiftAssign | Equal | NotEqual | LessEqual | LeftParen RightParen | GreaterEqual | LeftBracket RightBracket | AndAnd | OrOr | PlusPlus | MinusMinus | Comma | ArrowStar | Arrow ;
+operator :  KWNew | KWDelete | KWNew LeftBracket RightBracket | KWDelete LeftBracket RightBracket | Plus | Minus | Assign | Star | Less | Div | Greater | Mod | PlusAssign | Tilde | Not | Caret | MinusAssign | And | StarAssign | Or | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShift | (Greater Greater ) /* RightShift */  | RightShiftAssign | LeftShiftAssign | Equal | NotEqual | LessEqual | LeftParen RightParen | GreaterEqual | LeftBracket RightBracket | AndAnd | OrOr | PlusPlus | MinusMinus | Comma | ArrowStar | Arrow ;
 literal_operator_id :  KWOperator String_literal Identifier |  KWOperator User_defined_string_literal ;
 
 // A.12 Templates 	 [gram.temp] 
 template_declaration :  KWTemplate Less template_parameter_list Greater declaration ;
-template_parameter_list :  template_parameter |  template_parameter_list Comma template_parameter ;
+template_parameter_list :  template_parameter ( Comma template_parameter ) * ;
 // § A.12 	 1226  c ISO/IEC 	 N4296
 
 template_parameter :  type_parameter |  parameter_declaration ;
-type_parameter :  type_parameter_key Ellipsis ? Identifier ? |  type_parameter_key Identifier ? Assign type_id |  KWTemplate Less template_parameter_list Greater type_parameter_key Ellipsis ? |  Identifier ? |  KWTemplate Less template_parameter_list Greater type_parameter_key Identifier ? Assign id_expression ;
+type_parameter :  type_parameter_key Ellipsis ? Identifier ?
+ |  type_parameter_key Identifier ? Assign type_id
+ |  KWTemplate Less template_parameter_list Greater type_parameter_key Ellipsis ? Identifier ?
+ |  KWTemplate Less template_parameter_list Greater type_parameter_key Identifier ? Assign id_expression ;
 type_parameter_key :  KWClass |  KWTypename_ ;
 simple_template_id :  template_name Less template_argument_list ? Greater ;
 template_id :  simple_template_id |  operator_function_id Less template_argument_list ? Greater |  literal_operator_id Less template_argument_list ? Greater ;
@@ -307,7 +324,7 @@ control_line
 |  Pound (KWError|KWWarning) pp_tokens ? new_line
 |  Pound KWPragma pp_tokens ? new_line
 |  Pound new_line ;
-text_line :  { InputStream.LA(1) != SaveLexer.Pound }? pp_tokens ? new_line ;
+text_line :  { InputStream.LA(1) != Cpp14Lexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen;
 // § A.14 	 1228  c ISO/IEC 	 N4296

@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace Test
 {
-    public class Preprocessor : SaveParserBaseVisitor<IParseTree>
+    public class Preprocessor : Cpp14ParserBaseVisitor<IParseTree>
     {
         public PreprocessorSymbols _preprocessor_symbols = new PreprocessorSymbols();
         Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
@@ -27,7 +27,7 @@ namespace Test
             _probe_locations = probe_locations;
         }
 
-        public override IParseTree VisitConstant_expression([NotNull] SaveParser.Constant_expressionContext context)
+        public override IParseTree VisitConstant_expression([NotNull] Cpp14Parser.Constant_expressionContext context)
         {
             // constant_expression :  conditional_expression ;
 
@@ -47,23 +47,23 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitPreprocessing_token([NotNull] SaveParser.Preprocessing_tokenContext context)
+        public override IParseTree VisitPreprocessing_token([NotNull] Cpp14Parser.Preprocessing_tokenContext context)
         {
             base.VisitPreprocessing_token(context);
             return null;
         }
 
-        public override IParseTree VisitPreprocessing_op_or_punc([NotNull] SaveParser.Preprocessing_op_or_puncContext context)
+        public override IParseTree VisitPreprocessing_op_or_punc([NotNull] Cpp14Parser.Preprocessing_op_or_puncContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitBoolean_literal([NotNull] SaveParser.Boolean_literalContext context)
+        public override IParseTree VisitBoolean_literal([NotNull] Cpp14Parser.Boolean_literalContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitPointer_literal([NotNull] SaveParser.Pointer_literalContext context)
+        public override IParseTree VisitPointer_literal([NotNull] Cpp14Parser.Pointer_literalContext context)
         {
             throw new NotImplementedException();
         }
@@ -71,12 +71,12 @@ namespace Test
 
         // A.14 Preprocessing directives 	 [gram.cpp]
 
-        public override IParseTree VisitPreprocessing_file([NotNull] SaveParser.Preprocessing_fileContext context)
+        public override IParseTree VisitPreprocessing_file([NotNull] Cpp14Parser.Preprocessing_fileContext context)
         {
             return base.VisitPreprocessing_file(context);
         }
 
-        public override IParseTree VisitGroup([NotNull] SaveParser.GroupContext context)
+        public override IParseTree VisitGroup([NotNull] Cpp14Parser.GroupContext context)
         {
             var check = TreeOutput.Reconstruct(this._stream, context);
             if (check.Contains("QT_VERSION_CHECK"))
@@ -88,7 +88,7 @@ namespace Test
             for (int c = 0; c < context.ChildCount;)
             {
                 var child = context.GetChild(c).GetChild(0);
-                if (child is SaveParser.Text_lineContext)
+                if (child is Cpp14Parser.Text_lineContext)
                 {
                     int count = 1;
                     var start = c;
@@ -96,7 +96,7 @@ namespace Test
                     for (c++; c < context.ChildCount; ++c)
                     {
                         end = c;
-                        if (!(context.GetChild(c).GetChild(0) is SaveParser.Text_lineContext))
+                        if (!(context.GetChild(c).GetChild(0) is Cpp14Parser.Text_lineContext))
                         {
                             break;
                         }
@@ -109,9 +109,9 @@ namespace Test
                         .GetRange(start, count)
                         .SelectMany(ch =>
                         {
-                            var text = ch.GetChild(0) as SaveParser.Text_lineContext;
-                            if (text == null) return new SaveParser.Preprocessing_tokenContext[0];
-                            else if (text.pp_tokens() == null) return new SaveParser.Preprocessing_tokenContext[0];
+                            var text = ch.GetChild(0) as Cpp14Parser.Text_lineContext;
+                            if (text == null) return new Cpp14Parser.Preprocessing_tokenContext[0];
+                            else if (text.pp_tokens() == null) return new Cpp14Parser.Preprocessing_tokenContext[0];
                             var list = text.pp_tokens().preprocessing_token().Select(x => x.GetChild(0)).ToList();
                             list.Add(text.new_line());
                             var arr = list.ToArray();
@@ -135,13 +135,13 @@ namespace Test
                                     continue;
                                 }
                             }
-                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == SaveParser.Identifier)
+                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == Cpp14Parser.Identifier)
                             {
                                 var fun = tok.GetText();
                                 if (this._preprocessor_symbols.Find(
                                     fun,
                                     out List<string> ids,
-                                    out SaveParser.Replacement_listContext repls,
+                                    out Cpp14Parser.Replacement_listContext repls,
                                     out CommonTokenStream st,
                                     out string fn))
                                 {
@@ -225,10 +225,10 @@ namespace Test
                                         {
                                             if (_noisy) System.Console.Error.WriteLine("Input reparse and expand " + todo);
                                             var str = new AntlrInputStream(todo);
-                                            var lexer = new SaveLexer(str);
-                                            lexer.PushMode(SaveLexer.PP);
+                                            var lexer = new Cpp14Lexer(str);
+                                            lexer.PushMode(Cpp14Lexer.PP);
                                             var tokens = new CommonTokenStream(lexer);
-                                            var parser = new SaveParser(tokens);
+                                            var parser = new Cpp14Parser(tokens);
                                             var listener_lexer = new ErrorListener<int>(true);
                                             var listener_parser = new ErrorListener<IToken>(true);
                                             lexer.RemoveErrorListeners();
@@ -285,12 +285,12 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitGroup_part([NotNull] SaveParser.Group_partContext context)
+        public override IParseTree VisitGroup_part([NotNull] Cpp14Parser.Group_partContext context)
         {
             return base.VisitGroup_part(context);
         }
 
-        public override IParseTree VisitIf_section([NotNull] SaveParser.If_sectionContext context)
+        public override IParseTree VisitIf_section([NotNull] Cpp14Parser.If_sectionContext context)
         {
             // if_section: (Pound KWIf constant_expression new_line group ? | Pound KWIfdef Identifier new_line group ? | Pound KWIfndef Identifier new_line group ? ) elif_groups? else_group ? endif_line;
             var type_if = context.KWIf();
@@ -377,7 +377,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitIf_group([NotNull] SaveParser.If_groupContext context)
+        public override IParseTree VisitIf_group([NotNull] Cpp14Parser.If_groupContext context)
         {
             // Evaluate the context expression.
             if (context.KWIf() != null)
@@ -418,7 +418,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitElif_groups([NotNull] SaveParser.Elif_groupsContext context)
+        public override IParseTree VisitElif_groups([NotNull] Cpp14Parser.Elif_groupsContext context)
         {
             foreach (var g in context.elif_group())
             {
@@ -431,7 +431,7 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitElif_group([NotNull] SaveParser.Elif_groupContext context)
+        public override IParseTree VisitElif_group([NotNull] Cpp14Parser.Elif_groupContext context)
         {
             // elif_group :  Pound KWElif constant_expression new_line group ? ;
             var exp = context.constant_expression();
@@ -447,10 +447,10 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitElse_group([NotNull] SaveParser.Else_groupContext context)
+        public override IParseTree VisitElse_group([NotNull] Cpp14Parser.Else_groupContext context)
         {
             // Get state from ancestor if_section. Do not visit if true.
-            var if_section = context.Parent as SaveParser.If_sectionContext;
+            var if_section = context.Parent as Cpp14Parser.If_sectionContext;
             var v = state[if_section];
             ConvertToBool(v, out bool b);
             if (!b)
@@ -461,12 +461,12 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitEndif_line([NotNull] SaveParser.Endif_lineContext context)
+        public override IParseTree VisitEndif_line([NotNull] Cpp14Parser.Endif_lineContext context)
         {
             return base.VisitEndif_line(context);
         }
 
-        public override IParseTree VisitControl_line([NotNull] SaveParser.Control_lineContext context)
+        public override IParseTree VisitControl_line([NotNull] Cpp14Parser.Control_lineContext context)
         {
             // control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
             var define = context.KWDefine();
@@ -478,7 +478,7 @@ namespace Test
             var ellip = context.Ellipsis();
             if (context.KWDefine() != null)
             {
-                SaveParser.Replacement_listContext list = context.replacement_list();
+                Cpp14Parser.Replacement_listContext list = context.replacement_list();
                 var id_string = id.GetText();
                 if (id_string.Contains("QT_VERSION_CHECK"))
                 {
@@ -540,10 +540,10 @@ namespace Test
                         strg = strg.Replace("\\\n", " ");
                         strg = strg.Replace("\\\r", " ");
                         var str = new AntlrInputStream(strg);
-                        var lexer = new SaveLexer(str);
-                        lexer.PushMode(SaveLexer.PP);
+                        var lexer = new Cpp14Lexer(str);
+                        lexer.PushMode(Cpp14Lexer.PP);
                         var tokens = new CommonTokenStream(lexer);
-                        var parser = new SaveParser(tokens);
+                        var parser = new Cpp14Parser(tokens);
                         var listener_lexer = new ErrorListener<int>(true);
                         var listener_parser = new ErrorListener<IToken>(true);
                         lexer.RemoveErrorListeners();
@@ -578,54 +578,47 @@ namespace Test
             return null;
         }
 
-        public override IParseTree VisitNon_directive([NotNull] SaveParser.Non_directiveContext context)
+        public override IParseTree VisitNon_directive([NotNull] Cpp14Parser.Non_directiveContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitLparen([NotNull] SaveParser.LparenContext context)
+        public override IParseTree VisitLparen([NotNull] Cpp14Parser.LparenContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitIdentifier_list([NotNull] SaveParser.Identifier_listContext context)
+        public override IParseTree VisitIdentifier_list([NotNull] Cpp14Parser.Identifier_listContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitReplacement_list([NotNull] SaveParser.Replacement_listContext context)
+        public override IParseTree VisitReplacement_list([NotNull] Cpp14Parser.Replacement_listContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override IParseTree VisitPp_tokens([NotNull] SaveParser.Pp_tokensContext context)
+        public override IParseTree VisitPp_tokens([NotNull] Cpp14Parser.Pp_tokensContext context)
         {
             base.VisitPp_tokens(context);
             return null;
         }
 
-        public override IParseTree VisitNew_line([NotNull] SaveParser.New_lineContext context)
+        public override IParseTree VisitNew_line([NotNull] Cpp14Parser.New_lineContext context)
         {
-            for (IParseTree p = context; p != null; p = p.Parent)
+            var p1 = TreeEdits.LeftMostToken(context);
+            var pp1 = p1.SourceInterval;
+            var pp2 = p1.Payload;
+            var index = pp2.TokenIndex;
+            if (index >= 0)
             {
-                //if (p is SaveParser.Text_lineContext)
-                {
-                    var p1 = TreeEdits.LeftMostToken(context);
-                    var pp1 = p1.SourceInterval;
-                    var pp2 = p1.Payload;
-                    var index = pp2.TokenIndex;
-                    if (index >= 0)
-                    {
-                        var p2 = _stream.GetHiddenTokensToLeft(index);
-                        var p3 = TreeEdits.GetText(p2);
-                        if (p3.Contains("\\\n"))
-                        { }
-                        sb.Append(p3);
-                    }
-                    sb.AppendLine();
-                    break;
-                }
+                var p2 = _stream.GetHiddenTokensToLeft(index);
+                var p3 = TreeEdits.GetText(p2);
+                if (p3.Contains("\\\n"))
+                { }
+                sb.Append(p3);
             }
+            sb.AppendLine();
             return null;
         }
 
@@ -637,14 +630,14 @@ namespace Test
             else if (s.EndsWith("l"))
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
-                ;
+            { }
             else throw new Exception();
             try
             {
                 l = int.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -652,7 +645,7 @@ namespace Test
                 l = long.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -660,7 +653,7 @@ namespace Test
                 l = float.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             try
@@ -668,26 +661,15 @@ namespace Test
                 l = double.Parse(s);
                 return;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             l = 0;
         }
 
-        public override IParseTree VisitText_line([NotNull] SaveParser.Text_lineContext context)
+        public override IParseTree VisitText_line([NotNull] Cpp14Parser.Text_lineContext context)
         {
             throw new Exception("Should not be here");
-            if (context.GetText().Contains("QT_VERSION_CHECK"))
-            {
-
-            }
-            var pp_toks = context.pp_tokens();
-            if (pp_toks != null)
-            {
-                Visit(pp_toks);
-            }
-            Visit(context.new_line());
-            return null;
         }
 
         private void Add(StringBuilder sb, CommonTokenStream stream, IParseTree tree, string replacement = null)
@@ -765,7 +747,7 @@ namespace Test
             return (args, last);
         }
 
-        object EvalExpr(string fun, SaveParser.Expression_listContext args)
+        object EvalExpr(string fun, Cpp14Parser.Expression_listContext args)
         {
             return null;
         }

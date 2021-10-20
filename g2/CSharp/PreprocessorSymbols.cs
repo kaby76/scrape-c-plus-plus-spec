@@ -12,29 +12,29 @@ namespace Test
             string,  // name of the macro for fast lookup.
             Tuple<
                 List<string>, // a list of parameter names to the macro.
-                SaveParser.Replacement_listContext, // value of macro.
+                Cpp14Parser.Replacement_listContext, // value of macro.
                 CommonTokenStream, // token stream where the macro is defined.
                 string>> map; // file name where the macro is defined.
         public CommonTokenStream Tokens { get; private set; }
 
         public PreprocessorSymbols(PreprocessorSymbols copy)
         {
-            map = new Dictionary<string, Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>>(copy.map);
+            map = new Dictionary<string, Tuple<List<string>, Cpp14Parser.Replacement_listContext, CommonTokenStream, string>>(copy.map);
         }
 
         public PreprocessorSymbols()
         {
-            map = new Dictionary<string, Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>>();
+            map = new Dictionary<string, Tuple<List<string>, Cpp14Parser.Replacement_listContext, CommonTokenStream, string>>();
         }
 
         public void Add(string name,
             List<string> ids,
-            SaveParser.Replacement_listContext repl,
+            Cpp14Parser.Replacement_listContext repl,
             CommonTokenStream ts,
             string fn)
         {
             if (debug) System.Console.Error.WriteLine("Defining " + name);
-            map[name] = new Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
+            map[name] = new Tuple<List<string>, Cpp14Parser.Replacement_listContext, CommonTokenStream, string>(ids, repl, ts, fn);
         }
 
         public void Delete(string name)
@@ -44,13 +44,13 @@ namespace Test
         }
 
         public (List<string>,
-            SaveParser.Replacement_listContext,
+            Cpp14Parser.Replacement_listContext,
             CommonTokenStream,
             string)
             Find(string macro_name)
         {
             if (debug) System.Console.Error.WriteLine("Find " + macro_name);
-            if (map.TryGetValue(macro_name, out Tuple<List<string>, SaveParser.Replacement_listContext, CommonTokenStream, string> entry))
+            if (map.TryGetValue(macro_name, out Tuple<List<string>, Cpp14Parser.Replacement_listContext, CommonTokenStream, string> entry))
             {
                 if (debug) System.Console.Error.WriteLine("Yes!");
                 var parameters = entry.Item1;
@@ -68,13 +68,13 @@ namespace Test
 
         public bool Find(string macro_name,
             out List<string> parameters,
-            out SaveParser.Replacement_listContext macro_value,
+            out Cpp14Parser.Replacement_listContext macro_value,
             out CommonTokenStream stream,
             out string fn)
         {
             if (debug) System.Console.Error.WriteLine("Find " + macro_name);
             if (map.TryGetValue(macro_name, out Tuple<List<string>,
-                SaveParser.Replacement_listContext,
+                Cpp14Parser.Replacement_listContext,
                 CommonTokenStream,
                 string> t))
             {
@@ -100,7 +100,7 @@ namespace Test
         {
             if (debug) System.Console.Error.WriteLine("IsDefined " + macro_name);
             var result = map.TryGetValue(macro_name, out Tuple<List<string>,
-                SaveParser.Replacement_listContext,
+                Cpp14Parser.Replacement_listContext,
                 CommonTokenStream,
                 string> t);
             if (debug) System.Console.Error.WriteLine("returning " + result);

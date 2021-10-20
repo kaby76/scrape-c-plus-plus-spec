@@ -1,4 +1,4 @@
-﻿namespace Test
+namespace Test
 {
     using Antlr4.Runtime;
     using Antlr4.Runtime.Misc;
@@ -141,7 +141,15 @@
                 var val = con.SourceInterval;
                 for (int i = val.a; i <= val.b; ++i)
                 {
-                    sb.Append(tokens.Get(i).Text);
+                    var str = tokens.Get(i).Text;
+                    if (str == "\n")
+                    {
+                        sb.AppendLine();
+                    }
+                    else
+                    {
+                        sb.Append(str);
+                    }
                 }
                 return sb.ToString();
             }
