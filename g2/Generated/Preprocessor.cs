@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace Test
 {
-    public class Preprocessor : SaveParserBaseVisitor<IParseTree>
+    public class Preprocessor : Cpp14ParserBaseVisitor<IParseTree>
     {
         public PreprocessorSymbols _preprocessor_symbols = new PreprocessorSymbols();
         Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();

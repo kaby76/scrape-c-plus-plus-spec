@@ -1,4 +1,4 @@
-lexer grammar SaveLexer;
+lexer grammar Cpp14Lexer;
 
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 

@@ -5,8 +5,8 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-   <Antlr4 Include="SaveLexer.g4"></Antlr4>
-   <Antlr4 Include="SaveParser.g4"></Antlr4>
+   <Antlr4 Include="Cpp14Lexer.g4"></Antlr4>
+   <Antlr4 Include="Cpp14Parser.g4"></Antlr4>
    <EmbeddedResource Include="clang++-init.h" />
    <EmbeddedResource Include="g++-ubuntu-init.h" />
   </ItemGroup>
