@@ -14,8 +14,8 @@ namespace Test
     public class Preprocessor : Cpp14ParserBaseVisitor<IParseTree>
     {
         public PreprocessorSymbols _preprocessor_symbols = new PreprocessorSymbols();
-        Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
-        public StringBuilder sb = new StringBuilder();
+        Dictionary<IParseTree, object> _state = new Dictionary<IParseTree, object>();
+        public StringBuilder _sb = new StringBuilder();
         CommonTokenStream _stream;
         public string _current_file_name;
         public List<string> _probe_locations;
@@ -43,7 +43,7 @@ namespace Test
             }
 
             ConstantExpressionEvaluator ddd = new ConstantExpressionEvaluator(_preprocessor_symbols);
-            state[context] = ddd.Evaluate(new_replacement);
+            _state[context] = ddd.Evaluate(new_replacement);
             return null;
         }
 
@@ -130,8 +130,8 @@ namespace Test
                                 if (next_tok.GetText() == "n")
                                 {
                                     i += 1;
-                                    Add(sb, this._stream, tok, "");
-                                    sb.AppendLine();
+                                    Add(_sb, this._stream, tok, "");
+                                    _sb.AppendLine();
                                     continue;
                                 }
                             }
@@ -155,7 +155,7 @@ namespace Test
                                         {
                                             foreach (var s in repls.pp_tokens().preprocessing_token())
                                             {
-                                                Add(sb, st, s);
+                                                Add(_sb, st, s);
                                             }
                                         }
                                     }
@@ -246,7 +246,7 @@ namespace Test
                                             visitor.Visit(tree);
                                             this._preprocessor_symbols = visitor._preprocessor_symbols;
                                             this._probe_locations = visitor._probe_locations;
-                                            var new_todo = visitor.sb.ToString();
+                                            var new_todo = visitor._sb.ToString();
                                             new_todo = regex.Replace(new_todo, "");
                                             if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
                                             {
@@ -257,17 +257,17 @@ namespace Test
                                                 break;
                                             todo = new_todo;
                                         } while (true);
-                                        sb.Append(todo);
+                                        _sb.Append(todo);
                                     }
                                 }
                                 else
                                 {
-                                    Add(sb, this._stream, tok);
+                                    Add(_sb, this._stream, tok);
                                 }
                             }
                             else
                             {
-                                Add(sb, this._stream, tok);
+                                Add(_sb, this._stream, tok);
                             }
                         }
                     }
@@ -304,9 +304,9 @@ namespace Test
             {
                 var st = test.GetText();
                 Visit(test);
-                var v = state[test];
+                var v = _state[test];
                 ConvertToBool(v, out bool b);
-                state[context] = b;
+                _state[context] = b;
                 if (b)
                 {
                     Visit(group);
@@ -314,10 +314,10 @@ namespace Test
                 if (elif != null && !b)
                 {
                     Visit(elif);
-                    var v2 = state[elif];
+                    var v2 = _state[elif];
                     ConvertToBool(v2, out bool b2);
                     b = b2;
-                    state[context] = b;
+                    _state[context] = b;
                 }
                 if (els != null && !b)
                 {
@@ -330,7 +330,7 @@ namespace Test
             {
                 var id = context.Identifier();
                 bool b = _preprocessor_symbols.IsDefined(id.GetText());
-                state[context] = b;
+                _state[context] = b;
                 if (b)
                 {
                     Visit(group);
@@ -338,10 +338,10 @@ namespace Test
                 if (elif != null && !b)
                 {
                     Visit(elif);
-                    var v2 = state[elif];
+                    var v2 = _state[elif];
                     ConvertToBool(v2, out bool b2);
                     b = b2;
-                    state[context] = b;
+                    _state[context] = b;
                 }
                 if (els != null && !b)
                 {
@@ -354,7 +354,7 @@ namespace Test
             {
                 var id = context.Identifier();
                 bool b = !_preprocessor_symbols.IsDefined(id.GetText());
-                state[context] = b;
+                _state[context] = b;
                 if (b)
                 {
                     Visit(group);
@@ -362,10 +362,10 @@ namespace Test
                 if (elif != null && !b)
                 {
                     Visit(elif);
-                    var v2 = state[elif];
+                    var v2 = _state[elif];
                     ConvertToBool(v2, out bool b2);
                     b = b2;
-                    state[context] = b;
+                    _state[context] = b;
                 }
                 if (els != null && !b)
                 {
@@ -384,10 +384,10 @@ namespace Test
             {
                 var c = context.constant_expression();
                 Visit(c);
-                var v = state[c];
+                var v = _state[c];
                 ConvertToBool(v, out bool b);
-                state[context] = b;
-                state[context.Parent] = b;
+                _state[context] = b;
+                _state[context.Parent] = b;
                 if (b)
                 {
                     Visit(context.group());
@@ -397,8 +397,8 @@ namespace Test
             {
                 var id = context.Identifier().GetText();
                 var b = _preprocessor_symbols.IsDefined(id);
-                state[context] = !b;
-                state[context.Parent] = !b;
+                _state[context] = !b;
+                _state[context.Parent] = !b;
                 if (!b)
                 {
                     Visit(context.group());
@@ -408,8 +408,8 @@ namespace Test
             {
                 var id = context.Identifier().GetText();
                 var b = _preprocessor_symbols.IsDefined(id);
-                state[context] = b;
-                state[context.Parent] = b;
+                _state[context] = b;
+                _state[context.Parent] = b;
                 if (b)
                 {
                     Visit(context.group());
@@ -423,9 +423,9 @@ namespace Test
             foreach (var g in context.elif_group())
             {
                 Visit(g);
-                var v = state[g];
+                var v = _state[g];
                 bool b = v != null && v is bool ? (bool)v : false;
-                state[context] = state[g];
+                _state[context] = _state[g];
                 if (b) break;
             }
             return null;
@@ -436,9 +436,9 @@ namespace Test
             // elif_group :  Pound KWElif constant_expression new_line group ? ;
             var exp = context.constant_expression();
             Visit(exp);
-            var v = state[exp];
+            var v = _state[exp];
             bool b = v != null && v is bool ? (bool)v : false;
-            state[context] = v;
+            _state[context] = v;
             if (b)
             {
                 var group = context.group();
@@ -451,7 +451,7 @@ namespace Test
         {
             // Get state from ancestor if_section. Do not visit if true.
             var if_section = context.Parent as Cpp14Parser.If_sectionContext;
-            var v = state[if_section];
+            var v = _state[if_section];
             ConvertToBool(v, out bool b);
             if (!b)
             {
@@ -493,7 +493,7 @@ namespace Test
                     parms.Add(parms2.GetText());
                 _preprocessor_symbols.Add(id.GetText(),
                     parms, list, _stream, _current_file_name);
-                sb.AppendLine(); // Per spec, output blank line.
+                _sb.AppendLine(); // Per spec, output blank line.
             }
             else if (context.KWUndef() != null)
             {
@@ -556,15 +556,15 @@ namespace Test
                         if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                         var visitor = new Preprocessor(tokens, this._probe_locations);
                         visitor._current_file_name = p;
-                        visitor.state = this.state;
+                        visitor._state = this._state;
                         visitor._preprocessor_symbols = this._preprocessor_symbols;
                         visitor._probe_locations = this._probe_locations;
                         visitor.Visit(tree);
-                        this.state = visitor.state;
+                        this._state = visitor._state;
                         this._preprocessor_symbols = visitor._preprocessor_symbols;
                         this._probe_locations = visitor._probe_locations;
-                        var replacement_text = visitor.sb.ToString();
-                        sb.AppendLine(replacement_text);
+                        var replacement_text = visitor._sb.ToString();
+                        _sb.AppendLine(replacement_text);
                         _probe_locations.RemoveAt(0);
                         if (_noisy) System.Console.Error.WriteLine("Back on " + this._current_file_name);
                         break;
@@ -616,9 +616,9 @@ namespace Test
                 var p3 = TreeEdits.GetText(p2);
                 if (p3.Contains("\\\n"))
                 { }
-                sb.Append(p3);
+                _sb.Append(p3);
             }
-            sb.AppendLine();
+            _sb.AppendLine();
             return null;
         }
 
@@ -747,11 +747,6 @@ namespace Test
             return (args, last);
         }
 
-        object EvalExpr(string fun, Cpp14Parser.Expression_listContext args)
-        {
-            return null;
-        }
-
         private void ConvertToBool(object v, out bool b)
         {
             if (v == null)
@@ -796,6 +791,5 @@ namespace Test
             }
             else throw new Exception();
         }
-
     }
 }

@@ -7,13 +7,12 @@ using System.Reflection;
 
 public abstract class Cpp14ParserBase : Parser
 {
-    private readonly ITokenStream _input;
-    public bool SeeOutput { get; set; } = true;
+    public bool _noisy { get; set; } = true;
+    static DateTime _last_time = DateTime.Now;
 
     protected Cpp14ParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput)
     {
-        _input = input;
     }
 
     public IParseTree start()
@@ -47,9 +46,9 @@ public abstract class Cpp14ParserBase : Parser
             visitor._probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
         }
         visitor.Visit(tree);
-        var real_input = visitor.sb.ToString();
+        var real_input = visitor._sb.ToString();
         System.Console.WriteLine("FINISHED PREPROCESSING ENTIRE INPUT.");
-        if (SeeOutput)
+        if (_noisy)
         {
             System.Console.Error.WriteLine(real_input);
         }
@@ -127,7 +126,6 @@ public abstract class Cpp14ParserBase : Parser
         return (result, gpp_locations);
     }
 
-    static DateTime _last_time = DateTime.Now;
     bool Time()
     {
         var now = DateTime.Now;

@@ -10,7 +10,7 @@ namespace Test
 {
     public class ConstantExpressionEvaluator : Cpp14ParserBaseVisitor<IParseTree>
     {
-        Dictionary<IParseTree, object> state = new Dictionary<IParseTree, object>();
+        Dictionary<IParseTree, object> _state = new Dictionary<IParseTree, object>();
         public PreprocessorSymbols _preprocessor_symbols;
 
         public ConstantExpressionEvaluator(PreprocessorSymbols preprocessor_symbols)
@@ -33,7 +33,7 @@ namespace Test
             parser.AddErrorListener(listener_parser);
             var subtree = parser.constant_expression_eof();
             this.Visit(subtree);
-            return state[subtree];
+            return _state[subtree];
         }
 
         public override IParseTree VisitLiteral([NotNull] Cpp14Parser.LiteralContext context)
@@ -48,13 +48,13 @@ namespace Test
             {
                 string s = int_lit.GetText();
                 ParseNumber(s, out object l);
-                state[context] = l;
+                _state[context] = l;
             }
             else if (float_lit != null)
             {
                 string s = float_lit.GetText();
                 ParseNumber(s, out object l);
-                state[context] = l;
+                _state[context] = l;
             }
             else if (bool_lit != null)
             {
@@ -62,20 +62,20 @@ namespace Test
                 try
                 {
                     var b = bool.Parse(s);
-                    state[context] = b;
+                    _state[context] = b;
                 }
                 catch
                 {
-                    state[context] = false;
+                    _state[context] = false;
                 }
             }
             else if (str_lit != null)
             {
-                state[context] = str_lit.GetText();
+                _state[context] = str_lit.GetText();
             }
             else if (char_lit != null)
             {
-                state[context] = char_lit.GetText();
+                _state[context] = char_lit.GetText();
             }
             else throw new Exception();
             return null;
@@ -97,18 +97,18 @@ namespace Test
             if (literal != null)
             {
                 Visit(literal);
-                state[context] = state[literal];
+                _state[context] = _state[literal];
             }
             else if (id_expr != null)
             {
                 Visit(id_expr);
-                state[context] = state[id_expr];
+                _state[context] = _state[id_expr];
             }
             else if (lp != null)
             {
                 var exp = context.expression();
                 Visit(exp);
-                state[context] = state[exp];
+                _state[context] = _state[exp];
             }
             else throw new Exception();
             return null;
@@ -122,12 +122,12 @@ namespace Test
             if (unqual != null)
             {
                 Visit(unqual);
-                state[context] = state[unqual];
+                _state[context] = _state[unqual];
             }
             else if (qual != null)
             {
                 Visit(qual);
-                state[context] = state[qual];
+                _state[context] = _state[qual];
             }
             else throw new NotImplementedException();
             return null;
@@ -144,11 +144,11 @@ namespace Test
                 if (ids != null && repl != null)
                 {
                     var v = repl.GetText();
-                    state[context] = v;
+                    _state[context] = v;
                 }
                 else
                 {
-                    state[context] = 1;
+                    _state[context] = 1;
                 }
             }
             else
@@ -233,18 +233,18 @@ namespace Test
             if (pri != null)
             {
                 Visit(pri);
-                state[context] = state[pri];
+                _state[context] = _state[pri];
             }
             else if (post != null && exp_list != null)
             {
                 Visit(post);
                 Visit(exp_list);
                 // Find post in symbol table.
-                var v = state[post];
+                var v = _state[post];
                 // Symbol is actually unevaluated.
                 var s = post.GetText();
                 //var s = v.ToString();
-                state[context] = EvalExpr(s, exp_list);
+                _state[context] = EvalExpr(s, exp_list);
             }
             else throw new Exception();
             return null;
@@ -255,7 +255,7 @@ namespace Test
             // expression_list :  initializer_list ;
             var init_list = context.initializer_list();
             Visit(init_list);
-            state[context] = state[init_list];
+            _state[context] = _state[init_list];
             return null;
         }
 
@@ -285,7 +285,7 @@ namespace Test
             if (post != null)
             {
                 Visit(post);
-                state[context] = state[post];
+                _state[context] = _state[post];
             }
             else if (unary != null && cast != null)
             {
@@ -294,21 +294,21 @@ namespace Test
                     if (cast?.unary_expression()?.postfix_expression()?.primary_expression()?.LeftParen() != null)
                     {
                         var variable = cast?.unary_expression()?.postfix_expression()?.primary_expression()?.expression()?.GetText();
-                        state[context] = _preprocessor_symbols.IsDefined(variable);
+                        _state[context] = _preprocessor_symbols.IsDefined(variable);
                     }
                     else
                     {
                         var variable = cast.GetText();
-                        state[context] = _preprocessor_symbols.IsDefined(variable);
+                        _state[context] = _preprocessor_symbols.IsDefined(variable);
                     }
                 }
                 else if (unary.GetText() == "!")
                 {
                     Visit(unary);
                     Visit(cast);
-                    var v = state[cast];
+                    var v = _state[cast];
                     ConvertToBool(v, out bool b);
-                    state[context] = !b;
+                    _state[context] = !b;
                 }
                 else throw new Exception();
             }
@@ -363,7 +363,7 @@ namespace Test
             {
                 var unary = context.unary_expression();
                 Visit(unary);
-                state[context] = state[unary];
+                _state[context] = _state[unary];
             }
             else throw new Exception();
             return null;
@@ -377,23 +377,23 @@ namespace Test
             if (pm != null)
             {
                 Visit(pm);
-                var v = state[pm];
+                var v = _state[pm];
                 var l = (int)v;
                 Visit(cast);
-                var v2 = (int)state[cast];
+                var v2 = (int)_state[cast];
                 if (context.DotStar() != null)
                 {
-                    state[context] = l * v2;
+                    _state[context] = l * v2;
                 }
                 else if (context.ArrowStar() != null)
                 {
-                    state[context] = l / v2;
+                    _state[context] = l / v2;
                 }
             }
             else
             {
                 Visit(cast);
-                state[context] = state[cast];
+                _state[context] = _state[cast];
             }
             return null;
         }
@@ -406,27 +406,27 @@ namespace Test
             if (mul != null)
             {
                 Visit(mul);
-                var v = state[mul];
+                var v = _state[mul];
                 var l = (int)v;
                 Visit(pm);
-                var v2 = (int)state[pm];
+                var v2 = (int)_state[pm];
                 if (context.Star() != null)
                 {
-                    state[context] = l * v2;
+                    _state[context] = l * v2;
                 }
                 else if (context.Div() != null)
                 {
-                    state[context] = l / v2;
+                    _state[context] = l / v2;
                 }
                 else if (context.Mod() != null)
                 {
-                    state[context] = l % v2;
+                    _state[context] = l % v2;
                 }
             }
             else
             {
                 Visit(pm);
-                state[context] = state[pm];
+                _state[context] = _state[pm];
             }
             return null;
         }
@@ -441,30 +441,30 @@ namespace Test
             {
                 Visit(add);
                 Visit(mul);
-                var lhs_v = state[add];
+                var lhs_v = _state[add];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[mul];
+                var rhs_v = _state[mul];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
                     int lhs = (int)lhs_n;
                     int rhs = (int)rhs_n;
                     int res = plus != null ? lhs + rhs : lhs - rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
                     long lhs = (long)lhs_n;
                     long rhs = (long)rhs_n;
                     long res = plus != null ? lhs + rhs : lhs - rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else throw new Exception();
             }
             else
             {
                 Visit(mul);
-                state[context] = state[mul];
+                _state[context] = _state[mul];
             }
             return null;
         }
@@ -478,30 +478,30 @@ namespace Test
             {
                 Visit(shift);
                 Visit(add);
-                var lhs_v = state[shift];
+                var lhs_v = _state[shift];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[add];
+                var rhs_v = _state[add];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
                     int lhs = (int)lhs_n;
                     int rhs = (int)rhs_n;
                     int res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
                     long lhs = (long)lhs_n;
                     int rhs = (int)rhs_n;
                     long res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else throw new Exception();
             }
             else
             {
                 Visit(add);
-                state[context] = state[add];
+                _state[context] = _state[add];
             }
             return null;
         }
@@ -515,9 +515,9 @@ namespace Test
             {
                 Visit(rel);
                 Visit(shift);
-                var lhs_v = state[rel];
+                var lhs_v = _state[rel];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[shift];
+                var rhs_v = _state[shift];
                 if (rhs_v == null)
                 {
 
@@ -526,40 +526,40 @@ namespace Test
                 if (context.Less() != null)
                 {
                     if (lhs_n is int && rhs_n is int)
-                        state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
+                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
                     else if (lhs_n is long || rhs_n is long)
-                        state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
+                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
                     else throw new Exception();
                 }
                 else if (context.LessEqual() != null)
                 {
                     if (lhs_n is int && rhs_n is int)
-                        state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
+                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
                     else if (lhs_n is long || rhs_n is long)
-                        state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
+                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
                     else throw new Exception();
                 }
                 else if (context.Greater() != null)
                 {
                     if (lhs_n is int && rhs_n is int)
-                        state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
+                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
                     else if (lhs_n is long || rhs_n is long)
-                        state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
+                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
                     else throw new Exception();
                 }
                 else if (context.GreaterEqual() != null)
                 {
                     if (lhs_n is int && rhs_n is int)
-                        state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
+                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
                     else if (lhs_n is long || rhs_n is long)
-                        state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
+                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
                     else throw new Exception();
                 }
             }
             else
             {
                 Visit(shift);
-                state[context] = state[shift];
+                _state[context] = _state[shift];
             }
             return null;
         }
@@ -573,16 +573,16 @@ namespace Test
             if (eq != null)
             {
                 Visit(eq);
-                var v = state[eq];
+                var v = _state[eq];
                 l = v == null ? null : v;
                 Visit(rel);
-                var v2 = state[rel];
-                state[context] = v == v2;
+                var v2 = _state[rel];
+                _state[context] = v == v2;
             }
             else
             {
                 Visit(rel);
-                state[context] = state[rel];
+                _state[context] = _state[rel];
             }
             return null;
         }
@@ -596,30 +596,30 @@ namespace Test
             {
                 Visit(and);
                 Visit(eq);
-                var lhs_v = state[and];
+                var lhs_v = _state[and];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[eq];
+                var rhs_v = _state[eq];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
                     int lhs = (int)lhs_n;
                     int rhs = (int)rhs_n;
                     int res = lhs & rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
                     long lhs = (long)lhs_n;
                     long rhs = (long)rhs_n;
                     long res = lhs & rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else throw new Exception();
             }
             else
             {
                 Visit(eq);
-                state[context] = state[eq];
+                _state[context] = _state[eq];
             }
             return null;
         }
@@ -633,30 +633,30 @@ namespace Test
             {
                 Visit(xor);
                 Visit(and);
-                var lhs_v = state[xor];
+                var lhs_v = _state[xor];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[and];
+                var rhs_v = _state[and];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
                     int lhs = (int)lhs_n;
                     int rhs = (int)rhs_n;
                     int res = lhs ^ rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
                     long lhs = (long)lhs_n;
                     long rhs = (long)rhs_n;
                     long res = lhs ^ rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else throw new Exception();
             }
             else
             {
                 Visit(and);
-                state[context] = state[and];
+                _state[context] = _state[and];
             }
             return null;
         }
@@ -670,30 +670,30 @@ namespace Test
             {
                 Visit(ior);
                 Visit(xor);
-                var lhs_v = state[ior];
+                var lhs_v = _state[ior];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = state[xor];
+                var rhs_v = _state[xor];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
                     int lhs = (int)lhs_n;
                     int rhs = (int)rhs_n;
                     int res = lhs | rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
                     long lhs = (long)lhs_n;
                     long rhs = (long)rhs_n;
                     long res = lhs | rhs;
-                    state[context] = res;
+                    _state[context] = res;
                 }
                 else throw new Exception();
             }
             else
             {
                 Visit(xor);
-                state[context] = state[xor];
+                _state[context] = _state[xor];
             }
             return null;
         }
@@ -706,23 +706,23 @@ namespace Test
             if (and != null)
             {
                 Visit(and);
-                var v = state[and];
+                var v = _state[and];
                 ConvertToBool(v, out bool b);
                 if (!b)
                 {
-                    state[context] = b;
+                    _state[context] = b;
                     return null;
                 }
                 Visit(ior);
-                var v2 = state[ior];
+                var v2 = _state[ior];
                 ConvertToBool(v2, out bool b2);
-                state[context] = b2;
+                _state[context] = b2;
                 return null;
             }
             else
             {
                 Visit(ior);
-                state[context] = state[ior];
+                _state[context] = _state[ior];
             }
             return null;
         }
@@ -735,23 +735,23 @@ namespace Test
             if (or != null)
             {
                 Visit(or);
-                var v = state[or];
+                var v = _state[or];
                 ConvertToBool(v, out bool b);
                 if (b)
                 {
-                    state[context] = b;
+                    _state[context] = b;
                     return null;
                 }
                 Visit(and);
-                var v2 = state[and];
+                var v2 = _state[and];
                 ConvertToBool(v2, out bool b2);
-                state[context] = b2;
+                _state[context] = b2;
                 return null;
             }
             else
             {
                 Visit(and);
-                state[context] = state[and];
+                _state[context] = _state[and];
             }
             return null;
         }
@@ -765,22 +765,22 @@ namespace Test
             if (context.Question() == null)
             {
                 Visit(lor);
-                state[context] = state[lor];
+                _state[context] = _state[lor];
             }
             else
             {
                 Visit(lor);
-                var v = state[lor];
+                var v = _state[lor];
                 ConvertToBool(v, out bool b);
                 if (b)
                 {
                     Visit(exp);
-                    state[context] = state[exp];
+                    _state[context] = _state[exp];
                 }
                 else
                 {
                     Visit(aexp);
-                    state[context] = state[aexp];
+                    _state[context] = _state[aexp];
                 }
             }
             return null;
@@ -798,12 +798,12 @@ namespace Test
             if (first != null)
             {
                 Visit(first);
-                state[context] = state[first];
+                _state[context] = _state[first];
             }
             else if (thrw != null)
             {
                 Visit(thrw);
-                state[context] = state[thrw];
+                _state[context] = _state[thrw];
             }
             else
             {
@@ -811,7 +811,7 @@ namespace Test
                 //assignment_operator
                 var clause = context.initializer_clause();
                 Visit(clause);
-                state[context] = state[clause];
+                _state[context] = _state[clause];
             }
             return null;
         }
@@ -825,7 +825,7 @@ namespace Test
         {
             var child = context.assignment_expression();
             Visit(child);
-            state[context] = state[child];
+            _state[context] = _state[child];
             return null;
         }
 
@@ -833,7 +833,7 @@ namespace Test
         {
             var child = context.conditional_expression();
             Visit(child);
-            state[context] = state[child];
+            _state[context] = _state[child];
             return null;
         }
 
@@ -842,7 +842,7 @@ namespace Test
             // constant_expression_eof :  conditional_expression EOF ;
             var cond = context.conditional_expression();
             VisitConditional_expression(cond);
-            state[context] = state[cond];
+            _state[context] = _state[cond];
             return null;
         }
 
@@ -854,14 +854,14 @@ namespace Test
             if (assign != null)
             {
                 Visit(assign);
-                var v = state[assign];
-                state[context] = v;
+                var v = _state[assign];
+                _state[context] = v;
             }
             else
             {
                 Visit(brace);
-                var v = state[brace];
-                state[context] = v;
+                var v = _state[brace];
+                _state[context] = v;
             }
             return null;
         }
@@ -874,9 +874,9 @@ namespace Test
             foreach (var ic in init_clauses)
             {
                 Visit(ic);
-                init_states.Add(state[ic]);
+                init_states.Add(_state[ic]);
             }
-            state[context] = init_states;
+            _state[context] = init_states;
             return null;
         }
 

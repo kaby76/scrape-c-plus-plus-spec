@@ -150,7 +150,6 @@ namespace Test
             return null;
         }
 
-
         object EvalExpr(string fun, Cpp14Parser.Expression_listContext args)
         {
             if (_preprocessor_symbols.Find(
