@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 
 public abstract class Cpp14ParserBase : Parser
 {
@@ -63,7 +64,11 @@ public abstract class Cpp14ParserBase : Parser
 
     (Test.PreprocessorSymbols, List<string>) InitPreprocessor()
     {
-        var clang_locations = new List<string>()
+        List<string> locations;
+        string init_header;
+        if (false)
+        {
+            var clang_locations = new List<string>()
             {
                 "/usr/include/c++/9",
                 "/usr/include/x86_64-linux-gnu/c++/9",
@@ -82,26 +87,46 @@ public abstract class Cpp14ParserBase : Parser
                 "/home/ken/qtbase/include",
                 "/home/ken/qtbase",
             };
-        var gpp_locations = new List<string>() {
-            "/usr/include/c++/9",
-            "/usr/include/x86_64-linux-gnu/c++/9",
-            "/usr/include/c++/9/backward",
-            "/usr/lib/gcc/x86_64-linux-gnu/9/include",
-            "/usr/local/include",
-            "/usr/include/x86_64-linux-gnu",
-            "/usr/include",
-            "/home/ken/qtbase/include",
-            "/home/ken/qtbase",
-        };
+            var clang_init_header = "clang++-init.h";
+            locations = clang_locations;
+            init_header = clang_init_header;
+        }
+        else
+        {
+            var gcc_locations = new List<string>() {
+                "/usr/include/c++/9",
+                "/usr/include/x86_64-linux-gnu/c++/9",
+                "/usr/include/c++/9/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/9/include",
+                "/usr/local/include",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/x86_64-pc-msys",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include/c++/backward",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include",
+                "/usr/lib/gcc/x86_64-pc-msys/10.2.0/include-fixed",
+                "/home/ken/qtbase/include",
+                "/home/ken/qtbase",
+            };
+            var gcc_init_header = "g++-ubuntu-init.h";
+            locations = gcc_locations;
+            init_header = gcc_init_header;
+        }
+
+        // Add in Windows full paths just in case this program is executed
+        // in Windows with Msys2 installed (pacman -S base-devel gcc vim cmake).
+        var to_add_locations = locations.Select(l => "/msys64" + l).ToList();
+        locations.AddRange(to_add_locations);
+
         // Create preprocessor.
         var assembly = Assembly.GetExecutingAssembly();
         // Derive clang++-init.h by clang++ -dM -E -x c++ - < /dev/null
-        var nnn = "g++-ubuntu-init.h";
         string strg = null;
         var manifestResourceNames = assembly.GetManifestResourceNames();
         foreach (var resourceName in manifestResourceNames)
         {
-            if (!resourceName.Contains(nnn)) continue;
+            if (!resourceName.Contains(init_header)) continue;
             using (var manifestResourceStream = assembly.GetManifestResourceStream(resourceName))
             {
                 if (manifestResourceStream == null) continue;
@@ -119,11 +144,11 @@ public abstract class Cpp14ParserBase : Parser
         var tokens = new CommonTokenStream(lexer);
         var pp = new Cpp14Parser(tokens);
         var tree = pp.preprocessing_file();
-        var visitor = new Test.Preprocessor(tokens, gpp_locations);
-        visitor._current_file_name = nnn;
+        var visitor = new Test.Preprocessor(tokens, locations);
+        visitor._current_file_name = init_header;
         visitor.Visit(tree);
         var result = visitor._preprocessor_symbols;
-        return (result, gpp_locations);
+        return (result, locations);
     }
 
     bool Time()
