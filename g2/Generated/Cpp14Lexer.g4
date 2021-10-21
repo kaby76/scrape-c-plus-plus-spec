@@ -11,7 +11,10 @@ KWAlignof: 'alignof'
 ;
 KWAnd: 'and';
 KWAndEq: 'and_eq';
-KWAsm: 'asm';
+KWAsm: 'asm'
+// GNU
+ | '__asm__'
+;
 KWAuto: 'auto';
 KWBitAnd: 'bitand';
 KWBitOr: 'bitor';

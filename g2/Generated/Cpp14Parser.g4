@@ -174,7 +174,8 @@ namespace_alias_definition :  KWNamespace Identifier Assign qualified_namespace_
 qualified_namespace_specifier :  nested_name_specifier ? namespace_name ;
 using_declaration :  KWUsing KWTypename_ ? nested_name_specifier unqualified_id Semi ;
 using_directive :  attribute_specifier_seq ? KWUsing KWNamespace nested_name_specifier ? namespace_name Semi ;
-asm_definition :  KWAsm LeftParen String_literal RightParen Semi ;
+asm_definition :  KWAsm LeftParen String_literal RightParen Semi
+| gnu_asm_definition ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
 attribute_specifier_seq : (attribute_specifier | gnu_attribute_specifier)+ ;
 attribute_specifier :
@@ -356,3 +357,22 @@ keyword : KWAlignas | KWContinue | KWFriend | KWRegister | KWTrue_
                 KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
 punctuator : preprocessing_op_or_punc ;
 
+
+
+// 6.47.2 Extended Asm - Assembler Instructions with C Expression Operands
+// https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+gnu_asm_definition : gnu_asm Semi ;
+gnu_asm
+ : KWAsm gnu_asm_qualifiers LeftParen gnu_assembler_template (Colon gnu_output_operands ( Colon gnu_input_operands ( Colon gnu_clobbers )? )? )? RightParen
+ ;
+
+gnu_asm_qualifiers : (KWVolatile | KWInline | KWGoto)* ;
+gnu_assembler_template : String_literal ;
+gnu_output_operands : ( gnu_output_operand (Comma gnu_output_operand)* )? ;
+gnu_output_operand : (LeftBracket gnu_asm_symbolic_name RightBracket)? gnu_constraint LeftParen gnu_cvariablename RightParen ;
+gnu_asm_symbolic_name : Identifier ;
+gnu_constraint : String_literal ;
+gnu_cvariablename : Identifier ;
+gnu_input_operands : ( expression (Comma expression)* )? ;
+gnu_clobbers : ( String_literal (Comma String_literal)* )? ;
+gnu_goto_labels : ( String_literal (Comma String_literal)* )? ;

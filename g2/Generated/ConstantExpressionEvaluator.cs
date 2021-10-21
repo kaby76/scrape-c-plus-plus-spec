@@ -889,7 +889,33 @@ namespace Test
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
             { }
-            else throw new Exception();
+            try
+            {
+                l = Convert.ToInt32(s, 16);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                l = Convert.ToInt64(s, 16);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                if (s[0] == '0')
+                {
+                    l = Convert.ToInt32(s, 8);
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+            }
             try
             {
                 l = int.Parse(s);
@@ -922,7 +948,15 @@ namespace Test
             catch (Exception)
             {
             }
-            l = 0;
+            try
+            {
+                l = int.Parse(s, System.Globalization.NumberStyles.HexNumber);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            throw new Exception("Trying to parse number ouf of '" + s + "' -- can't.");
         }
 
         object EvalExpr(string fun, Cpp14Parser.Expression_listContext args)

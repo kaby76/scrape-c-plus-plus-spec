@@ -16,7 +16,7 @@ public class Program
     public static Lexer Lexer { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
-    public static string StartSymbol { get; set; } = "start";
+    public static string StartSymbol { get; set; } = "translation_unit";
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
@@ -26,7 +26,7 @@ public class Program
         TokenStream = tokens;
         var parser = new Cpp14Parser(tokens);
         Parser = parser;
-        var tree = parser.start();
+        var tree = parser.translation_unit();
         Tree = tree;
         return tree;
     }
@@ -34,7 +34,7 @@ public class Program
     static void Main(string[] args)
     {
 
-        args = new string[] { "-file", "/home/ken/qtbase/src/corelib/global/qnamespace.h" };
+        //args = new string[] { "-file", "/home/ken/qtbase/src/corelib/global/qnamespace.h" };
 
         bool show_tree = false;
         bool show_tokens = false;
