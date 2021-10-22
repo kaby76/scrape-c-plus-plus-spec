@@ -6,14 +6,19 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 
-public abstract class Cpp14ParserBase : Parser
+public abstract class ParserBase : Parser
 {
-    public bool _noisy { get; set; } = true;
+    public bool _noisy { get; set; } = false;
     static DateTime _last_time = DateTime.Now;
+    ITokenStream _input;
+    Lexer lexer;
+    public string PreprocessedText { get; private set; }
+    public ITokenStream PreprocessedStream { get; private set; }
 
-    protected Cpp14ParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
+    protected ParserBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput)
     {
+        _input = input;
     }
 
     public IParseTree start()
@@ -33,9 +38,10 @@ public abstract class Cpp14ParserBase : Parser
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
         //if (SeeOutput) System.Console.Error.WriteLine(strg);
-        var lexer = new Cpp14Lexer(str);
+        var tokens = _input as CommonTokenStream;
+        // tokens.TokenSource;
+        lexer = tokens.TokenSource as Lexer;
         lexer.PushMode(Cpp14Lexer.PP);
-        var tokens = new CommonTokenStream(lexer);
         var pp = new Cpp14Parser(tokens);
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
@@ -48,17 +54,17 @@ public abstract class Cpp14ParserBase : Parser
         }
         visitor.Visit(tree);
         var real_input = visitor._sb.ToString();
-        System.Console.WriteLine("FINISHED PREPROCESSING ENTIRE INPUT.");
         if (_noisy)
         {
+            System.Console.Error.WriteLine("FINISHED PREPROCESSING ENTIRE INPUT.");
             System.Console.Error.WriteLine(real_input);
         }
+        lexer.PopMode();
+        lexer.Reset();
         var new_str = CharStreams.fromString(real_input);
-        var new_lexer = new Cpp14Lexer(new_str);
-        var new_tokens = new CommonTokenStream(new_lexer);
-        this.TokenStream = new_tokens;
-        var real_this = this as Cpp14Parser;
-        IParseTree result = real_this.translation_unit();
+        lexer.SetInputStream(new_str);
+        this.TokenStream = new CommonTokenStream(lexer);
+        IParseTree result = (this as Cpp14Parser).translation_unit();
         return result;
     }
 
@@ -160,7 +166,7 @@ public abstract class Cpp14ParserBase : Parser
         if (System.TimeSpan.Compare(diff, one) > 0)
         {
             var tok = this.TokenStream.LT(1);
-            System.Console.WriteLine(tok.Line + " " + tok.Column);
+            System.Console.Error.WriteLine(tok.Line + " " + tok.Column);
         }
         //System.Console.WriteLine(DateTime.Now.ToString());
         return true;

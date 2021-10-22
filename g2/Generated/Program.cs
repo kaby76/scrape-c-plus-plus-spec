@@ -14,9 +14,10 @@ public class Program
 
     public static Parser Parser { get; set; }
     public static Lexer Lexer { get; set; }
+    public static string Input { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
-    public static string StartSymbol { get; set; } = "translation_unit";
+    public static string StartSymbol { get; set; } = "start";
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
@@ -26,7 +27,9 @@ public class Program
         TokenStream = tokens;
         var parser = new Cpp14Parser(tokens);
         Parser = parser;
-        var tree = parser.translation_unit();
+        var tree = parser.start();
+        Input = lexer.InputStream.ToString();
+        TokenStream = parser.TokenStream;
         Tree = tree;
         return tree;
     }

@@ -1,5 +1,6 @@
 lexer grammar Cpp14Lexer;
 
+options { superClass=LexerBase; }
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
 KWGnuAttribute: '__attribute__';
