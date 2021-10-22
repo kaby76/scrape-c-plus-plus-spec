@@ -1,0 +1,6 @@
+
+#define FOO main
+
+FOO()
+{
+}

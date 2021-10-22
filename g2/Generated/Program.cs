@@ -10,14 +10,12 @@ using System.Runtime.CompilerServices;
 
 public class Program
 {
-    private static bool _noisy = false;
-
     public static Parser Parser { get; set; }
     public static Lexer Lexer { get; set; }
-    public static string Input { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
     public static string StartSymbol { get; set; } = "start";
+    public static string Input { get; set; }
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
@@ -36,9 +34,6 @@ public class Program
 
     static void Main(string[] args)
     {
-
-        //args = new string[] { "-file", "/home/ken/qtbase/src/corelib/global/qnamespace.h" };
-
         bool show_tree = false;
         bool show_tokens = false;
         bool old = false;
@@ -129,7 +124,7 @@ public class Program
         DateTime before = DateTime.Now;
         var tree = parser.start();
         DateTime after = DateTime.Now;
-        if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
+        System.Console.Error.WriteLine("Time: " + (after - before));
         if (listener_lexer.had_error || listener_parser.had_error)
         {
             System.Console.Error.WriteLine("Parse failed.");

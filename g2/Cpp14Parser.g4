@@ -1,6 +1,6 @@
 parser grammar Cpp14Parser;
 
-options { tokenVocab=Cpp14Lexer; superClass=Cpp14ParserBase; }
+options { tokenVocab=Cpp14Lexer; superClass=ParserBase; }
 
 // A.1 Keywords 	 [gram.key] 
 // typedef_name :  identifier ;
