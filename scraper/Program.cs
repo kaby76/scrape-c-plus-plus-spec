@@ -1,4 +1,8 @@
-﻿using iText.IO.Util;
+﻿// Notes on open-source C++
+// https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/
+// https://github.com/microsoft/vcpkg
+
+using iText.IO.Util;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
@@ -49,7 +53,7 @@ namespace scrape_pdf
             var result = new StringBuilder();
 
             string src_file_name = args[0];
-
+            var just_fn = System.IO.Path.GetFileName(src_file_name);
             string pdfText = GetTextFromPDF(src_file_name);
 
             if (!ebnf)
@@ -216,9 +220,27 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
 
             // General changes.
 
-            FixupOutput(ref output, "ﬁ", "fi", 319); // Wrong OCR of "identifier" throughout the text.
-            FixupOutput(ref output, "'’'", "'\\''", 3); // Wrong OCR of single quote in numerous locations.
-            FixupOutput(ref output, "'ˆ", "'^", 7); // Wrong OCR of caret.
+            FixupOutput(ref output, "ﬁ", "fi",
+                just_fn switch
+                {
+                    "n4296.pdf" => 319,
+                    "n4660.pdf" => 339,
+                    _ => 1
+                }); // Wrong OCR of "identifier" throughout the text.
+            FixupOutput(ref output, "'’'", "'\\''",
+                just_fn switch
+                {
+                    "n4296.pdf" => 3,
+                    "n4660.pdf" => 4,
+                    _ => 1
+                }); // Wrong OCR of single quote in numerous locations.
+            FixupOutput(ref output, "'ˆ", "'^",
+                just_fn switch
+                {
+                    "n4296.pdf" => 7,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                }); // Wrong OCR of caret.
             Regex opt = new Regex("(?<id>[a-zA-Z_])opt(?![a-zA-Z])");
             output = opt.Replace(output, "${id} ?");
             output = output.Replace(@"'opt)'", @"? ')'");
@@ -241,31 +263,79 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             FixupOutput(ref output, @"any member of the source character set except new_line and '""'",
                 @"'any member of the source character set except new_line and ""'");
             FixupOutput(ref output, @"other implementation_defined characters",
-                @"'other implementation_defined characters'");
+                @"'other implementation_defined characters'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 //            FixupOutput(ref output, "pp_number 'E' sign |  pp_number '.' |  'identifier:' | ",
 //                @"pp_number 'E' sign |  pp_number '.';
 //identifier : ");
 //            FixupOutput(ref output, "identifier digit |  'identifier-nondigit:' |",
 //                @"identifier digit ;
 //identifier_nondigit : ");
-            FixupOutput(ref output, "ﬂ", "fl", 7); // Fix ﬂoating_literal in literal rule.
-            FixupOutput(ref output, "_suﬃx ?", "_suffix ?", 10); // Fix integer-literal rule.
+            FixupOutput(ref output, "ﬂ", "fl",
+                just_fn switch
+                {
+                    "n4296.pdf" => 7,
+                    "n4660.pdf" => 13,
+                    _ => 1
+                }); // Fix ﬂoating_literal in literal rule.
+            FixupOutput(ref output, "_suﬃx ?", "_suffix ?",
+                just_fn switch
+                {
+                    "n4296.pdf" => 10,
+                    "n4660.pdf" => 12,
+                    _ => 1
+                }); // Fix integer-literal rule.
             FixupOutput(ref output, "'’opt'", "'\\'' ?", 5); // Fix binary-literal rule.
-            FixupOutput(ref output, "suﬃx", "suffix", 18); // Numerous locations.
+            FixupOutput(ref output, "suﬃx", "suffix",
+                just_fn switch
+                {
+                    "n4296.pdf" => 18,
+                    "n4660.pdf" => 20,
+                    _ => 1
+                }); // Numerous locations.
 //            FixupOutput(ref output, "| 'integer-suffix:' | 'unsigned-suffix' | 'long-suffixopt' | 'unsigned-suffix' | 'long-long-suffixopt' | 'long-suffix' | 'unsigned-suffixopt' | 'long-long-suffix' | 'unsigned-suffixopt' ;",
 //                @";
 //integer_suffix : unsigned_suffix long_suffix ? | unsigned_suffix long_long_suffix ? | long_suffix unsigned_suffix ? | long_long_suffix unsigned_suffix ? ;"); // Entire integer-suffix rule messed up.
-            FixupOutput(ref output, @"'encoding-prefix ?’'", @"encoding_prefix ? '\''"); // Fix character-literal
+            FixupOutput(ref output, @"'encoding-prefix ?’'", @"encoding_prefix ? '\''",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                }); // Fix character-literal
             FixupOutput(ref output, @"c_char :  any member of the source character set except |  the single_quote '’,' backslash '\\,' or new_line character",
                 @"c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character'");
             FixupOutput(ref output, @"'\\’'", @"'\\\''"); // Fix simple-escape-sequence.
-            FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'"); // fractional_constant
+            FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                }); // fractional_constant
             FixupOutput(ref output, @"string_literal :  'encoding-prefix ?""' 's-char-sequence ?""' |  encoding_prefixoptR raw_string ;",
-                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? 'R' raw_string ;");
+                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? 'R' raw_string ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
                 @"s_char :  'any member of the source character set except the double_quote "", backslash \\. or new_line character' | escape_sequence | universal_character_name ;");
             FixupOutput(ref output, @"raw_string :  '""' 'd-char-sequence ?(' 'r-char-sequence ?)' 'd-char-sequence ?""' ;",
-                @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;");
+                @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
                 @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;");
             FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.' ;",
@@ -279,29 +349,81 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             // Section 4
 
             FixupOutput(ref output, @"'new-placement ?('",
-                @"new_placement ? '('");
+                @"new_placement ? '('",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"lambda_introducer :  '[' 'lambda-capture ?]' ;",
-                @"lambda_introducer :  '[' lambda_capture ? ']' ;");
+                @"lambda_introducer :  '[' lambda_capture ? ']' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' mutable ? |  exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
-                @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;");
+                @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"'expression-list ?)'",
-                @"expression_list ? ')'", 5); // postfix_expression
+                @"expression_list ? ')'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 5,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                }); // postfix_expression
             FixupOutput(ref output, @"'->' template ?",
                 @"'->' 'template' ?");
             FixupOutput(ref output, @"'.' template ?",
                 @"'.' 'template' ?");
             FixupOutput(ref output, @"'expression ?;'",
-                @"expression ? ';'", 2);
-
-
+                @"expression ? ';'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 2,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"exclusive_or_expression :  and_expression |  exclusive_or_expression ˆ and_expression ;",
-                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;");
+                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"'logical-or-expression||'",
-                @"logical_or_expression '||'");
+                @"logical_or_expression '||'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"attribute_specifier_seqoptcase",
-                @"attribute_specifier_seq ? 'case'"); // labeled_statement
+                @"attribute_specifier_seq ? 'case'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                }); // labeled_statement
             FixupOutput(ref output, @"attribute_specifier_seqoptdefault",
-                @"attribute_specifier_seq ? 'default'");
+                @"attribute_specifier_seq ? 'default'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"qualified_id :  nested_name_specifier template ? unqualified_id ;",
                 @"qualified_id :  nested_name_specifier 'template' ? unqualified_id ;");
             FixupOutput(ref output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier template ? simple_template_id '::' ;",
@@ -321,24 +443,54 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             //FixupOutput(ref output, @"new_initializer :  '(' 'expression-list ?)' |  braced_init_list ;",
             //                        @"new_initializer :  '(' expression_list ? ')' |  braced_init_list ;");
             FixupOutput(ref output, @"delete_expression :  '::optdelete' cast_expression |  '::optdelete' '[' ']' cast_expression ;",
-                @"delete_expression :  '::' ? 'delete' cast_expression |  '::' ? 'delete' '[' ']' cast_expression ;");
+                @"delete_expression :  '::' ? 'delete' cast_expression |  '::' ? 'delete' '[' ']' cast_expression ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 
             // Section 5
 
             //FixupOutput(ref output, @"expression_statement :  expression ';' ;",
             //    @"expression_statement :  expression ? ';' ;");
             FixupOutput(ref output, @"compound_statement :  '{' 'statement-seq ?}' ;",
-                @"compound_statement :  '{' statement_seq ? '}' ;");
+                @"compound_statement :  '{' statement_seq ? '}' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement 'condition ?;' 'expression ?)' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
-                @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;");
+                @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             //FixupOutput(ref output, @"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;",
             //                        @"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ? ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;");
             //FixupOutput(ref output, @"'static_assert-declaration'",
             //    @"static_assert_declaration");
             FixupOutput(ref output, @"'attribute-specifier-seq ?='",
-                @"attribute_specifier_seq ? '='");
+                @"attribute_specifier_seq ? '='",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"'init-declarator-list ?;'",
-                @"init_declarator_list ? ';'");
+                @"init_declarator_list ? ';'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 
             // Section 6
 
@@ -347,51 +499,159 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             FixupOutput(ref output, @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier template ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
                 @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? identifier ;");
             FixupOutput(ref output, @"enum_specifier :  enum_head '{' 'enumerator-list ?}' |  enum_head '{' enumerator_list ',' '}' ;",
-                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;");
+                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier |  enum_base ? ;",
-                @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;");
+                @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? identifier 'enum-base ?;' ;",
-                @"opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;");
+                @"opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"named_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
                 @"named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;");
             FixupOutput(ref output, @"unnamed_namespace_definition :  inline ? 'namespace' 'attribute-specifier-seq ?{' namespace_body '}' ;",
-                @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;");
+                @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"using_declaration :  'using' typename ? nested_name_specifier unqualified_id ';' ;",
-                @"using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;");
+                @"using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"using_directive :  attribute_specifier_seqoptusing 'namespace' nested_name_specifier ? namespace_name ';' ;",
-                @"using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;");
+                @"using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"linkage_specification :  'extern' string_literal '{' 'declaration-seq ?}' |  'extern' string_literal declaration ;",
-                @"linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;");
+                @"linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
-                @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;");
+                @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"alignment_specifier :  'alignas' '(' type_id '...opt)' |  'alignas' '(' constant_expression '...opt)' ;",
-                @"alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;");
+                @"alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
-                @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;");
+                @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
-                @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;");
+                @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  'noptr-abstract-declarator ?[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
-                @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;");
+                @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"parameter_declaration_clause :  'parameter-declaration-list ?...opt' |  parameter_declaration_list ',' '...' ;",
-                @"parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;");
+                @"parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq 'abstract-declarator ?=' initializer_clause ;",
-                @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;");
+                @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"braced_init_list :  '{' initializer_list ',opt' '}' |  '{' '}' ;",
                 @"braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;");
 
             // Section 8
 
             FixupOutput(ref output, @"class_specifier :  class_head '{' 'member-specification ?}' ;",
-                @"class_specifier :  class_head '{' member_specification ? '}' ;");
+                @"class_specifier :  class_head '{' member_specification ? '}' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? 'member-declarator-list ?;' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;",
-                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;");
+                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? 'attribute-specifier-seq ?:' constant_expression ;",
-                                    @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;");
+                                    @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 
             // Section 9
 
             FixupOutput(ref output, @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seqoptvirtual access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier virtual ? base_type_specifier ;",
-                @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;");
+                @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 
             // Section 10
 
@@ -410,25 +670,67 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             // Section 12
 
             FixupOutput(ref output, @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key 'identifier ?=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key 'identifier ?=' id_expression ;",
-                @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;");
+                @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"simple_template_id :  template_name '<' 'template-argument-list ?>' ;",
-                @"simple_template_id :  template_name '<' template_argument_list ? '>' ;");
+                @"simple_template_id :  template_name '<' template_argument_list ? '>' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"template_id :  simple_template_id |  operator_function_id '<' 'template-argument-list ?>' |  literal_operator_id '<' 'template-argument-list ?>' ;",
-                @"template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;");
+                @"template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier template ? simple_template_id ;",
-                @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;");
+                @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, @"explicit_instantiation :  extern ? 'template' declaration ;",
-                @"explicit_instantiation :  'extern' ? 'template' declaration ;");
+                @"explicit_instantiation :  'extern' ? 'template' declaration ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 1,
+                    _ => 1
+                });
 
             // Section 13
 
             FixupOutput(ref output, @"dynamic_exception_specification :  'throw' '(' 'type-id-list ?)' ;",
-                @"dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;");
+                @"dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
 
             // Section 14
 
             FixupOutput(ref output, @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list ?)' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list,' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
-                @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;");
+                @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 1,
+                    "n4660.pdf" => 0,
+                    _ => 1
+                });
             FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by white_space ;",
                 @"lparen :  'a ( character not immediately preceded by white_space' ;");
             FixupOutput(ref output, @"new_line :  the new_line character ;",
