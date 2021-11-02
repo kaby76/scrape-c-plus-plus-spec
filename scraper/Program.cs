@@ -14,24 +14,24 @@ namespace scrape_pdf
 {
     class Program
     {
-		static string GetTextFromPDF(string src_file_name)
-		{
-			StringBuilder text = new StringBuilder();
-//			string src = @"n4296.pdf";
-			PdfDocument pdfDoc = new PdfDocument(new PdfReader(src_file_name));
-			{
-				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
-				{
-					var pdfPage = pdfDoc.GetPage(i);
-					text.Append(PdfTextExtractor.GetTextFromPage(pdfPage, new MySimpleTextExtractionStrategy()));
-				}
-			}
-			return text.ToString();
-		}
+        static string GetTextFromPDF(string src_file_name)
+        {
+            StringBuilder text = new StringBuilder();
+//          string src = @"n4296.pdf";
+            PdfDocument pdfDoc = new PdfDocument(new PdfReader(src_file_name));
+            {
+                for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+                {
+                    var pdfPage = pdfDoc.GetPage(i);
+                    text.Append(PdfTextExtractor.GetTextFromPage(pdfPage, new MySimpleTextExtractionStrategy()));
+                }
+            }
+            return text.ToString();
+        }
 
         static int Find(int cursor, string pdfText)
         {
-            var regex = new Regex("[\r\n]([a-zA-Z_-]+[:]|[A][.])");
+            var regex = new Regex(@"[\r\n]([\w-]+[:]|[A][.])");
             var match = regex.Match(pdfText, cursor-1);
             if (match.Success)
             {
@@ -45,7 +45,7 @@ namespace scrape_pdf
         static bool ebnf = false;
 
         static void Main(string[] args)
-		{
+        {
             var result = new StringBuilder();
 
             string src_file_name = args[0];
@@ -55,8 +55,8 @@ namespace scrape_pdf
             if (!ebnf)
             {
 //                result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
-		    result.AppendLine("grammar Scrape;");
-	    }
+                result.AppendLine("grammar Scrape;");
+            }
 
             // Let's start parsing the spec text and extracting the
             // rules for C++.
@@ -70,7 +70,7 @@ namespace scrape_pdf
 
             // Now start looking for rules or section headers.
             for (; cursor < annex_b; )
-			{
+            {
                 // Look for start of section or beginning of rule.
                 int first = Find(cursor, pdfText);
                 if (first >= annex_b) break;
@@ -86,6 +86,7 @@ namespace scrape_pdf
 
                 // Starting at a rule...
                 cursor = pdfText.IndexOf(':', first) + 1;
+                var cursor_on = pdfText.Substring(cursor);
                 var lhs = pdfText.Substring(first, cursor - 1 - first);
                 if (ebnf)
                     result.Append(Antlrize(lhs) + " ::= ");
@@ -94,23 +95,29 @@ namespace scrape_pdf
 
                 // Grab one line at a time and examine.
                 var next_first = Find(cursor, pdfText);
-                next_first = next_first >= 0 ? next_first + 1 : annex_b;
+                next_first = next_first >= 0 ? next_first : annex_b;
+                var next_lhs_on = pdfText.Substring(next_first);
                 bool first_time = true;
                 bool one_of = false;
                 bool term = true;
                 for (; ; )
                 {
                     var start = cursor;
+                    var hereon = pdfText.Substring(start);
                     if (start >= next_first) break;
                     var end = pdfText.IndexOf('\n', start);
                     if (end < 0) break;
                     if (end >= annex_b) break;
                     if (end > next_first) break;
-                    cursor =  end + 1;
                     var len = end - start;
-                    if (len <= 0) continue;
+                    if (len <= 0)
+                    {
+                        cursor = end + 1;
+                        continue;
+                    }
                     var rhs = pdfText.Substring(start, len);
                     rhs = rhs.Trim();
+                    cursor = end + 1;
                     if (rhs == "") continue;
                     // Special cases that need to be delt with.
                     if (rhs.StartsWith("Note that a typedef-name naming")) continue;
@@ -196,40 +203,24 @@ namespace scrape_pdf
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
 ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
 Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
+
+            // Fix ups. Here we are only concerned about single character (more or less)
+            // permutations from the Spec in to bring it into a more or less proper
+            // grammar. It does not comment out useless productions, replace textual
+            // descriptions in the grammar that must be replaced with proper lexer
+            // syntax, etc.
+            //
+            // Note, the order of these corrections are in the order that the rules
+            // appear in the Spec.
             var output = result.ToString();
-            // Fix ups.
-            output = output.Replace("|  ?", "?");
-            output = output.Replace("'ˆ", "'^");
-            output = output.Replace("'new[]'", "'new' '[' ']'");
-            output = output.Replace("'delete[]'", "'delete' '[' ']'");
-            output = output.Replace("'static_assert-declaration'", "static_assert_declaration");
-            output = ReplaceFirstOccurrence(output, "typedef_name " + (ebnf ? "::=" : ":") + "  identifier", "// typedef_name :  identifier");
-            output = ReplaceFirstOccurrence(output, "enum_name " + (ebnf ? "::=" : ":") + "  identifier", "// enum_name :  identifier");
-            output = ReplaceFirstOccurrence(output, "namespace_name " + (ebnf ? "::=" : ":") + "  original_namespace_name |  namespace_alias", "// namespace_name :  original_namespace_name |  namespace_alias");
-            output = ReplaceFirstOccurrence(output, "namespace_alias " + (ebnf ? "::=" : ":") + "  identifier", "// namespace_alias :  identifier");
-            output = ReplaceFirstOccurrence(output, "class_name " + (ebnf ? "::=" : ":") + "  identifier |  simple_template_id", "// class_name :  identifier |  simple_template_id");
-            output = ReplaceFirstOccurrence(output, "template_name " + (ebnf ? "::=" : ":") + "  identifier", "// template_name :  identifier");
-            output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_CHARS1");
-            output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
-            output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
-            // There are no implementation defined chars.
-            output = ReplaceFirstOccurrence(output,
-                @"identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;",
-                @"identifier_nondigit :  nondigit |  universal_character_name ;");
-            output = output.Replace(" o pt ", " ? ");
-            output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
-            output = ReplaceFirstOccurrence(output,
-                @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
-                @"s_char : RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;");
-            output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
-            output = ReplaceFirstOccurrence(output,
-                @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'",
-                @"d_char : RESTRICTED_CHARS8");
-            output = ReplaceFirstOccurrence(output, @"any token other than a 'parenthesis,' a 'bracket,' or a brace", "RESTRICTED_CHARS9");
-            output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS10");
-            output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS11");
-            output = ReplaceFirstOccurrence(output, @"|  exception_specification ? attribute_specifier_seq ? trailing_return_type ?", @"exception_specification ? attribute_specifier_seq ? trailing_return_type ?");
-            output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
+
+            // General changes.
+
+            FixupOutput(ref output, "ﬁ", "fi", 319); // Wrong OCR of "identifier" throughout the text.
+            FixupOutput(ref output, "'’'", "'\\''", 3); // Wrong OCR of single quote in numerous locations.
+            FixupOutput(ref output, "'ˆ", "'^", 7); // Wrong OCR of caret.
+            Regex opt = new Regex("(?<id>[a-zA-Z_])opt(?![a-zA-Z])");
+            output = opt.Replace(output, "${id} ?");
             output = output.Replace(@"'opt)'", @"? ')'");
             output = output.Replace(@"'opt='", @"? '='");
             output = output.Replace(@"'opt:'", @"? ':'");
@@ -238,83 +229,318 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
             output = output.Replace(@"'opt}'", @"? '}'");
             output = output.Replace(@"'opt]'", @"? ']'");
             output = output.Replace(@"'opt>'", @"? '>'");
-            output = output.Replace(@"? |  ')'", @"? ')'");
-            output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
-            // Get nullable for string_literal. NEED TO TEST IN ANALYSIS!
-            output = ReplaceFirstOccurrence(output,
-                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? |  'R' raw_string ;",
-                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' | encoding_prefix ? 'R' raw_string ;");
-            output = ReplaceFirstOccurrence(output,
-                @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? |  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;",
-                @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ?  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? |  simple_template_id |  'enum' nested_name_specifier ? Identifier ;",
-                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? Identifier ;");
-            output = ReplaceFirstOccurrence(output,
-                @"enum_specifier :  enum_head '{' enumerator_list ? |  '}' |  enum_head '{' enumerator_list ',' '}' ;",
-                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? |  nested_name_specifier Identifier |  enum_base ? ;",
-                @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier Identifier enum_base ? ;");
-            output = ReplaceFirstOccurrence(output,
-                @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? |  Identifier enum_base ? |  ';' ;",
-                @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? Identifier enum_base ? ';' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? |  Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;",
-                @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;");
-            output = ReplaceFirstOccurrence(output,
-                @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? |  simple_template_id ;",
-                @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;");
-            output = ReplaceFirstOccurrence(output,
-                @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? |  type_specifier_seq abstract_declarator ? |  '...' ;",
-                @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '""' and_expression ;",
-                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;");
-            output = ReplaceFirstOccurrence(output,
-                @"static_assert_declaration :  'static_assert' '(' 'constant-expression)' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
-                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
-                @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;",
-                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;");
+            output = output.Replace(@"'...opt'", @" '...' ?");
+            output = output.Replace(@"'::optnew'", @"'::' ? 'new'");
 
+            // Section 2
 
-            output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
-            output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");
-            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq abstract_declarator ?", @"attribute_specifier_seq ? decl_specifier_seq abstract_declarator ?");
-            output = ReplaceFirstOccurrence(output, @"noptr_abstract_pack_declarator '[' constant_expression ? |  ']' attribute_specifier_seq ?", @"noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ?");
-            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq declarator '=' initializer_clause", @"attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause");
-            output = ReplaceFirstOccurrence(output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ?", @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ?");
-            output = ReplaceFirstOccurrence(output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? |  simple_template_id '::' ;",
-                @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"raw_string :  '""' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '""' ;",
+            FixupOutput(ref output, @"each non_white_space character that cannot be one of the above",
+                @"'each non_white_space character that cannot be one of the above'"); // preprocessing_token
+            FixupOutput(ref output, @"any member of the source character set except new_line and '>'",
+                @"'any member of the source character set except new_line and >'");
+            FixupOutput(ref output, @"any member of the source character set except new_line and '""'",
+                @"'any member of the source character set except new_line and ""'");
+            FixupOutput(ref output, @"other implementation_defined characters",
+                @"'other implementation_defined characters'");
+//            FixupOutput(ref output, "pp_number 'E' sign |  pp_number '.' |  'identifier:' | ",
+//                @"pp_number 'E' sign |  pp_number '.';
+//identifier : ");
+//            FixupOutput(ref output, "identifier digit |  'identifier-nondigit:' |",
+//                @"identifier digit ;
+//identifier_nondigit : ");
+            FixupOutput(ref output, "ﬂ", "fl", 7); // Fix ﬂoating_literal in literal rule.
+            FixupOutput(ref output, "_suﬃx ?", "_suffix ?", 10); // Fix integer-literal rule.
+            FixupOutput(ref output, "'’opt'", "'\\'' ?", 5); // Fix binary-literal rule.
+            FixupOutput(ref output, "suﬃx", "suffix", 18); // Numerous locations.
+//            FixupOutput(ref output, "| 'integer-suffix:' | 'unsigned-suffix' | 'long-suffixopt' | 'unsigned-suffix' | 'long-long-suffixopt' | 'long-suffix' | 'unsigned-suffixopt' | 'long-long-suffix' | 'unsigned-suffixopt' ;",
+//                @";
+//integer_suffix : unsigned_suffix long_suffix ? | unsigned_suffix long_long_suffix ? | long_suffix unsigned_suffix ? | long_long_suffix unsigned_suffix ? ;"); // Entire integer-suffix rule messed up.
+            FixupOutput(ref output, @"'encoding-prefix ?’'", @"encoding_prefix ? '\''"); // Fix character-literal
+            FixupOutput(ref output, @"c_char :  any member of the source character set except |  the single_quote '’,' backslash '\\,' or new_line character",
+                @"c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character'");
+            FixupOutput(ref output, @"'\\’'", @"'\\\''"); // Fix simple-escape-sequence.
+            FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'"); // fractional_constant
+            FixupOutput(ref output, @"string_literal :  'encoding-prefix ?""' 's-char-sequence ?""' |  encoding_prefixoptR raw_string ;",
+                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? 'R' raw_string ;");
+            FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
+                @"s_char :  'any member of the source character set except the double_quote "", backslash \\. or new_line character' | escape_sequence | universal_character_name ;");
+            FixupOutput(ref output, @"raw_string :  '""' 'd-char-sequence ?(' 'r-char-sequence ?)' 'd-char-sequence ?""' ;",
                 @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;");
-            output = ReplaceFirstOccurrence(output,
-                @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;",
-                @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;");
-            output = ReplaceFirstOccurrence(output,
-                @"conversion_function_id :  operator conversion_type_id ;",
+            FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
+                @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;");
+            FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.' ;",
+                @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;");
+
+            // Section 3
+
+            //output = output.Replace(@"translation_unit :  declaration_seqopt ;",
+            //    @"translation_unit :  declaration_seq ? ;");
+
+            // Section 4
+
+            FixupOutput(ref output, @"'new-placement ?('",
+                @"new_placement ? '('");
+            FixupOutput(ref output, @"lambda_introducer :  '[' 'lambda-capture ?]' ;",
+                @"lambda_introducer :  '[' lambda_capture ? ']' ;");
+            FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' mutable ? |  exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
+                @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;");
+            FixupOutput(ref output, @"'expression-list ?)'",
+                @"expression_list ? ')'", 5); // postfix_expression
+            FixupOutput(ref output, @"'->' template ?",
+                @"'->' 'template' ?");
+            FixupOutput(ref output, @"'.' template ?",
+                @"'.' 'template' ?");
+            FixupOutput(ref output, @"'expression ?;'",
+                @"expression ? ';'", 2);
+            output = output.Replace(@"exclusive_or_expression :  and_expression |  exclusive_or_expression ˆ and_expression ;",
+                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;");
+            output = output.Replace(@"'logical-or-expression||'",
+                @"logical_or_expression '||'");
+            output = output.Replace(@"attribute_specifier_seqoptcase",
+                @"attribute_specifier_seq ? 'case'"); // labeled_statement
+            output = output.Replace(@"attribute_specifier_seqoptdefault",
+                @"attribute_specifier_seq ? 'default'");
+            output = output.Replace(@"qualified_id :  nested_name_specifier template ? unqualified_id ;",
+                @"qualified_id :  nested_name_specifier 'template' ? unqualified_id ;");
+            output = output.Replace(@"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier template ? simple_template_id '::' ;",
+                @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
+            output = output.Replace(@"capture_list :  capture '...opt' |  capture_list ',' capture '...opt' ;",
+                @"capture_list :  capture '...' ? |  capture_list ',' capture '...' ? ;");
+            output = output.Replace(@"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' 'expression-listopt)' |  simple_type_specifier '(' 'expression-listopt)' |  typename_specifier '(' 'expression-listopt)' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' templateopt id_expression |  postfix_expression '->' templateopt id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;",
+                @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;");
+            output = output.Replace(@"pseudo_destructor_name :  nested_name_specifieropt type_name '::~' type_name |  nested_name_specifier 'template' simple_template_id '::~' type_name |  '~' type_name |  '~' decltype_specifier ;",
+                @"pseudo_destructor_name :  nested_name_specifier ? type_name '::~' type_name |  nested_name_specifier 'template' simple_template_id '::~' type_name |  '~' type_name |  '~' decltype_specifier ;");
+            output = output.Replace(@"new_expression :  '::optnew' new_placementopt new_type_id new_initializeropt |  '::optnew' 'new-placementopt(' type_id ')' new_initializeropt ;",
+                @"new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;");
+            output = output.Replace(@"new_type_id :  type_specifier_seq new_declaratoropt ;",
+                @"new_type_id :  type_specifier_seq new_declarator ? ;");
+            output = output.Replace(@"new_declarator :  ptr_operator new_declaratoropt |  noptr_new_declarator ;",
+                @"new_declarator :  ptr_operator new_declarator ? |  noptr_new_declarator ;");
+            output = output.Replace(@"noptr_new_declarator :  '[' expression ']' attribute_specifier_seqopt |  noptr_new_declarator '[' constant_expression ']' attribute_specifier_seqopt ;",
+                @"noptr_new_declarator :  '[' expression ']' attribute_specifier_seq ? |  noptr_new_declarator '[' constant_expression ']' attribute_specifier_seq ? ;");
+            output = output.Replace(@"new_initializer :  '(' 'expression-listopt)' |  braced_init_list ;",
+                @"new_initializer :  '(' expression_list ? ')' |  braced_init_list ;");
+            output = output.Replace(@"delete_expression :  '::optdelete' cast_expression |  '::optdelete' '[' ']' cast_expression ;",
+                @"delete_expression :  '::' ? 'delete' cast_expression |  '::' ? 'delete' '[' ']' cast_expression ;");
+
+            // Section 5
+
+            output = output.Replace(@"expression_statement :  expression ';' ;", @"expression_statement :  expression ? ';' ;");
+            output = output.Replace(@"compound_statement :  '{' 'statement-seq ?}' ;", @"compound_statement :  '{' statement_seq ? '}' ;");
+            output = output.Replace(@"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement 'condition ?;' 'expression ?)' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
+                @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;");
+            output = output.Replace(@"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;",
+                @"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ? ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;");
+            output = output.Replace(@"'static_assert-declaration'", @"static_assert_declaration");
+            output = output.Replace(@"'attribute-specifier-seq ?='", @"attribute_specifier_seq ? '='");
+            output = output.Replace(@"'init-declarator-list ?;'", @"init_declarator_list ? ';'");
+
+            // Section 6
+
+            output = output.Replace(@"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier template ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
+                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? identifier ;");
+            output = output.Replace(@"enum_specifier :  enum_head '{' 'enumerator-list ?}' |  enum_head '{' enumerator_list ',' '}' ;",
+                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;");
+            output = output.Replace(@"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier |  enum_base ? ;",
+                @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;");
+            output = output.Replace(@"opaque_enum_declaration :  enum_key attribute_specifier_seq ? identifier 'enum-base ?;' ;",
+                @"opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;");
+            output = output.Replace(@"named_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
+                @"named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;");
+            output = output.Replace(@"unnamed_namespace_definition :  inline ? 'namespace' 'attribute-specifier-seq ?{' namespace_body '}' ;",
+                @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;");
+            output = output.Replace(@"using_declaration :  'using' typename ? nested_name_specifier unqualified_id ';' ;",
+                @"using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;");
+            output = output.Replace(@"using_directive :  attribute_specifier_seqoptusing 'namespace' nested_name_specifier ? namespace_name ';' ;",
+                @"using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;");
+            output = output.Replace(@"linkage_specification :  'extern' string_literal '{' 'declaration-seq ?}' |  'extern' string_literal declaration ;",
+                @"linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;");
+            output = output.Replace(@"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
+                @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;");
+            output = output.Replace(@"alignment_specifier :  'alignas' '(' type_id '...opt)' |  'alignas' '(' constant_expression '...opt)' ;",
+                @"alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;");
+            output = output.Replace(@"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
+                @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;");
+            output = output.Replace(@"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
+                @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;");
+            output = output.Replace(@"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  'noptr-abstract-declarator ?[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
+                @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;");
+            output = output.Replace(@"parameter_declaration_clause :  'parameter-declaration-list ?...opt' |  parameter_declaration_list ',' '...' ;",
+                @"parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;");
+            output = output.Replace(@"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq 'abstract-declarator ?=' initializer_clause ;",
+                @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;");
+            output = output.Replace(@"braced_init_list :  '{' initializer_list ',opt' '}' |  '{' '}' ;",
+                @"braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;");
+
+            // Section 8
+
+            output = output.Replace(@"class_specifier :  class_head '{' 'member-specification ?}' ;",
+                @"class_specifier :  class_head '{' member_specification ? '}' ;");
+            output = output.Replace(@"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? 'member-declarator-list ?;' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;",
+                @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;");
+            output = output.Replace(@"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? 'attribute-specifier-seq ?:' constant_expression ;",
+                @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;");
+
+            // Section 9
+
+            output = output.Replace(@"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seqoptvirtual access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier virtual ? base_type_specifier ;",
+                @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;");
+
+            // Section 10
+
+            output = output.Replace(@"conversion_function_id :  operator conversion_type_id ;",
                 @"conversion_function_id :  'operator' conversion_type_id ;");
-            output = ReplaceFirstOccurrence(output,
-                @"operator_function_id :  operator operator ;",
+
+            // Section 11
+
+            output = output.Replace(@"operator_function_id :  operator operator ;",
                 @"operator_function_id :  'operator' operator ;");
-            output = ReplaceFirstOccurrence(output,
-                @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
+            output = output.Replace(@"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
+                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;");
+            output = output.Replace(@"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
                 @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
 
-            // Fix rules that should have been written differently.
-            output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");
-            output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
-                @"noptr_abstract_declarator : noptr_abstract_declarator parameters_and_qualifiers | noptr_abstract_declarator '[' constant_expression ? ']' attribute_specifier_seq ? | '(' ptr_abstract_declarator ')' | parameters_and_qualifiers | '[' constant_expression ? ']' attribute_specifier_seq ? ;");
+            // Section 12
+
+            output = output.Replace(@"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key 'identifier ?=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key 'identifier ?=' id_expression ;",
+                @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;");
+            output = output.Replace(@"simple_template_id :  template_name '<' 'template-argument-list ?>' ;",
+                @"simple_template_id :  template_name '<' template_argument_list ? '>' ;");
+            output = output.Replace(@"template_id :  simple_template_id |  operator_function_id '<' 'template-argument-list ?>' |  literal_operator_id '<' 'template-argument-list ?>' ;",
+                @"template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;");
+            output = output.Replace(@"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier template ? simple_template_id ;",
+                @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;");
+            output = output.Replace(@"explicit_instantiation :  extern ? 'template' declaration ;",
+                @"explicit_instantiation :  'extern' ? 'template' declaration ;");
+
+            // Section 13
+
+            output = output.Replace(@"dynamic_exception_specification :  'throw' '(' 'type-id-list ?)' ;",
+                @"dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;");
+
+            // Section 14
+
+            output = output.Replace(@"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list ?)' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list,' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
+                @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;");
+            output = output.Replace(@"lparen :  a '(' character not immediately preceded by white_space ;",
+                @"lparen :  'a ( character not immediately preceded by white_space' ;");
+            output = output.Replace(@"new_line :  the new_line character ;",
+                @"new_line :  'the new_line character' ;");
+
+            /*            output = output.Replace("'new[]'", "'new' '[' ']'");
+                        output = output.Replace("'delete[]'", "'delete' '[' ']'");
+                        output = output.Replace("'static_assert-declaration'", "static_assert_declaration");
+                        output = ReplaceFirstOccurrence(output, "typedef_name " + (ebnf ? "::=" : ":") + "  identifier", "// typedef_name :  identifier");
+                        output = ReplaceFirstOccurrence(output, "enum_name " + (ebnf ? "::=" : ":") + "  identifier", "// enum_name :  identifier");
+                        output = ReplaceFirstOccurrence(output, "namespace_name " + (ebnf ? "::=" : ":") + "  original_namespace_name |  namespace_alias", "// namespace_name :  original_namespace_name |  namespace_alias");
+                        output = ReplaceFirstOccurrence(output, "namespace_alias " + (ebnf ? "::=" : ":") + "  identifier", "// namespace_alias :  identifier");
+                        output = ReplaceFirstOccurrence(output, "class_name " + (ebnf ? "::=" : ":") + "  identifier |  simple_template_id", "// class_name :  identifier |  simple_template_id");
+                        output = ReplaceFirstOccurrence(output, "template_name " + (ebnf ? "::=" : ":") + "  identifier", "// template_name :  identifier");
+                        output = ReplaceFirstOccurrence(output, "each non_white_space character that cannot be one of the above", "RESTRICTED_CHARS1");
+                        output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '>'", "RESTRICTED_CHARS2");
+                        output = ReplaceFirstOccurrence(output, "any member of the source character set except new_line and '\"'", "RESTRICTED_CHARS3");
+                        // There are no implementation defined chars.
+                        output = ReplaceFirstOccurrence(output,
+                            @"identifier_nondigit :  nondigit |  universal_character_name |  other implementation_defined characters ;",
+                            @"identifier_nondigit :  nondigit |  universal_character_name ;");
+                        output = output.Replace(" o pt ", " ? ");
+                        output = ReplaceFirstOccurrence(output, @"any member of the source character set except |  the single_quote '1' ',' backslash '\\,' or new_line character", "RESTRICTED_CHARS5");
+                        output = ReplaceFirstOccurrence(output,
+                            @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
+                            @"s_char : RESTRICTED_CHARS6 |  escape_sequence |  universal_character_name ;");
+                        output = ReplaceFirstOccurrence(output, @"any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".'", "RESTRICTED_CHARS7");
+                        output = ReplaceFirstOccurrence(output,
+                            @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(' ',' the right parenthesis ')' ',' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.'",
+                            @"d_char : RESTRICTED_CHARS8");
+                        output = ReplaceFirstOccurrence(output, @"any token other than a 'parenthesis,' a 'bracket,' or a brace", "RESTRICTED_CHARS9");
+                        output = ReplaceFirstOccurrence(output, @"a '(' character not immediately preceded by white_space", "RESTRICTED_CHARS10");
+                        output = ReplaceFirstOccurrence(output, @"the new_line character", "RESTRICTED_CHARS11");
+                        output = ReplaceFirstOccurrence(output, @"|  exception_specification ? attribute_specifier_seq ? trailing_return_type ?", @"exception_specification ? attribute_specifier_seq ? trailing_return_type ?");
+                        output = ReplaceFirstOccurrence(output, @"expression ? |  ';'", @"expression ? ';'");
+                        output = output.Replace(@"'opt)'", @"? ')'");
+                        output = output.Replace(@"'opt='", @"? '='");
+                        output = output.Replace(@"'opt:'", @"? ':'");
+                        output = output.Replace(@"'opt;'", @"? ';'");
+                        output = output.Replace(@"'opt{'", @"? '{'");
+                        output = output.Replace(@"'opt}'", @"? '}'");
+                        output = output.Replace(@"'opt]'", @"? ']'");
+                        output = output.Replace(@"'opt>'", @"? '>'");
+                        output = output.Replace(@"? |  ')'", @"? ')'");
+                        output = ReplaceFirstOccurrence(output, @"'identifier-list,'", @"identifier_list ','");
+                        // Get nullable for string_literal. NEED TO TEST IN ANALYSIS!
+                        output = ReplaceFirstOccurrence(output,
+                            @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? |  'R' raw_string ;",
+                            @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' | encoding_prefix ? 'R' raw_string ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? |  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;",
+                            @"postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ?  id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? |  simple_template_id |  'enum' nested_name_specifier ? Identifier ;",
+                            @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? Identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? Identifier ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"enum_specifier :  enum_head '{' enumerator_list ? |  '}' |  enum_head '{' enumerator_list ',' '}' ;",
+                            @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? |  nested_name_specifier Identifier |  enum_base ? ;",
+                            @"enum_head :  enum_key attribute_specifier_seq ? Identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier Identifier enum_base ? ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? |  Identifier enum_base ? |  ';' ;",
+                            @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? Identifier enum_base ? ';' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? |  Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;",
+                            @"type_parameter :  type_parameter_key '...' ? Identifier ? |  type_parameter_key Identifier 'opt=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? Identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key Identifier 'opt=' id_expression ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? |  simple_template_id ;",
+                            @"typename_specifier :  'typename' nested_name_specifier Identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? |  type_specifier_seq abstract_declarator ? |  '...' ;",
+                            @"exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"exclusive_or_expression :  and_expression |  exclusive_or_expression '""' and_expression ;",
+                            @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"static_assert_declaration :  'static_assert' '(' 'constant-expression)' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
+                            @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' 'string-literal)' ';' ;",
+                            @"static_assert_declaration :  'static_assert' '(' constant_expression ')' ';' |  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' | ')' | '>=' | '[' | ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;",
+                            @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '=' | '*' | '<' | '/' | '>' | '%' | '+=' | '~' | '!' | '^' | '-=' | '&' | '*=' | '|' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '(' ')' | '>=' | '[' ']' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' ;");
 
 
+                        output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator ? |  parameters_and_qualifiers", @"noptr_abstract_declarator ? parameters_and_qualifiers");
+                        output = ReplaceFirstOccurrence(output, @"parameter_declaration_list ? |  '...' ?", @"parameter_declaration_list ? '...' ?");
+                        output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq abstract_declarator ?", @"attribute_specifier_seq ? decl_specifier_seq abstract_declarator ?");
+                        output = ReplaceFirstOccurrence(output, @"noptr_abstract_pack_declarator '[' constant_expression ? |  ']' attribute_specifier_seq ?", @"noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ?");
+                        output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq ? |  decl_specifier_seq declarator '=' initializer_clause", @"attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause");
+                        output = ReplaceFirstOccurrence(output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ?", @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? exception_specification ? attribute_specifier_seq ?");
+                        output = ReplaceFirstOccurrence(output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? |  simple_template_id '::' ;",
+                            @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"raw_string :  '""' d_char_sequence ? |  '(' r_char_sequence ? ')' d_char_sequence ? |  '""' ;",
+                            @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? |  digit_sequence ;",
+                            @"exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"conversion_function_id :  operator conversion_type_id ;",
+                            @"conversion_function_id :  'operator' conversion_type_id ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"operator_function_id :  operator operator ;",
+                            @"operator_function_id :  'operator' operator ;");
+                        output = ReplaceFirstOccurrence(output,
+                            @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
+                            @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
+
+                        // Fix rules that should have been written differently.
+                        output = ReplaceFirstOccurrence(output, @"attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;", @"attribute_specifier_seq :  attribute_specifier_seq attribute_specifier | attribute_specifier ;");
+                        output = ReplaceFirstOccurrence(output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
+                            @"noptr_abstract_declarator : noptr_abstract_declarator parameters_and_qualifiers | noptr_abstract_declarator '[' constant_expression ? ']' attribute_specifier_seq ? | '(' ptr_abstract_declarator ')' | parameters_and_qualifiers | '[' constant_expression ? ']' attribute_specifier_seq ? ;");
+            */
             System.Console.Write(output);
-		//	Console.WriteLine(pdfText);
-		}
+        //  Console.WriteLine(pdfText);
+        }
         public static string ReplaceFirstOccurrence(string source, string search, string replace)
         {
             int index = source.IndexOf(search);
@@ -461,6 +687,21 @@ Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
                 else return "'" + PerformEscapes(s) + "'";
             }
             return "'" + PerformEscapes(s) + "'";
+        }
+
+        private static void FixupOutput(ref string input, string find, string replacement, int expected = 1)
+        {
+            string pattern = Regex.Escape(find);
+            int count = 0;
+            input = Regex.Replace(input, pattern, (_match) =>
+            {
+                Group group = _match.Groups[0];
+                string replace = replacement;
+                var z = String.Format("{0}{1}{2}", _match.Value.Substring(0, group.Index - _match.Index), replace, _match.Value.Substring(group.Index - _match.Index + group.Length));
+                count++;
+                return z;
+            });
+            if (count != expected) throw new Exception();
         }
     }
 
