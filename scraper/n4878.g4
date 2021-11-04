@@ -190,7 +190,7 @@ declaration_statement :  block_declaration ;
 // A.7 Declarations [gram.dcl]
 declaration_seq :  declaration |  declaration_seq declaration ;
 declaration :  block_declaration |  nodeclspec_function_declaration |  function_definition |  template_declaration |  deduction_guide |  explicit_instantiation |  explicit_specialization |  export_declaration |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration |  module_import_declaration ;
-block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;
+block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 nodeclspec_function_declaration :  attribute_specifier_seq ? declarator ';' ;
 alias_declaration :  'using' identifier attribute_specifier_seq ? '=' defining_type_id ';' ;
 simple_declaration :  decl_specifier_seq init_declarator_list ? ';' |  attribute_specifier_seq decl_specifier_seq init_declarator_list ';' |  attribute_specifier_seq ? decl_specifier_seq ref_qualifier ? '[' identifier_list ']' initializer ';' ;
@@ -199,7 +199,7 @@ empty_declaration :  ';' ;
 attribute_declaration :  attribute_specifier_seq ';' ;
 //  A.7 1631cISO/IEC N4878
 
-decl_specifier :  storage_class_specifier |  defining_type_specifier |  function_specifier |  'friend' |  'typedef' |  'constexpr' |  consteval |  constinit |  'inline' ;
+decl_specifier :  storage_class_specifier |  defining_type_specifier |  function_specifier |  'friend' |  'typedef' |  'constexpr' |  'consteval' |  'constinit' |  'inline' ;
 decl_specifier_seq :  decl_specifier attribute_specifier_seq ? |  decl_specifier decl_specifier_seq ;
 storage_class_specifier :  'static' |  'thread_local' |  'extern' |  'mutable' ;
 function_specifier :  'virtual' |  explicit_specifier ;

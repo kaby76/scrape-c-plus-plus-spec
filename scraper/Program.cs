@@ -657,6 +657,15 @@ namespace scrape_pdf
                     "n4878.pdf" => 0,
                     _ => 1
                 });
+            FixupOutput(ref output, @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;",
+                                    @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier template ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
                 @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
                 just_fn switch
@@ -1066,6 +1075,8 @@ namespace scrape_pdf
             if (symbol == "class") symbol = "'class'";
             if (symbol == "const") symbol = "'const'";
             if (symbol == "constexpr") symbol = "'constexpr'";
+            if (symbol == "consteval") symbol = "'consteval'";
+            if (symbol == "constinit") symbol = "'constinit'";
             if (symbol == "continue") symbol = "'continue'";
             if (symbol == "decltype") symbol = "'decltype'";
             if (symbol == "default") symbol = "'default'";
