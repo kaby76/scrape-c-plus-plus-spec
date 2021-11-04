@@ -246,7 +246,7 @@ brace_or_equal_initializer :  '=' initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
 //  A.7 1634cISO/IEC N4878
 
-braced_init_list :  '{' initializer_list ',opt' '}' |  '{' designated_initializer_list ',opt' '}' |  '{' '}' ;
+braced_init_list :  '{' initializer_list ',' ? '}' |  '{' designated_initializer_list ',' ? '}' |  '{' '}' ;
 initializer_list :  initializer_clause  '...' ? |  initializer_list ',' initializer_clause  '...' ? ;
 designated_initializer_list :  designated_initializer_clause |  designated_initializer_list ',' designated_initializer_clause ;
 designated_initializer_clause :  designator brace_or_equal_initializer ;

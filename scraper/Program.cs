@@ -263,6 +263,7 @@ namespace scrape_pdf
             output = output.Replace(@"'...opt'", @" '...' ?");
             output = output.Replace(@"'::optnew'", @"'::' ? 'new'");
             output = output.Replace(@"'::opt'", @"'::' ?");
+            output = output.Replace(@"',opt'", @"',' ?");
 
             // Section 2
 
@@ -840,15 +841,6 @@ namespace scrape_pdf
                 {
                     "n4296.pdf" => 1,
                     "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"braced_init_list :  '{' initializer_list ',opt' '}' |  '{' '}' ;",
-                @"braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;",
-                just_fn switch
-                {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
                     "n4878.pdf" => 0,
                     _ => 1
                 });
