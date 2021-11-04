@@ -119,7 +119,7 @@ simple_capture :  identifier  '...' ? |  '&' identifier  '...' ? |  'this' |  '*
 init_capture :   '...' ? identifier initializer |  '&'  '...' ? identifier initializer ;
 fold_expression :  '(' cast_expression fold_operator '...' ')' |  '(' '...' fold_operator cast_expression ')' |  '(' cast_expression fold_operator '...' fold_operator cast_expression ')' ;
 fold_operator :  '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '<<' | '>>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<=' | '>>=' | '=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '&&' | '||' | ',' | '.*' | '->*' ;
-requires_expression :  requires requirement_parameter_list ? requirement_body ;
+requires_expression :  'requires' requirement_parameter_list ? requirement_body ;
 requirement_parameter_list :  '(' parameter_declaration_clause ')' ;
 requirement_body :  '{' requirement_seq '}' ;
 requirement_seq :  requirement |  requirement_seq requirement ;
@@ -128,7 +128,7 @@ simple_requirement :  expression ';' ;
 type_requirement :  'typename' nested_name_specifier ? type_name ';' ;
 compound_requirement :  '{' expression '}' noexcept ? return_type_requirement ? ';' ;
 return_type_requirement :  '->' type_constraint ;
-nested_requirement :  requires constraint_expression ';' ;
+nested_requirement :  'requires' constraint_expression ';' ;
 //  A.5 1627cISO/IEC N4878
 
 postfix_expression :  primary_expression |  postfix_expression '[' expr_or_braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
@@ -271,8 +271,8 @@ namespace_name :  identifier |  namespace_alias ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition |  nested_namespace_definition ;
 named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;
 unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;
-nested_namespace_definition :  'namespace' enclosing_namespace_specifier '::' inline ? identifier '{' namespace_body '}' ;
-enclosing_namespace_specifier :  identifier |  enclosing_namespace_specifier '::' inline ? identifier ;
+nested_namespace_definition :  'namespace' enclosing_namespace_specifier '::' 'inline' ? identifier '{' namespace_body '}' ;
+enclosing_namespace_specifier :  identifier |  enclosing_namespace_specifier '::' 'inline' ? identifier ;
 namespace_body :  declaration_seq ? ;
 namespace_alias :  identifier ;
 namespace_alias_definition :  'namespace' identifier '=' qualified_namespace_specifier ';' ;
@@ -318,7 +318,7 @@ class_key :  'class' |  'struct' |  'union' ;
 //  A.9 1637cISO/IEC N4878
 
 member_specification :  member_declaration member_specification ? |  access_specifier ':' member_specification ? ;
-member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  'static_assert-declaration' |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;
+member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  static_assert_declaration |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;
 member_declarator_list :  member_declarator |  member_declarator_list ',' member_declarator ;
 member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator requires_clause |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression brace_or_equal_initializer ? ;
 virt_specifier_seq :  virt_specifier |  virt_specifier_seq virt_specifier ;
@@ -341,14 +341,14 @@ mem_initializer_id :  class_or_decltype |  identifier ;
 
 // A.10 Overloading [gram.over]
 operator_function_id :  'operator' operator ;
-operator :  'new' | 'delete' | 'new[]' | 'delete[]' | 'co_await' | '()' | '[]' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;
+operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | 'co_await' | '(' ')' | '[' ']' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;
 literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;
 
 // A.11 Templates [gram.temp]
 template_declaration :  template_head declaration |  template_head concept_definition ;
 template_head :  'template' '<' template_parameter_list '>' requires_clause ? ;
 template_parameter_list :  template_parameter |  template_parameter_list ',' template_parameter ;
-requires_clause :  requires constraint_logical_or_expression ;
+requires_clause :  'requires' constraint_logical_or_expression ;
 constraint_logical_or_expression :  constraint_logical_and_expression |  constraint_logical_or_expression '||' constraint_logical_and_expression ;
 constraint_logical_and_expression :  primary_expression |  constraint_logical_and_expression '&&' primary_expression ;
 template_parameter :  type_parameter |  parameter_declaration ;
@@ -383,8 +383,8 @@ preprocessing_file :  group ? |  module_file ;
 module_file :  pp_global_module_fragment ? pp_module group ? pp_private_module_fragment ? ;
 //  A.13 1640cISO/IEC N4878
 
-pp_global_module_fragment :  module ';' new_line group ? ;
-pp_private_module_fragment :  module ':' 'private' ';' new_line group ? ;
+pp_global_module_fragment :  'module' ';' new_line group ? ;
+pp_private_module_fragment :  'module' ':' 'private' ';' new_line group ? ;
 group :  group_part |  group group_part ;
 group_part :  control_line |  if_section |  text_line |  '#' conditionally_supported_directive ;
 control_line :  '#' 'include' pp_tokens new_line |  pp_import |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
@@ -396,7 +396,7 @@ else_group :  '#' 'else' new_line group ? ;
 endif_line :  '#' 'endif' new_line ;
 text_line :  pp_tokens ? new_line ;
 conditionally_supported_directive :  pp_tokens new_line ;
-lparen :  a '(' character not immediately preceded by whitespace ;
+lparen :  'a ( character not immediately preceded by whitespace' ;
 identifier_list :  identifier |  identifier_list ',' identifier ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token |  pp_tokens preprocessing_token ;
@@ -409,8 +409,8 @@ h_pp_tokens :  h_preprocessing_token |  h_pp_tokens h_preprocessing_token ;
 header_name_tokens :  string_literal |  '<' h_pp_tokens '>' ;
 has_include_expression :  '__has_include' '(' header_name ')' |  '__has_include' '(' header_name_tokens ')' ;
 has_attribute_expression :  '__has_cpp_attribute' '(' pp_tokens ')' ;
-pp_module :  export ? module pp_tokens ? ';' new_line ;
-pp_import :  export ? import header_name pp_tokens ? ';' new_line |  export ? import header_name_tokens pp_tokens ? ';' new_line |  export ? import pp_tokens ';' new_line ;
+pp_module :  'export' ? 'module' pp_tokens ? ';' new_line ;
+pp_import :  'export' ? 'import' header_name pp_tokens ? ';' new_line |  'export' ? 'import' header_name_tokens pp_tokens ? ';' new_line |  'export' ? 'import' pp_tokens ';' new_line ;
 va_ ?_replacement :  '__VA_OPT__' '(' pp_tokens ? ')' ;
 //  A.13 1642cISO/IEC N4878
 

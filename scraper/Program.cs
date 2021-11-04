@@ -845,6 +845,15 @@ namespace scrape_pdf
                     _ => 1
                 });
 
+            FixupOutput(ref output, @"'::' inline ?", @"'::' 'inline' ?",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 2,
+                    _ => 1
+                });
+
             // Section 8
 
             FixupOutput(ref output, @"class_specifier :  class_head '{' 'member-specification ?}' ;",
@@ -872,6 +881,15 @@ namespace scrape_pdf
                     "n4296.pdf" => 0,
                     "n4660.pdf" => 1,
                     "n4878.pdf" => 0,
+                    _ => 1
+                });
+            FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  'static_assert-declaration' |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
+                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  static_assert_declaration |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? 'attribute-specifier-seq ?:' constant_expression ;",
@@ -921,6 +939,15 @@ namespace scrape_pdf
                     "n4296.pdf" => 1,
                     "n4660.pdf" => 1,
                     "n4878.pdf" => 0,
+                    _ => 1
+                });
+            FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | 'co_await' | '()' | '[]' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
+                                    @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | 'co_await' | '(' ')' | '[' ']' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
@@ -1016,6 +1043,15 @@ namespace scrape_pdf
                     "n4878.pdf" => 0,
                     _ => 1
                 });
+            FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by whitespace ;",
+                                    @"lparen :  'a ( character not immediately preceded by whitespace' ;",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, @"new_line :  the new_line character ;",
                 @"new_line :  'the new_line character' ;");
 
@@ -1035,6 +1071,15 @@ namespace scrape_pdf
                     "n4296.pdf" => 0,
                     "n4660.pdf" => 1,
                     "n4878.pdf" => 1,
+                    _ => 1
+                });
+            FixupOutput(ref output, @" export ?",
+                                    @" 'export' ?",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 4,
                     _ => 1
                 });
 
@@ -1094,11 +1139,13 @@ namespace scrape_pdf
             if (symbol == "if") symbol = "'if'";
             if (symbol == "ifdef") symbol = "'ifdef'";
             if (symbol == "ifndef") symbol = "'ifndef'";
+            if (symbol == "import") symbol = "'import'";
             if (symbol == "include") symbol = "'include'";
             if (symbol == "inline") symbol = "'inline'";
             if (symbol == "int") symbol = "'int'";
             if (symbol == "line") symbol = "'line'";
             if (symbol == "long") symbol = "'long'";
+            if (symbol == "module") symbol = "'module'";
             if (symbol == "mutable") symbol = "'mutable'";
             if (symbol == "namespace") symbol = "'namespace'";
             if (symbol == "noexcept") symbol = "'noexcept'";
@@ -1114,6 +1161,7 @@ namespace scrape_pdf
             if (symbol == "protected") symbol = "'protected'";
             if (symbol == "public") symbol = "'public'";
             if (symbol == "register") symbol = "'register'";
+            if (symbol == "requires") symbol = "'requires'";
             if (symbol == "return") symbol = "'return'";
             if (symbol == "short") symbol = "'short'";
             if (symbol == "signed") symbol = "'signed'";
