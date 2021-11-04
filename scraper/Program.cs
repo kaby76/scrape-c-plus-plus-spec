@@ -300,12 +300,15 @@ namespace scrape_pdf
                     "n4878.pdf" => 0,
                     _ => 1
                 });
-//            FixupOutput(ref output, "pp_number 'E' sign |  pp_number '.' |  'identifier:' | ",
-//                @"pp_number 'E' sign |  pp_number '.';
-//identifier : ");
-//            FixupOutput(ref output, "identifier digit |  'identifier-nondigit:' |",
-//                @"identifier digit ;
-//identifier_nondigit : ");
+            FixupOutput(ref output, @"any identifier listed in Table '5'",
+                                    @"'any identifier listed in Table 5'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, "ﬂ", "fl",
                 just_fn switch
                 {
@@ -368,6 +371,15 @@ namespace scrape_pdf
                     "n4878.pdf" => 0,
                     _ => 1
                 }); // Fix simple-escape-sequence.
+            FixupOutput(ref output, @"any member of the basic source character set that is not an 'octal-digit,' a 'simple-escape-sequence-char,' or |  the characters 'u,' 'U,' or x",
+                                    @"'any member of the basic source character set that is not an octal_digit, a simple_escape_sequence_char, or the characters u, U, or x'",
+                just_fn switch
+                {
+                    "n4296.pdf" => 0,
+                    "n4660.pdf" => 0,
+                    "n4878.pdf" => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'",
                 just_fn switch
                 {
@@ -395,7 +407,7 @@ namespace scrape_pdf
                     _ => 1
                 });
             FixupOutput(ref output, @"basic_s_char :  any member of the basic source character set except the double_quote '"",' backslash '\\,' or new_line character ;",
-                @"s_char :  'any member of the basic source character set except the double_quote "", backslash \\. or new_line character' ;",
+                                    @"basic_s_char :  'any member of the basic source character set except the double_quote "", backslash \\. or new_line character' ;",
                 just_fn switch
                 {
                     "n4296.pdf" => 0,
@@ -442,7 +454,7 @@ namespace scrape_pdf
                     _ => 1
                 });
             FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' and the control characters |  representing horizontal 'tab,' vertical 'tab,' form 'feed,' and 'newline.' ;",
-                                    @"d_char :  any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
+                                    @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
                 just_fn switch
                 {
                     "n4296.pdf" => 0,
