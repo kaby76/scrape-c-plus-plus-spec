@@ -16,6 +16,18 @@ using System.Text.RegularExpressions;
 
 namespace scrape_pdf
 {
+    enum Version
+    {
+        draft_cpp_14 = 13,
+        iso_cpp_14 = 14,
+        draft_cpp_17 = 16,
+        iso_cpp_17 = 17,
+        draft_cpp_20 = 19,
+        iso_cpp_20 = 20,
+        cpp_23 = 23,
+        unknown = 0
+    }
+
     class Program
     {
         static string GetTextFromPDF(string src_file_name)
@@ -47,13 +59,28 @@ namespace scrape_pdf
         }
 
         static bool ebnf = false;
+        static bool dont_care = false;
 
         static void Main(string[] args)
         {
             var result = new StringBuilder();
 
             string src_file_name = args[0];
+            
             var just_fn = System.IO.Path.GetFileName(src_file_name);
+            Version version = just_fn switch
+            {
+                "n4296.pdf" => Version.draft_cpp_14,
+                "C++14 – ISOIEC 148822014 by ISO (z-lib.org).pdf" => Version.iso_cpp_14,
+                "n4660.pdf" => Version.draft_cpp_17,
+                "C++17 – ISOIEC 148822017 by ISO (z-lib.org).pdf" => Version.iso_cpp_17,
+                "n4878.pdf" => Version.draft_cpp_20,
+                "INTERNATIONAL STANDARD ISOIEC 148822020(E) Programming languages — C++ Sixth edition 2020-12 by ISOIEC (z-lib.org).pdf" => Version.iso_cpp_20,
+                _ => Version.unknown
+            };
+            if (args.Length > 1) { version = (Version)int.Parse(args[1]); }
+            if (args.Length > 2) { dont_care = true; }
+
             string pdfText = GetTextFromPDF(src_file_name);
 
             if (!ebnf)
@@ -67,12 +94,13 @@ namespace scrape_pdf
 
             // First bracket the Annex A section.
             int annex_a = pdfText.IndexOf("Annex A (informative)");
-            int annex_b = just_fn switch
+            int annex_b = version switch
             {
-                "n4296.pdf" => pdfText.IndexOf("Annex B (informative)"),
-                "n4660.pdf" => pdfText.IndexOf("Annex B (informative)"),
-                "n4878.pdf" => pdfText.IndexOf("Annex B (normative)"),
-                _ => -1
+                Version.draft_cpp_14 => pdfText.IndexOf("Annex B (informative)"),
+                Version.iso_cpp_14 => pdfText.IndexOf("Annex B (informative)"),
+                Version.draft_cpp_17 => pdfText.IndexOf("Annex B (informative)"),
+                Version.draft_cpp_20 => pdfText.IndexOf("Annex B (normative)"),
+                _ => throw new Exception()
             };
             var cursor = annex_a;
             int after = cursor + "Annex A (informative)".Length;
@@ -191,29 +219,6 @@ namespace scrape_pdf
                 }
             }
 
-//            result.AppendLine(@"keyword " + (ebnf ? "::=" : ":") + @" 'alignas' | 'continue' | 'friend' | 'register' | 'true' 
-//                'alignof' | 'decltype' | 'goto' | 'reinterpret_cast' | 'try'
-//                'asm' | 'default' | 'if' | 'return' | 'typedef'
-//                'auto' | 'delete' | 'inline' | 'short' | 'typeid'
-//                'bool' | 'do' | 'int' | 'signed' | 'typename'
-//                'break' | 'double' | 'long' | 'sizeof' | 'union'
-//                'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned'
-//                'catch' | 'else' | 'namespace' | 'static_assert' | 'using'
-//                'char' | 'enum' | 'new' | 'static_cast' | 'virtual'
-//                'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void'
-//                'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile'
-//                'class' | 'extern' | 'operator' | 'template' | 'wchar_t'
-//                'const' | 'false' | 'private' | 'this' | 'while'
-//                'constexpr' | 'float' | 'protected' | 'thread_local'
-//                'const_cast' | 'for' | 'public' | 'throw'
-//                'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not'
-//                'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq'" + (ebnf ? "" : " ;"));
-//            result.AppendLine(@"punctuator " + (ebnf ? "::=" : ":") + " preprocessing_op_or_punc" + (ebnf ? "" : " ;"));
-//            result.AppendLine(@"WS : [\n\r\t ]+ -> channel(HIDDEN);
-//COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
-//ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
-//Prep : '#' ~[\n\r]* -> channel(HIDDEN);");
-
             // Fix ups. Here we are only concerned about single character (more or less)
             // permutations from the Spec in to bring it into a more or less proper
             // grammar. It does not comment out useless productions, replace textual
@@ -227,27 +232,30 @@ namespace scrape_pdf
             // General changes.
 
             FixupOutput(ref output, "ﬁ", "fi",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 319,
-                    "n4660.pdf" => 339,
-                    "n4878.pdf" => 364,
+                    Version.draft_cpp_14 => 319,
+                    Version.iso_cpp_14 => 315,
+                    Version.draft_cpp_17 => 339,
+                    Version.draft_cpp_20 => 364,
                     _ => 1
                 }); // Wrong OCR of "identifier" throughout the text.
             FixupOutput(ref output, "'’'", "'\\''",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 3,
-                    "n4660.pdf" => 4,
-                    "n4878.pdf" => 5,
+                    Version.draft_cpp_14 => 3,
+                    Version.iso_cpp_14 => 7,
+                    Version.draft_cpp_17 => 4,
+                    Version.draft_cpp_20 => 5,
                     _ => 1
                 }); // Wrong OCR of single quote in numerous locations.
             FixupOutput(ref output, "'ˆ", "'^",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 7,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 7,
+                    Version.iso_cpp_14 => 5,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // Wrong OCR of caret.
             Regex opt = new Regex("(?<id>[a-zA-Z_])opt(?![a-zA-Z])");
@@ -270,21 +278,23 @@ namespace scrape_pdf
             FixupOutput(ref output,
                 @"each non_white_space character that cannot be one of the above",
                 @"'each non_white_space character that cannot be one of the above'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // preprocessing_token
             FixupOutput(ref output,
                 @"each non_whitespace character that cannot be one of the above",
                 @"'each non_whitespace character that cannot be one of the above'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 }); // preprocessing_token
 
@@ -294,235 +304,257 @@ namespace scrape_pdf
                 @"'any member of the source character set except new_line and ""'");
             FixupOutput(ref output, @"other implementation_defined characters",
                 @"'other implementation_defined characters'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"any identifier listed in Table '5'",
                                     @"'any identifier listed in Table 5'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, "ﬂ", "fl",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 7,
-                    "n4660.pdf" => 13,
-                    "n4878.pdf" => 13,
+                    Version.draft_cpp_14 => 7,
+                    Version.iso_cpp_14 => 7,
+                    Version.draft_cpp_17 => 13,
+                    Version.draft_cpp_20 => 13,
                     _ => 1
                 }); // Fix ﬂoating_literal in literal rule.
             FixupOutput(ref output, "_suﬃx ?", "_suffix ?",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 10,
-                    "n4660.pdf" => 12,
-                    "n4878.pdf" => 14,
+                    Version.draft_cpp_14 => 10,
+                    Version.iso_cpp_14 => 10,
+                    Version.draft_cpp_17 => 12,
+                    Version.draft_cpp_20 => 14,
                     _ => 1
                 }); // Fix integer-literal rule.
             FixupOutput(ref output, "'’opt'", "'\\'' ?", 5); // Fix binary-literal rule.
             FixupOutput(ref output, "suﬃx", "suffix",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 18,
-                    "n4660.pdf" => 20,
-                    "n4878.pdf" => 23,
+                    Version.draft_cpp_14 => 18,
+                    Version.iso_cpp_14 => 18,
+                    Version.draft_cpp_17 => 20,
+                    Version.draft_cpp_20 => 23,
                     _ => 1
                 }); // Numerous locations.
 //            FixupOutput(ref output, "| 'integer-suffix:' | 'unsigned-suffix' | 'long-suffixopt' | 'unsigned-suffix' | 'long-long-suffixopt' | 'long-suffix' | 'unsigned-suffixopt' | 'long-long-suffix' | 'unsigned-suffixopt' ;",
 //                @";
 //integer_suffix : unsigned_suffix long_suffix ? | unsigned_suffix long_long_suffix ? | long_suffix unsigned_suffix ? | long_long_suffix unsigned_suffix ? ;"); // Entire integer-suffix rule messed up.
             FixupOutput(ref output, @"'encoding-prefix ?’'", @"encoding_prefix ? '\''",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // Fix character-literal
             FixupOutput(ref output, @"c_char :  any member of the source character set except |  the single_quote '’,' backslash '\\,' or new_line character",
                 @"c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"basic_c_char :  any member of the basic source character set except the single_quote '’,' backslash '\\,' or new_line character ;",
                                     @"basic_c_char :  'any member of the basic source character set except the single_quote \', backslash \\, or new_line character ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"'\\’'", @"'\\\''",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // Fix simple-escape-sequence.
             FixupOutput(ref output, @"any member of the basic source character set that is not an 'octal-digit,' a 'simple-escape-sequence-char,' or |  the characters 'u,' 'U,' or x",
                                     @"'any member of the basic source character set that is not an octal_digit, a simple_escape_sequence_char, or the characters u, U, or x'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // fractional_constant
             FixupOutput(ref output, @"string_literal :  'encoding-prefix ?""' 's-char-sequence ?""' |  encoding_prefixoptR raw_string ;",
                 @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? 'R' raw_string ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
                 @"s_char :  'any member of the source character set except the double_quote "", backslash \\. or new_line character' | escape_sequence | universal_character_name ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"basic_s_char :  any member of the basic source character set except the double_quote '"",' backslash '\\,' or new_line character ;",
                                     @"basic_s_char :  'any member of the basic source character set except the double_quote "", backslash \\. or new_line character' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"raw_string :  '""' 'd-char-sequence ?(' 'r-char-sequence ?)' 'd-char-sequence ?""' ;",
                 @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
                 @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except a right parenthesis ')' followed by |  the initial d_char_sequence '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
                                     @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
 
 
             FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.' ;",
                 @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' and the control characters |  representing horizontal 'tab,' vertical 'tab,' form 'feed,' and 'newline.' ;",
                                     @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
 
             // Section 3
 
-            //output = output.Replace(@"translation_unit :  declaration_seqopt ;",
-            //    @"translation_unit :  declaration_seq ? ;");
-
             // Section 4
 
             FixupOutput(ref output, @"'new-placement ?('",
                 @"new_placement ? '('",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_introducer :  '[' 'lambda-capture ?]' ;",
                 @"lambda_introducer :  '[' lambda_capture ? ']' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' mutable ? |  exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
                 @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
                 @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? requires_clause ? ;",
                                     @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? requires_clause ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"'expression-list ?)'",
                 @"expression_list ? ')'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 5,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 5,
+                    Version.iso_cpp_14 => 5,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // postfix_expression
             FixupOutput(ref output, @"'->' template ?",
@@ -531,47 +563,52 @@ namespace scrape_pdf
                 @"'.' 'template' ?");
             FixupOutput(ref output, @"'expression ?;'",
                 @"expression ? ';'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 2,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 2,
+                    Version.iso_cpp_14 => 2,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"exclusive_or_expression :  and_expression |  exclusive_or_expression ˆ and_expression ;",
                 @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"'logical-or-expression||'",
                 @"logical_or_expression '||'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"attribute_specifier_seqoptcase",
                 @"attribute_specifier_seq ? 'case'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // labeled_statement
             FixupOutput(ref output, @"attribute_specifier_seqoptdefault",
                 @"attribute_specifier_seq ? 'default'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"qualified_id :  nested_name_specifier template ? unqualified_id ;",
@@ -580,19 +617,21 @@ namespace scrape_pdf
                 @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
             FixupOutput(ref output, @"new_expression :  '::' ? new new_placement ? new_type_id new_initializer ? |  '::' ? new new_placement ? '(' type_id ')' new_initializer ? ;",
                 @"new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"delete_expression :  '::optdelete' cast_expression |  '::optdelete' '[' ']' cast_expression ;",
                 @"delete_expression :  '::' ? 'delete' cast_expression |  '::' ? 'delete' '[' ']' cast_expression ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -600,50 +639,51 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"compound_statement :  '{' 'statement-seq ?}' ;",
                 @"compound_statement :  '{' statement_seq ? '}' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"selection_statement :  'if' constexpr ? '(' init_statement ? condition ')' statement |  'if' constexpr ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
                                     @"selection_statement :  'if' 'constexpr' ? '(' init_statement ? condition ')' statement |  'if' 'constexpr' ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement 'condition ?;' 'expression ?)' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
                 @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
-            //FixupOutput(ref output, @"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;",
-            //                        @"jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ? ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;");
-            //FixupOutput(ref output, @"'static_assert-declaration'",
-            //    @"static_assert_declaration");
             FixupOutput(ref output, @"'attribute-specifier-seq ?='",
                 @"attribute_specifier_seq ? '='",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"'init-declarator-list ?;'",
                 @"init_declarator_list ? ';'",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -651,140 +691,163 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;",
                 @"block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;",
                                     @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier template ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
                 @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"enum_specifier :  enum_head '{' 'enumerator-list ?}' |  enum_head '{' enumerator_list ',' '}' ;",
                 @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier |  enum_base ? ;",
                 @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? identifier 'enum-base ?;' ;",
                 @"opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"named_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
-                @"named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;");
+                @"named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
+                version switch
+                {
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
+                    _ => 1
+                });
             FixupOutput(ref output, @"unnamed_namespace_definition :  inline ? 'namespace' 'attribute-specifier-seq ?{' namespace_body '}' ;",
                 @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"unnamed_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
                                     @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"using_declaration :  'using' typename ? nested_name_specifier unqualified_id ';' ;",
                                     @"using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"using_declarator :  typename ? nested_name_specifier unqualified_id ;",
                                     @"using_declarator :  'typename' ? nested_name_specifier unqualified_id ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
 
             FixupOutput(ref output, @"using_directive :  attribute_specifier_seqoptusing 'namespace' nested_name_specifier ? namespace_name ';' ;",
                 @"using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"linkage_specification :  'extern' string_literal '{' 'declaration-seq ?}' |  'extern' string_literal declaration ;",
                 @"linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
                 @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"balanced_token :  '(' balanced_token_seq ? ')' |  '[' balanced_token_seq ? ']' |  '{' balanced_token_seq ? '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
                                     @"balanced_token :  '(' balanced_token_seq ? ')' |  '[' balanced_token_seq ? ']' |  '{' balanced_token_seq ? '}' |  'any token other than a parenthesis, a bracket, or a brace' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"alignment_specifier :  'alignas' '(' type_id '...opt)' |  'alignas' '(' constant_expression '...opt)' ;",
                 @"alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -792,65 +855,72 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
                 @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? noexcept_specifier ? attribute_specifier_seq ? ;",
                                     @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? noexcept_specifier ? attribute_specifier_seq ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
                                     @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  'noptr-abstract-declarator ?[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
                 @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"parameter_declaration_clause :  'parameter-declaration-list ?...opt' |  parameter_declaration_list ',' '...' ;",
                 @"parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq 'abstract-declarator ?=' initializer_clause ;",
                 @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
             FixupOutput(ref output, @"'::' inline ?", @"'::' 'inline' ?",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 2,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 2,
                     _ => 1
                 });
 
@@ -858,47 +928,52 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"class_specifier :  class_head '{' 'member-specification ?}' ;",
                 @"class_specifier :  class_head '{' member_specification ? '}' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? 'member-declarator-list ?;' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;",
                                     @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  deduction_guide |  alias_declaration |  empty_declaration ;",
                                     @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  deduction_guide |  alias_declaration |  empty_declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  'static_assert-declaration' |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
                                     @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  static_assert_declaration |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? 'attribute-specifier-seq ?:' constant_expression ;",
                                     @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -906,20 +981,22 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seqoptvirtual access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier virtual ? base_type_specifier ;",
                                     @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"base_specifier :  attribute_specifier_seq ? class_or_decltype |  attribute_specifier_seq ? 'virtual' access_specifier ? class_or_decltype |  attribute_specifier_seq ? access_specifier virtual ? class_or_decltype ;",
                                     @"base_specifier :  attribute_specifier_seq ? class_or_decltype |  attribute_specifier_seq ? 'virtual' access_specifier ? class_or_decltype |  attribute_specifier_seq ? access_specifier 'virtual' ? class_or_decltype ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
 
@@ -934,20 +1011,22 @@ namespace scrape_pdf
                 @"operator_function_id :  'operator' operator ;");
             FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
                 @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | 'co_await' | '()' | '[]' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
                                     @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | 'co_await' | '(' ')' | '[' ']' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
@@ -957,56 +1036,62 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key 'identifier ?=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key 'identifier ?=' id_expression ;",
                 @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"simple_template_id :  template_name '<' 'template-argument-list ?>' ;",
                 @"simple_template_id :  template_name '<' template_argument_list ? '>' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"template_id :  simple_template_id |  operator_function_id '<' 'template-argument-list ?>' |  literal_operator_id '<' 'template-argument-list ?>' ;",
                 @"template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier template ? simple_template_id ;",
                 @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"explicit_instantiation :  extern ? 'template' declaration ;",
                 @"explicit_instantiation :  'extern' ? 'template' declaration ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"deduction_guide :  explicit ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
                                     @"deduction_guide :  'explicit' ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -1015,11 +1100,12 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"dynamic_exception_specification :  'throw' '(' 'type-id-list ?)' ;",
                 @"dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -1027,29 +1113,32 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list ?)' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list,' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
                 @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by white_space ;",
                 @"lparen :  'a ( character not immediately preceded by white_space' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 1,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 0,
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by whitespace ;",
                                     @"lparen :  'a ( character not immediately preceded by whitespace' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"new_line :  the new_line character ;",
@@ -1057,29 +1146,32 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"defined_macro_expression :  defined identifier |  defined '(' identifier ')' ;",
                                     @"defined_macro_expression :  'defined' identifier |  'defined' '(' identifier ')' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"h_preprocessing_token :  any preprocessing_token other than '>' ;",
                                     @"h_preprocessing_token :  'any preprocessing_token other than >' ;",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 1,
-                    "n4878.pdf" => 1,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 1,
+                    Version.draft_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @" export ?",
                                     @" 'export' ?",
-                just_fn switch
+                version switch
                 {
-                    "n4296.pdf" => 0,
-                    "n4660.pdf" => 0,
-                    "n4878.pdf" => 4,
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.draft_cpp_20 => 4,
                     _ => 1
                 });
 
@@ -1252,7 +1344,7 @@ namespace scrape_pdf
                 count++;
                 return z;
             });
-            if (count != expected) throw new Exception();
+            if (!dont_care && count != expected) throw new Exception();
         }
     }
 
