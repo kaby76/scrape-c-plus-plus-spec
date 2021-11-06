@@ -2,7 +2,7 @@
   "profiles": {
     "scrape-pdf": {
       "commandName": "Project",
-      "commandLineArgs": "c:\\users\\kenne\\downloads\\n4878.pdf",
+      "commandLineArgs": "\"c:\\users\\kenne\\downloads\\n4296.pdf\" 13",
       "workingDirectory": "C:\\msys64\\home\\kenne\\scrape-c-plus-plus-spec\\scraper"
     }
   }

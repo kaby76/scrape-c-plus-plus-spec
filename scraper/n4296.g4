@@ -93,7 +93,7 @@ lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
 lambda_introducer :  '[' lambda_capture ? ']' ;
 lambda_capture :  capture_default |  capture_list |  capture_default ',' capture_list ;
 capture_default :  '&' |  '=' ;
-capture_list :  capture  '...' ? |  capture_list ',' capture  '...' ? ;
+capture_list :  capture '...' ? |  capture_list ',' capture '...' ? ;
 capture :  simple_capture |  init_capture ;
 simple_capture :  identifier |  '&' identifier |  'this' ;
 //  A.4 1215c ?ISO/IEC N4296
@@ -184,7 +184,7 @@ elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_spe
 enum_name :  identifier ;
 enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;
 enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;
-opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;
+opaque_enum_declaration :  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;
 enum_key :  'enum' |  'enum' 'class' |  'enum' 'struct' ;
 enum_base :  ':' type_specifier_seq ;
 enumerator_list :  enumerator_definition |  enumerator_list ',' enumerator_definition ;
@@ -232,7 +232,7 @@ ptr_operator :  '*' attribute_specifier_seq ? cv_qualifier_seq ? |  '&' attribut
 cv_qualifier_seq :  cv_qualifier cv_qualifier_seq ? ;
 cv_qualifier :  'const' |  'volatile' ;
 ref_qualifier :  '&' |  '&&' ;
-declarator_id :   '...' ? id_expression ;
+declarator_id :  '...' ? id_expression ;
 //  A.7 1223c ?ISO/IEC N4296
 
 type_id :  type_specifier_seq abstract_declarator ? ;
@@ -249,7 +249,7 @@ function_body :  ctor_initializer ? compound_statement |  function_try_block |  
 initializer :  brace_or_equal_initializer |  '(' expression_list ')' ;
 brace_or_equal_initializer :  '=' initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
-initializer_list :  initializer_clause  '...' ? |  initializer_list ',' initializer_clause  '...' ? ;
+initializer_list :  initializer_clause '...' ? |  initializer_list ',' initializer_clause '...' ? ;
 braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;
 //  A.7 1224c ?ISO/IEC N4296
 
@@ -271,7 +271,7 @@ pure_specifier :  '=' '0' ;
 
 // A.9 Derived classes [gram.derived]
 base_clause :  ':' base_specifier_list ;
-base_specifier_list :  base_specifier  '...' ? |  base_specifier_list ',' base_specifier  '...' ? ;
+base_specifier_list :  base_specifier '...' ? |  base_specifier_list ',' base_specifier '...' ? ;
 //  A.9 1225c ?ISO/IEC N4296
 
 base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;
@@ -284,7 +284,7 @@ conversion_function_id :  'operator' conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator conversion_declarator ? ;
 ctor_initializer :  ':' mem_initializer_list ;
-mem_initializer_list :  mem_initializer  '...' ? |  mem_initializer_list ',' mem_initializer  '...' ? ;
+mem_initializer_list :  mem_initializer '...' ? |  mem_initializer_list ',' mem_initializer '...' ? ;
 mem_initializer :  mem_initializer_id '(' expression_list ? ')' |  mem_initializer_id braced_init_list ;
 mem_initializer_id :  class_or_decltype |  identifier ;
 
@@ -299,12 +299,12 @@ template_parameter_list :  template_parameter |  template_parameter_list ',' tem
 //  A.12 1226c ?ISO/IEC N4296
 
 template_parameter :  type_parameter |  parameter_declaration ;
-type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;
+type_parameter :  type_parameter_key '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;
 type_parameter_key :  'class' |  'typename' ;
 simple_template_id :  template_name '<' template_argument_list ? '>' ;
 template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;
 template_name :  identifier ;
-template_argument_list :  template_argument  '...' ? |  template_argument_list ',' template_argument  '...' ? ;
+template_argument_list :  template_argument '...' ? |  template_argument_list ',' template_argument '...' ? ;
 template_argument :  constant_expression |  type_id |  id_expression ;
 typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;
 explicit_instantiation :  'extern' ? 'template' declaration ;
@@ -320,7 +320,7 @@ exception_specification :  dynamic_exception_specification |  noexcept_specifica
 dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;
 //  A.13 1227c ?ISO/IEC N4296
 
-type_id_list :  type_id  '...' ? |  type_id_list ',' type_id  '...' ? ;
+type_id_list :  type_id '...' ? |  type_id_list ',' type_id '...' ? ;
 noexcept_specification :  'noexcept' '(' constant_expression ')' |  'noexcept' ;
 
 // A.14 Preprocessing directives [gram.cpp]

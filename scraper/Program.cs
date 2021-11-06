@@ -83,6 +83,16 @@ namespace scrape_pdf
 
             string pdfText = GetTextFromPDF(src_file_name);
 
+            pdfText = pdfText.Replace("ﬁ", "fi"); // Wrong OCR of "identifier" throughout the text.
+            pdfText = pdfText.Replace("’", "'"); // Wrong OCR of single quote in numerous locations.
+            pdfText = pdfText.Replace("ˆ", "^"); // Wrong OCR of caret.
+            pdfText = pdfText.Replace("ﬂ", "fl"); // Fix ﬂoating_literal in literal rule.
+            pdfText = pdfText.Replace("ﬃ", "ffi");
+            pdfText = pdfText.Replace(@"'''", @"'\''");
+            // Just make life easier and rename this to "standard" [a-zA-Z\-]+.
+            pdfText = pdfText.Replace(@"static_assert-declaration", @"static-assert-declaration");
+
+
             if (!ebnf)
             {
 //                result.AppendLine("grammar " + Antlrize(System.IO.Path.GetFileNameWithoutExtension(src_file_name)) + ";");
@@ -231,36 +241,92 @@ namespace scrape_pdf
 
             // General changes.
 
-            FixupOutput(ref output, "ﬁ", "fi",
-                version switch
-                {
-                    Version.draft_cpp_14 => 319,
-                    Version.iso_cpp_14 => 315,
-                    Version.draft_cpp_17 => 339,
-                    Version.draft_cpp_20 => 364,
-                    _ => 1
-                }); // Wrong OCR of "identifier" throughout the text.
-            FixupOutput(ref output, "'’'", "'\\''",
-                version switch
-                {
-                    Version.draft_cpp_14 => 3,
-                    Version.iso_cpp_14 => 7,
-                    Version.draft_cpp_17 => 4,
-                    Version.draft_cpp_20 => 5,
-                    _ => 1
-                }); // Wrong OCR of single quote in numerous locations.
-            FixupOutput(ref output, "'ˆ", "'^",
-                version switch
-                {
-                    Version.draft_cpp_14 => 7,
-                    Version.iso_cpp_14 => 5,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // Wrong OCR of caret.
-            Regex opt = new Regex("(?<id>[a-zA-Z_])opt(?![a-zA-Z])");
-            output = opt.Replace(output, "${id} ?");
+            Regex opt6 = new Regex(@"(?<id>[a-zA-Z][a-zA-Z_\-]*(prefix|seq))opt(?<o>[a-zA-Z][a-zA-Z_\-]*)[ ]");
+            output = opt6.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["id"];
+                var id = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = Antlrize(id) + " ? " + Antlrize(o) + " ";
+                return res;
+            });
+
+            Regex opt5 = new Regex(@"['](?<r>[<>{}\\'.,()\[\];:=""]+)opt(?<o>[a-zA-Z][a-zA-Z_\-]*)['](?=[ ])");
+            output = opt5.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["r"];
+                var r = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = "'" + r + "' ? " + Antlrize(o);
+                return res;
+            });
+
+            Regex opt4 = new Regex(@"['](?<r>[<>{}\\'.,()\[\];:=""]+)opt(?<o>[<>{}\\'.,()\[\];:=""]+)['](?=[ ])");
+            output = opt4.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["r"];
+                var r = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = "'" + r + "' ? '" + o + "'";
+                return res;
+            });
+
+            Regex opt4a = new Regex(@"['](?<r>[<>{}\\'.,()\[\];:=""]+)opt['](?=[ ])");
+            output = opt4a.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["r"];
+                var r = g.Value;
+                var res = "'" + r + "' ?";
+                return res;
+            });
+
+            Regex opt3 = new Regex(@"['](?<id>[a-zA-Z][a-zA-Z_\-]*)opt(?<o>[<>{}\\'.,()\[\];:=""]+)[']");
+            output = opt3.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["id"];
+                var id = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = Antlrize(id) + " ? '" + o + "'";
+                return res;
+            });
+
+            Regex opt3a = new Regex(@"['](?<id>[a-zA-Z][a-zA-Z_\-]*)(?<o>[<>{}\\'.,()\[\];:=""]+)[']");
+            output = opt3a.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["id"];
+                var id = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = Antlrize(id) + " '" + o + "'";
+                return res;
+            });
+
+            Regex opt2 = new Regex(@"['](?<id>[a-zA-Z][a-zA-Z_\-]*)(?<o>['.)=]+)opt[']");
+            output = opt2.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["id"];
+                var id = g.Value;
+                var g2 = match.Groups["o"];
+                var o = g2.Value;
+                var res = Antlrize(id) + " '" + o + "' ?";
+                return res;
+            });
+
+            Regex opt1 = new Regex(@"(?<id>[a-zA-Z][a-zA-Z_\-]*)opt(?![a-zA-Z])");
+            output = opt1.Replace(output, (Match match) =>
+            {
+                var g = match.Groups["id"];
+                var id = g.Value;
+                var res = Antlrize(id) + " ?";
+                return res;
+            });
+
             output = output.Replace(@"'opt)'", @"? ')'");
+            output = output.Replace(@"'...opt)'", @"'...' ? ')'");
             output = output.Replace(@"'opt='", @"? '='");
             output = output.Replace(@"'opt:'", @"? ':'");
             output = output.Replace(@"'opt;'", @"? ';'");
@@ -268,10 +334,12 @@ namespace scrape_pdf
             output = output.Replace(@"'opt}'", @"? '}'");
             output = output.Replace(@"'opt]'", @"? ']'");
             output = output.Replace(@"'opt>'", @"? '>'");
-            output = output.Replace(@"'...opt'", @" '...' ?");
+            output = output.Replace(@"'...opt'", @"'...' ?");
             output = output.Replace(@"'::optnew'", @"'::' ? 'new'");
             output = output.Replace(@"'::opt'", @"'::' ?");
             output = output.Replace(@"',opt'", @"',' ?");
+            output = output.Replace(@"';opt'", @"';' ?");
+            
 
             // Section 2
 
@@ -322,48 +390,8 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, "ﬂ", "fl",
-                version switch
-                {
-                    Version.draft_cpp_14 => 7,
-                    Version.iso_cpp_14 => 7,
-                    Version.draft_cpp_17 => 13,
-                    Version.draft_cpp_20 => 13,
-                    _ => 1
-                }); // Fix ﬂoating_literal in literal rule.
-            FixupOutput(ref output, "_suﬃx ?", "_suffix ?",
-                version switch
-                {
-                    Version.draft_cpp_14 => 10,
-                    Version.iso_cpp_14 => 10,
-                    Version.draft_cpp_17 => 12,
-                    Version.draft_cpp_20 => 14,
-                    _ => 1
-                }); // Fix integer-literal rule.
-            FixupOutput(ref output, "'’opt'", "'\\'' ?", 5); // Fix binary-literal rule.
-            FixupOutput(ref output, "suﬃx", "suffix",
-                version switch
-                {
-                    Version.draft_cpp_14 => 18,
-                    Version.iso_cpp_14 => 18,
-                    Version.draft_cpp_17 => 20,
-                    Version.draft_cpp_20 => 23,
-                    _ => 1
-                }); // Numerous locations.
-//            FixupOutput(ref output, "| 'integer-suffix:' | 'unsigned-suffix' | 'long-suffixopt' | 'unsigned-suffix' | 'long-long-suffixopt' | 'long-suffix' | 'unsigned-suffixopt' | 'long-long-suffix' | 'unsigned-suffixopt' ;",
-//                @";
-//integer_suffix : unsigned_suffix long_suffix ? | unsigned_suffix long_long_suffix ? | long_suffix unsigned_suffix ? | long_long_suffix unsigned_suffix ? ;"); // Entire integer-suffix rule messed up.
-            FixupOutput(ref output, @"'encoding-prefix ?’'", @"encoding_prefix ? '\''",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // Fix character-literal
-            FixupOutput(ref output, @"c_char :  any member of the source character set except |  the single_quote '’,' backslash '\\,' or new_line character",
-                @"c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character'",
+            FixupOutput(ref output, @"any member of the source character set except |  the single_quote '\',' backslash '\\,' or new_line character",
+                @"'any member of the source character set except the single_quote \', backslash \\, or new_line character'",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -382,15 +410,6 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"'\\’'", @"'\\\''",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // Fix simple-escape-sequence.
             FixupOutput(ref output, @"any member of the basic source character set that is not an 'octal-digit,' a 'simple-escape-sequence-char,' or |  the characters 'u,' 'U,' or x",
                                     @"'any member of the basic source character set that is not an octal_digit, a simple_escape_sequence_char, or the characters u, U, or x'",
                 version switch
@@ -399,25 +418,6 @@ namespace scrape_pdf
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"'digit-sequence ?.'", @"digit_sequence ? '.'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // fractional_constant
-            FixupOutput(ref output, @"string_literal :  'encoding-prefix ?""' 's-char-sequence ?""' |  encoding_prefixoptR raw_string ;",
-                @"string_literal :  encoding_prefix ? '""' s_char_sequence ? '""' |  encoding_prefix ? 'R' raw_string ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
@@ -440,18 +440,8 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"raw_string :  '""' 'd-char-sequence ?(' 'r-char-sequence ?)' 'd-char-sequence ?""' ;",
-                @"raw_string :  '""' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '""' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
-                @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;",
+            FixupOutput(ref output, @"r_char :  any member of the source character set ',' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be empty ')' followed by a 'double' quote '"".' ;",
+                                    @"r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote "".' ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -472,8 +462,8 @@ namespace scrape_pdf
                 });
 
 
-            FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' |  and the control characters representing horizontal 'tab,' |  vertical 'tab,' form 'feed,' and 'newline.' ;",
-                @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
+            FixupOutput(ref output, @"d_char :  any member of the basic source character set except ':' |  space ',' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' |  and the control characters representing horizontal tab ',' |  vertical tab ',' form feed ',' and newline '.' ;",
+                                    @"d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -497,28 +487,8 @@ namespace scrape_pdf
 
             // Section 4
 
-            FixupOutput(ref output, @"'new-placement ?('",
-                @"new_placement ? '('",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"lambda_introducer :  '[' 'lambda-capture ?]' ;",
-                @"lambda_introducer :  '[' lambda_capture ? ']' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' mutable ? |  exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
-                @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
+            FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? |  exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
+                                    @"lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -547,40 +517,6 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"'expression-list ?)'",
-                @"expression_list ? ')'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 5,
-                    Version.iso_cpp_14 => 5,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // postfix_expression
-            FixupOutput(ref output, @"'->' template ?",
-                @"'->' 'template' ?");
-            FixupOutput(ref output, @"'.' template ?",
-                @"'.' 'template' ?");
-            FixupOutput(ref output, @"'expression ?;'",
-                @"expression ? ';'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 2,
-                    Version.iso_cpp_14 => 2,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"exclusive_or_expression :  and_expression |  exclusive_or_expression ˆ and_expression ;",
-                @"exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"'logical-or-expression||'",
                 @"logical_or_expression '||'",
                 version switch
@@ -591,30 +527,6 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"attribute_specifier_seqoptcase",
-                @"attribute_specifier_seq ? 'case'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // labeled_statement
-            FixupOutput(ref output, @"attribute_specifier_seqoptdefault",
-                @"attribute_specifier_seq ? 'default'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"qualified_id :  nested_name_specifier template ? unqualified_id ;",
-                @"qualified_id :  nested_name_specifier 'template' ? unqualified_id ;");
-            FixupOutput(ref output, @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier template ? simple_template_id '::' ;",
-                @"nested_name_specifier :  '::' |  type_name '::' |  namespace_name '::' |  decltype_specifier '::' |  nested_name_specifier identifier '::' |  nested_name_specifier 'template' ? simple_template_id '::' ;");
             FixupOutput(ref output, @"new_expression :  '::' ? new new_placement ? new_type_id new_initializer ? |  '::' ? new new_placement ? '(' type_id ')' new_initializer ? ;",
                 @"new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;",
                 version switch
@@ -624,29 +536,9 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"delete_expression :  '::optdelete' cast_expression |  '::optdelete' '[' ']' cast_expression ;",
-                @"delete_expression :  '::' ? 'delete' cast_expression |  '::' ? 'delete' '[' ']' cast_expression ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
 
             // Section 5
 
-            FixupOutput(ref output, @"compound_statement :  '{' 'statement-seq ?}' ;",
-                @"compound_statement :  '{' statement_seq ? '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"selection_statement :  'if' constexpr ? '(' init_statement ? condition ')' statement |  'if' constexpr ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
                                     @"selection_statement :  'if' 'constexpr' ? '(' init_statement ? condition ')' statement |  'if' 'constexpr' ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
                 version switch
@@ -656,49 +548,9 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement 'condition ?;' 'expression ?)' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
-                @"iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"'attribute-specifier-seq ?='",
-                @"attribute_specifier_seq ? '='",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"'init-declarator-list ?;'",
-                @"init_declarator_list ? ';'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
 
             // Section 6
 
-            FixupOutput(ref output, @"block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;",
-                @"block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  'static_assert-declaration' |  alias_declaration |  opaque_enum_declaration ;",
                                     @"block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;",
                 version switch
@@ -709,62 +561,12 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier template ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
-                @"elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  'enum' nested_name_specifier ? identifier ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"enum_specifier :  enum_head '{' 'enumerator-list ?}' |  enum_head '{' enumerator_list ',' '}' ;",
-                @"enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier |  enum_base ? ;",
-                @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;",
+                                    @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier enum_base ? ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"opaque_enum_declaration :  enum_key attribute_specifier_seq ? identifier 'enum-base ?;' ;",
-                @"opaque_enum_declaration:  enum_key attribute_specifier_seq ? identifier enum_base ? ';' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"named_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
-                @"named_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? identifier '{' namespace_body '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"unnamed_namespace_definition :  inline ? 'namespace' 'attribute-specifier-seq ?{' namespace_body '}' ;",
-                @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
@@ -779,49 +581,8 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"using_declaration :  'using' typename ? nested_name_specifier unqualified_id ';' ;",
-                                    @"using_declaration :  'using' 'typename' ? nested_name_specifier unqualified_id ';' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"using_declarator :  typename ? nested_name_specifier unqualified_id ;",
-                                    @"using_declarator :  'typename' ? nested_name_specifier unqualified_id ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
-
-            FixupOutput(ref output, @"using_directive :  attribute_specifier_seqoptusing 'namespace' nested_name_specifier ? namespace_name ';' ;",
-                @"using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"linkage_specification :  'extern' string_literal '{' 'declaration-seq ?}' |  'extern' string_literal declaration ;",
-                @"linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
-                @"balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;",
+            FixupOutput(ref output, @"any token other than a parenthesis ',' a bracket ',' or a brace",
+                                    @"'any token other than a parenthesis, a bracket, or a brace'",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -840,29 +601,9 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
-            FixupOutput(ref output, @"alignment_specifier :  'alignas' '(' type_id '...opt)' |  'alignas' '(' constant_expression '...opt)' ;",
-                @"alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
 
             // Section 7
 
-            FixupOutput(ref output, @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' 'constant-expression ?]' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
-                @"noptr_declarator :  declarator_id attribute_specifier_seq ? |  noptr_declarator parameters_and_qualifiers |  noptr_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_declarator ')' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? noexcept_specifier ? attribute_specifier_seq ? ;",
                                     @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? ref_qualifier ? noexcept_specifier ? attribute_specifier_seq ? ;",
                 version switch
@@ -883,134 +624,23 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  'noptr-abstract-declarator ?[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
-                @"noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"parameter_declaration_clause :  'parameter-declaration-list ?...opt' |  parameter_declaration_list ',' '...' ;",
-                @"parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq 'abstract-declarator ?=' initializer_clause ;",
-                @"parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-
-            FixupOutput(ref output, @"'::' inline ?", @"'::' 'inline' ?",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 2,
-                    _ => 1
-                });
 
             // Section 8
 
-            FixupOutput(ref output, @"class_specifier :  class_head '{' 'member-specification ?}' ;",
-                @"class_specifier :  class_head '{' member_specification ? '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? 'member-declarator-list ?;' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  alias_declaration |  empty_declaration ;",
-                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  alias_declaration |  empty_declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  'static_assert-declaration' |  template_declaration |  deduction_guide |  alias_declaration |  empty_declaration ;",
-                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  static_assert_declaration |  template_declaration |  deduction_guide |  alias_declaration |  empty_declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  'static_assert-declaration' |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
-                                    @"member_declaration :  attribute_specifier_seq ? decl_specifier_seq ? member_declarator_list ? ';' |  function_definition |  using_declaration |  using_enum_declaration |  static_assert_declaration |  template_declaration |  explicit_specialization |  deduction_guide |  alias_declaration |  opaque_enum_declaration |  empty_declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? 'attribute-specifier-seq ?:' constant_expression ;",
-                                    @"member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declarator brace_or_equal_initializer ? |  identifier ? attribute_specifier_seq ? ':' constant_expression ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
 
             // Section 9
-
-            FixupOutput(ref output, @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seqoptvirtual access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier virtual ? base_type_specifier ;",
-                                    @"base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"base_specifier :  attribute_specifier_seq ? class_or_decltype |  attribute_specifier_seq ? 'virtual' access_specifier ? class_or_decltype |  attribute_specifier_seq ? access_specifier virtual ? class_or_decltype ;",
-                                    @"base_specifier :  attribute_specifier_seq ? class_or_decltype |  attribute_specifier_seq ? 'virtual' access_specifier ? class_or_decltype |  attribute_specifier_seq ? access_specifier 'virtual' ? class_or_decltype ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
 
             // Section 10
 
             FixupOutput(ref output, @"conversion_function_id :  operator conversion_type_id ;",
-                @"conversion_function_id :  'operator' conversion_type_id ;");
+                                    @"conversion_function_id :  'operator' conversion_type_id ;");
 
             // Section 11
 
             FixupOutput(ref output, @"operator_function_id :  operator operator ;",
                 @"operator_function_id :  'operator' operator ;");
-            FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
-                @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
+            FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
+                                    @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -1034,56 +664,6 @@ namespace scrape_pdf
 
             // Section 12
 
-            FixupOutput(ref output, @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key 'identifier ?=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key 'identifier ?=' id_expression ;",
-                @"type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"simple_template_id :  template_name '<' 'template-argument-list ?>' ;",
-                @"simple_template_id :  template_name '<' template_argument_list ? '>' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"template_id :  simple_template_id |  operator_function_id '<' 'template-argument-list ?>' |  literal_operator_id '<' 'template-argument-list ?>' ;",
-                @"template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier template ? simple_template_id ;",
-                @"typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"explicit_instantiation :  extern ? 'template' declaration ;",
-                @"explicit_instantiation :  'extern' ? 'template' declaration ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
             FixupOutput(ref output, @"deduction_guide :  explicit ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
                                     @"deduction_guide :  'explicit' ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
                 version switch
@@ -1098,31 +678,10 @@ namespace scrape_pdf
 
             // Section 13
 
-            FixupOutput(ref output, @"dynamic_exception_specification :  'throw' '(' 'type-id-list ?)' ;",
-                @"dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-
             // Section 14
 
-            FixupOutput(ref output, @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list ?)' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen 'identifier-list,' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
-                @"control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
             FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by white_space ;",
-                @"lparen :  'a ( character not immediately preceded by white_space' ;",
+                                    @"lparen :  'a ( character not immediately preceded by white_space' ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -1142,7 +701,7 @@ namespace scrape_pdf
                     _ => 1
                 });
             FixupOutput(ref output, @"new_line :  the new_line character ;",
-                @"new_line :  'the new_line character' ;");
+                                    @"new_line :  'the new_line character' ;");
 
             FixupOutput(ref output, @"defined_macro_expression :  defined identifier |  defined '(' identifier ')' ;",
                                     @"defined_macro_expression :  'defined' identifier |  'defined' '(' identifier ')' ;",
@@ -1240,6 +799,7 @@ namespace scrape_pdf
             if (symbol == "module") symbol = "'module'";
             if (symbol == "mutable") symbol = "'mutable'";
             if (symbol == "namespace") symbol = "'namespace'";
+            if (symbol == "new") symbol = "'new'";
             if (symbol == "noexcept") symbol = "'noexcept'";
             if (symbol == "nullptr") symbol = "'nullptr'";
             if (symbol == "optdefault") symbol = "? 'default'";
