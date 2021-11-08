@@ -111,6 +111,7 @@ namespace scrape_pdf
                 Version.draft_cpp_14 => pdfText.IndexOf("Annex B (informative)"),
                 Version.iso_cpp_14 => pdfText.IndexOf("Annex B (informative)"),
                 Version.draft_cpp_17 => pdfText.IndexOf("Annex B (informative)"),
+                Version.iso_cpp_17 => pdfText.IndexOf("Annex B (informative)"),
                 Version.draft_cpp_20 => pdfText.IndexOf("Annex B (normative)"),
                 _ => throw new Exception()
             };
@@ -353,6 +354,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 }); // preprocessing_token
@@ -364,6 +366,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 }); // preprocessing_token
@@ -379,6 +382,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -389,6 +393,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -399,6 +404,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -409,6 +415,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -419,6 +426,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -429,6 +437,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -439,6 +448,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -449,6 +459,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -459,6 +470,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -471,6 +483,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -481,6 +494,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -496,16 +510,29 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
-                @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
+                                    @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
+                    _ => 1
+                });
+            FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq |  ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
+                                    @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
+                version switch
+                {
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -516,6 +543,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -526,6 +554,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -541,6 +570,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -551,6 +581,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -562,6 +593,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -575,6 +607,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -585,6 +618,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -603,7 +637,7 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"operator_function_id :  operator operator ;",
                 @"operator_function_id :  'operator' operator ;");
-//                                  @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '∼' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;"
+            //                                  @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '∼' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;"
             FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
                                     @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
                 version switch
@@ -611,9 +645,23 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
+            
+            FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|' | '=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '|' | '|' | '++' | '--' | ',' | '->*' | '->' | '(' | ')' | '[]' ;",
+                                    @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
+                version switch
+                {
+                    Version.draft_cpp_14 => 0,
+                    Version.iso_cpp_14 => 0,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
+                    _ => 1
+                });
+
             FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new[]' | 'delete[]' | 'co_await' | '()' | '[]' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
                                     @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | 'co_await' | '(' ')' | '[' ']' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;",
                 version switch
@@ -621,6 +669,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -640,6 +689,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
@@ -650,6 +700,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -663,6 +714,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -673,6 +725,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
                     _ => 1
                 });
@@ -683,6 +736,7 @@ namespace scrape_pdf
                     Version.draft_cpp_14 => 0,
                     Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 4,
                     _ => 1
                 });
