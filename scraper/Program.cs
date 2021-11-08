@@ -70,6 +70,7 @@ namespace scrape_pdf
             var just_fn = System.IO.Path.GetFileName(src_file_name);
             Version version = just_fn switch
             {
+                "n3797.pdf" => Version.draft_cpp_14,
                 "n4296.pdf" => Version.draft_cpp_14,
                 "C++14 – ISOIEC 148822014 by ISO (z-lib.org).pdf" => Version.iso_cpp_14,
                 "n4660.pdf" => Version.draft_cpp_17,
@@ -89,6 +90,7 @@ namespace scrape_pdf
             pdfText = pdfText.Replace("ﬂ", "fl"); // Fix ﬂoating_literal in literal rule.
             pdfText = pdfText.Replace("ﬃ", "ffi");
             pdfText = pdfText.Replace(@"'''", @"'\''");
+            pdfText = pdfText.Replace(@"∼", @"~");
             // Just make life easier and rename this to "standard" [a-zA-Z\-]+.
             pdfText = pdfText.Replace(@"static_assert-declaration", @"static-assert-declaration");
 
@@ -639,12 +641,13 @@ namespace scrape_pdf
 
             FixupOutput(ref output, @"operator_function_id :  operator operator ;",
                 @"operator_function_id :  'operator' operator ;");
+//                                  @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '∼' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;"
             FixupOutput(ref output, @"operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '()' | '[]' ;",
                                     @"operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 0,
+                    Version.iso_cpp_14 => 1,
                     Version.draft_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
                     _ => 1
