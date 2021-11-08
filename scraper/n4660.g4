@@ -101,7 +101,7 @@ lambda_introducer :  '[' lambda_capture ? ']' ;
 lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;
 lambda_capture :  capture_default |  capture_list |  capture_default ',' capture_list ;
 capture_default :  '&' |  '=' ;
-capture_list :  capture  '...' ? |  capture_list ',' capture  '...' ? ;
+capture_list :  capture '...' ? |  capture_list ',' capture '...' ? ;
 capture :  simple_capture |  init_capture ;
 simple_capture :  identifier |  '&' identifier |  'this' |  '*' 'this' ;
 init_capture :  identifier initializer |  '&' identifier initializer ;
@@ -212,7 +212,7 @@ namespace_alias :  identifier ;
 namespace_alias_definition :  'namespace' identifier '=' qualified_namespace_specifier ';' ;
 qualified_namespace_specifier :  nested_name_specifier ? namespace_name ;
 using_declaration :  'using' using_declarator_list ';' ;
-using_declarator_list :  using_declarator  '...' ? |  using_declarator_list ',' using_declarator  '...' ? ;
+using_declarator_list :  using_declarator '...' ? |  using_declarator_list ',' using_declarator '...' ? ;
 using_declarator :  'typename' ? nested_name_specifier unqualified_id ;
 using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_specifier ? namespace_name ';' ;
 asm_definition :  attribute_specifier_seq ? 'asm' '(' string_literal ')' ';' ;
@@ -221,7 +221,7 @@ linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'e
 
 attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;
 attribute_specifier :  '[' '[' attribute_using_prefix ? attribute_list ']' ']' |  alignment_specifier ;
-alignment_specifier :  'alignas' '(' type_id  '...' ? ')' |  'alignas' '(' constant_expression  '...' ? ')' ;
+alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;
 attribute_using_prefix :  'using' attribute_namespace ':' ;
 attribute_list :  attribute ? |  attribute_list ',' attribute ? |  attribute '...' |  attribute_list ',' attribute '...' ;
 attribute :  attribute_token attribute_argument_clause ? ;
@@ -246,7 +246,7 @@ ptr_operator :  '*' attribute_specifier_seq ? cv_qualifier_seq ? |  '&' attribut
 cv_qualifier_seq :  cv_qualifier cv_qualifier_seq ? ;
 cv_qualifier :  'const' |  'volatile' ;
 ref_qualifier :  '&' |  '&&' ;
-declarator_id :   '...' ? id_expression ;
+declarator_id :  '...' ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
 defining_type_id :  defining_type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
@@ -256,7 +256,7 @@ abstract_pack_declarator :  noptr_abstract_pack_declarator |  ptr_operator abstr
 noptr_abstract_pack_declarator :  noptr_abstract_pack_declarator parameters_and_qualifiers |  noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '...' ;
 //  A.7 cISO/IEC 2017 - All rights reserved 1427ISO/IEC DIS 14882:2017(E) N4660
 
-parameter_declaration_clause :  parameter_declaration_list ?  '...' ? |  parameter_declaration_list ',' '...' ;
+parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;
 parameter_declaration_list :  parameter_declaration |  parameter_declaration_list ',' parameter_declaration ;
 parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? '=' initializer_clause ;
 function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator virt_specifier_seq ? function_body ;
@@ -264,7 +264,7 @@ function_body :  ctor_initializer ? compound_statement |  function_try_block |  
 initializer :  brace_or_equal_initializer |  '(' expression_list ')' ;
 brace_or_equal_initializer :  '=' initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
-initializer_list :  initializer_clause  '...' ? |  initializer_list ',' initializer_clause  '...' ? ;
+initializer_list :  initializer_clause '...' ? |  initializer_list ',' initializer_clause '...' ? ;
 braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;
 expr_or_braced_init_list :  expression |  braced_init_list ;
 
@@ -287,7 +287,7 @@ pure_specifier :  '=' '0' ;
 
 // A.9 Derived classes [gram.derived]
 base_clause :  ':' base_specifier_list ;
-base_specifier_list :  base_specifier  '...' ? |  base_specifier_list ',' base_specifier  '...' ? ;
+base_specifier_list :  base_specifier '...' ? |  base_specifier_list ',' base_specifier '...' ? ;
 base_specifier :  attribute_specifier_seq ? class_or_decltype |  attribute_specifier_seq ? 'virtual' access_specifier ? class_or_decltype |  attribute_specifier_seq ? access_specifier 'virtual' ? class_or_decltype ;
 class_or_decltype :  nested_name_specifier ? class_name |  nested_name_specifier 'template' simple_template_id |  decltype_specifier ;
 //  A.9 cISO/IEC 2017 - All rights reserved 1429ISO/IEC DIS 14882:2017(E) N4660
@@ -299,7 +299,7 @@ conversion_function_id :  'operator' conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator conversion_declarator ? ;
 ctor_initializer :  ':' mem_initializer_list ;
-mem_initializer_list :  mem_initializer  '...' ? |  mem_initializer_list ',' mem_initializer  '...' ? ;
+mem_initializer_list :  mem_initializer '...' ? |  mem_initializer_list ',' mem_initializer '...' ? ;
 mem_initializer :  mem_initializer_id '(' expression_list ? ')' |  mem_initializer_id braced_init_list ;
 mem_initializer_id :  class_or_decltype |  identifier ;
 
@@ -314,12 +314,12 @@ template_parameter_list :  template_parameter |  template_parameter_list ',' tem
 template_parameter :  type_parameter |  parameter_declaration ;
 //  A.12 cISO/IEC 2017 - All rights reserved 1430ISO/IEC DIS 14882:2017(E) N4660
 
-type_parameter :  type_parameter_key  '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key  '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;
+type_parameter :  type_parameter_key '...' ? identifier ? |  type_parameter_key identifier ? '=' type_id |  'template' '<' template_parameter_list '>' type_parameter_key '...' ? identifier ? |  'template' '<' template_parameter_list '>' type_parameter_key identifier ? '=' id_expression ;
 type_parameter_key :  'class' |  'typename' ;
 simple_template_id :  template_name '<' template_argument_list ? '>' ;
 template_id :  simple_template_id |  operator_function_id '<' template_argument_list ? '>' |  literal_operator_id '<' template_argument_list ? '>' ;
 template_name :  identifier ;
-template_argument_list :  template_argument  '...' ? |  template_argument_list ',' template_argument  '...' ? ;
+template_argument_list :  template_argument '...' ? |  template_argument_list ',' template_argument '...' ? ;
 template_argument :  constant_expression |  type_id |  id_expression ;
 typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;
 explicit_instantiation :  'extern' ? 'template' declaration ;

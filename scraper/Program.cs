@@ -529,27 +529,8 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"new_expression :  '::' ? new new_placement ? new_type_id new_initializer ? |  '::' ? new new_placement ? '(' type_id ')' new_initializer ? ;",
-                @"new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    _ => 1
-                });
 
             // Section 5
-
-            FixupOutput(ref output, @"selection_statement :  'if' constexpr ? '(' init_statement ? condition ')' statement |  'if' constexpr ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
-                                    @"selection_statement :  'if' 'constexpr' ? '(' init_statement ? condition ')' statement |  'if' 'constexpr' ? '(' init_statement ? condition ')' statement 'else' statement |  'switch' '(' init_statement ? condition ')' statement ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    _ => 1
-                });
 
             // Section 6
 
@@ -573,34 +554,15 @@ namespace scrape_pdf
                     Version.draft_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"unnamed_namespace_definition :  inline ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
-                                    @"unnamed_namespace_definition :  'inline' ? 'namespace' attribute_specifier_seq ? '{' namespace_body '}' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
-                    _ => 1
-                });
+
             FixupOutput(ref output, @"any token other than a parenthesis ',' a bracket ',' or a brace",
                                     @"'any token other than a parenthesis, a bracket, or a brace'",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
                     Version.iso_cpp_14 => 1,
-                    Version.draft_cpp_17 => 0,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-            FixupOutput(ref output, @"balanced_token :  '(' balanced_token_seq ? ')' |  '[' balanced_token_seq ? ']' |  '{' balanced_token_seq ? '}' |  any token other than a 'parenthesis,' a 'bracket,' or a brace ;",
-                                    @"balanced_token :  '(' balanced_token_seq ? ')' |  '[' balanced_token_seq ? ']' |  '{' balanced_token_seq ? '}' |  'any token other than a parenthesis, a bracket, or a brace' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 1,
+                    Version.draft_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -666,18 +628,6 @@ namespace scrape_pdf
                 @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
 
             // Section 12
-
-            FixupOutput(ref output, @"deduction_guide :  explicit ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
-                                    @"deduction_guide :  'explicit' ? template_name '(' parameter_declaration_clause ')' '->' simple_template_id ';' ;",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 1,
-                    Version.draft_cpp_20 => 0,
-                    _ => 1
-                });
-
 
             // Section 13
 
