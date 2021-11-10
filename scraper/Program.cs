@@ -113,6 +113,7 @@ namespace scrape_pdf
                 Version.draft_cpp_17 => pdfText.IndexOf("Annex B (informative)"),
                 Version.iso_cpp_17 => pdfText.IndexOf("Annex B (informative)"),
                 Version.draft_cpp_20 => pdfText.IndexOf("Annex B (normative)"),
+                Version.iso_cpp_20 => pdfText.IndexOf("Annex B (normative)"),
                 _ => throw new Exception()
             };
             var cursor = annex_a;
@@ -356,18 +357,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
-                    _ => 1
-                }); // preprocessing_token
-            FixupOutput(ref output,
-                @"each non_whitespace character that cannot be one of the above",
-                @"'each non_whitespace character that cannot be one of the above'",
-                version switch
-                {
-                    Version.draft_cpp_14 => 0,
-                    Version.iso_cpp_14 => 0,
-                    Version.draft_cpp_17 => 0,
-                    Version.iso_cpp_17 => 0,
-                    Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 }); // preprocessing_token
 
@@ -384,6 +374,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"any identifier listed in Table '5'",
@@ -395,6 +386,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"any member of the source character set except |  the single_quote '\',' backslash '\\,' or new_line character",
@@ -406,6 +398,19 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
+                    _ => 1
+                });
+            FixupOutput(ref output, @"any member of the basic source character set except the single_quote '\',' backslash '\\,' or new_line character",
+                                    @"'any member of the source character set except the single_quote \', backslash \\, or new_line character'",
+                version switch
+                {
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 1,
+                    Version.iso_cpp_17 => 1,
+                    Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"basic_c_char :  any member of the basic source character set except the single_quote '’,' backslash '\\,' or new_line character ;",
@@ -417,6 +422,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"any member of the basic source character set that is not an 'octal-digit,' a 'simple-escape-sequence-char,' or |  the characters 'u,' 'U,' or x",
@@ -428,6 +434,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
@@ -439,6 +446,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"basic_s_char :  any member of the basic source character set except the double_quote '"",' backslash '\\,' or new_line character ;",
@@ -450,6 +458,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"r_char :  any member of the source character set ',' except |  a right parenthesis ')' followed by the initial d_char_sequence |  '(which' may be empty ')' followed by a 'double' quote '"".' ;",
@@ -461,6 +470,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"r_char :  any member of the source character 'set,' except a right parenthesis ')' followed by |  the initial d_char_sequence '(which' may be 'empty)' followed by a 'double' quote '"".' ;",
@@ -472,6 +482,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -485,6 +496,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"d_char :  any member of the basic source character set 'except:' |  'space,' the left parenthesis '(,' the right parenthesis '),' the backslash '\\,' and the control characters |  representing horizontal 'tab,' vertical 'tab,' form 'feed,' and 'newline.' ;",
@@ -496,6 +508,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -512,6 +525,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
@@ -523,6 +537,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq |  ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? ;",
@@ -534,6 +549,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"lambda_declarator :  '(' parameter_declaration_clause ')' decl_specifier_seq ? |  noexcept_specifier ? attribute_specifier_seq ? trailing_return_type ? requires_clause ? ;",
@@ -545,6 +561,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"'logical-or-expression||'",
@@ -556,6 +573,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -572,6 +590,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"enum_head :  enum_key attribute_specifier_seq ? identifier ? enum_base ? |  enum_key attribute_specifier_seq ? nested_name_specifier identifier |  enum_base ? ;",
@@ -583,6 +602,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -595,6 +615,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
 
@@ -609,6 +630,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"parameters_and_qualifiers :  '(' parameter_declaration_clause ')' cv_qualifier_seq ? |  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;",
@@ -620,6 +642,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -647,6 +670,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             
@@ -659,6 +683,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
@@ -671,6 +696,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
@@ -691,6 +717,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"lparen :  a '(' character not immediately preceded by whitespace ;",
@@ -702,6 +729,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
             FixupOutput(ref output, @"new_line :  the new_line character ;",
@@ -716,6 +744,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @"h_preprocessing_token :  any preprocessing_token other than '>' ;",
@@ -727,6 +756,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 1,
                     Version.iso_cpp_17 => 1,
                     Version.draft_cpp_20 => 1,
+                    Version.iso_cpp_20 => 1,
                     _ => 1
                 });
             FixupOutput(ref output, @" export ?",
@@ -738,6 +768,7 @@ namespace scrape_pdf
                     Version.draft_cpp_17 => 0,
                     Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 4,
+                    Version.iso_cpp_20 => 0,
                     _ => 1
                 });
 
