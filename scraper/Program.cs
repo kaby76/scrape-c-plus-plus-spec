@@ -64,6 +64,12 @@ namespace scrape_pdf
         static void Main(string[] args)
         {
             var result = new StringBuilder();
+            result.Append(@"
+/* Copyright 2021 Ken Domino.
+ * This code is licensed under the MIT License.
+ * Please include these header comments crediting my hard work.
+ */
+");
 
             string src_file_name = args[0];
             
@@ -72,11 +78,11 @@ namespace scrape_pdf
             {
                 "n3797.pdf" => Version.draft_cpp_14,
                 "n4296.pdf" => Version.draft_cpp_14,
-                "C++14 – ISOIEC 148822014 by ISO (z-lib.org).pdf" => Version.iso_cpp_14,
+                "C++14-ISOIEC-148822014.pdf" => Version.iso_cpp_14,
                 "n4660.pdf" => Version.draft_cpp_17,
-                "C++17 – ISOIEC 148822017 by ISO (z-lib.org).pdf" => Version.iso_cpp_17,
+                "C++17-ISOIEC-148822017.pdf" => Version.iso_cpp_17,
                 "n4878.pdf" => Version.draft_cpp_20,
-                "INTERNATIONAL STANDARD ISOIEC 148822020(E) Programming languages — C++ Sixth edition 2020-12 by ISOIEC (z-lib.org).pdf" => Version.iso_cpp_20,
+                "C++20-ISOIEC-148822020.pdf" => Version.iso_cpp_20,
                 _ => Version.unknown
             };
             if (args.Length > 1) { version = (Version)int.Parse(args[1]); }
@@ -406,9 +412,9 @@ namespace scrape_pdf
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
-                    Version.iso_cpp_14 => 1,
+                    Version.iso_cpp_14 => 0,
                     Version.draft_cpp_17 => 1,
-                    Version.iso_cpp_17 => 1,
+                    Version.iso_cpp_17 => 0,
                     Version.draft_cpp_20 => 0,
                     Version.iso_cpp_20 => 1,
                     _ => 1

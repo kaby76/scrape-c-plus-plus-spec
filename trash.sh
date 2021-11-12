@@ -5,11 +5,15 @@ export MSYS2_ARG_CONV_EXCL="*"
 
 echo "Building scraper and generating a grammar from scratch."
 
-dotnet run --project scraper/scrape-pdf.csproj n4296-ocred.pdf > Scrape.g4
+cp scraper/c++14.g4 ./Scrape.g4
 
-echo "Saving away original grammar in _orig.g4"
-cp Scrape.g4 _orig.g4
+echo ""
+echo "Rewrite recursion into kleene."
+trparse Scrape.g4 | \
+	trkleene | \
+	trsponge -c true
 
+exit 0
 echo ""
 echo "Fix start rule..."
 trparse Scrape.g4 | \
@@ -46,10 +50,6 @@ echo "We converted some rules that were parser rules into lexer rules."
 echo "Unfortunately, the grammar does not compile because Antlr4 does not handle"
 echo "left-recursion in lexer rule (it does for parser rules)."
 echo "In particular, the rules are Hexadecimal_escape_sequence, C_char_sequence, Digit_sequence"
-
-trparse Scrape.g4 | \
-	trkleene | \
-	trsponge -c true
 
 echo ""
 echo "Adding 'fragment' to selected lexer rules."

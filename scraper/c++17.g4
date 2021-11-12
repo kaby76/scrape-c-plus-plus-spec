@@ -1,3 +1,8 @@
+
+/* Copyright 2021 Ken Domino.
+ * This code is licensed under the MIT License.
+ * Please include these header comments crediting my hard work.
+ */
 grammar Scrape;
 
 // A.1 Keywords [gram.key]

@@ -24,6 +24,5 @@ public abstract class LexerBase : Lexer
 
     public void NewStream(ICharStream input)
     {
-        
     }
 }
