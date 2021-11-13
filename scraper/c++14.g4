@@ -1,8 +1,43 @@
 
-/* Copyright 2021 Ken Domino.
- * This code is licensed under the MIT License.
- * Please include these header comments crediting my hard work.
- */
+/*
+
+MIT License
+
+Copyright (c) 2021 Ken Domino
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+c ISO/IEC 2020
+All rights reserved. Unless otherwise specified, or required in the context of its implementation, no part of this publication may
+be reproduced or utilized otherwise in any form or by any means, electronic or mechanical, including photocopying, or posting
+on the internet or an intranet, without prior written permission. Permission can be requested from either ISO at the address
+below or ISO's member body in the country of the requester.
+ISO copyright office
+CP 401  Ch. de Blandonnet 8
+CH-1214 Vernier, Geneva
+Phone: +41 22 749 01 11
+Email: copyright@iso.org
+Website: www.iso.org
+Published in Switzerland
+
+*/
+
 grammar Scrape;
 
 // A.1 Keywords [gram.key]
@@ -48,7 +83,7 @@ integer_suffix :  unsigned_suffix long_suffix ? |  unsigned_suffix long_long_suf
 unsigned_suffix :  'u' | 'U' ;
 long_suffix :  'l' | 'L' ;
 long_long_suffix :  'll' | 'LL' ;
-character_literal :  '\'' c_char_sequence '\'' |  u '\'' c_char_sequence '\'' |  U '\'' c_char_sequence '\'' |  L '\'' c_char_sequence '\'' ;
+character_literal :  '\'' c_char_sequence '\'' |  'u' '\'' c_char_sequence '\'' |  'U' '\'' c_char_sequence '\'' |  'L' '\'' c_char_sequence '\'' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1207ISO/IEC 14882:2014(E)
 
 c_char_sequence :  c_char |  c_char_sequence c_char ;
@@ -64,7 +99,7 @@ sign :  '+' | '-' ;
 digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_suffix :  'f' | 'l' | 'F' | 'L' ;
 string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' |  encoding_prefix ? 'R' raw_string ;
-encoding_prefix :  'u8' |  u |  U |  L ;
+encoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 s_char_sequence :  s_char |  s_char_sequence s_char ;
 s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | escape_sequence | universal_character_name ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1208ISO/IEC 14882:2014(E)

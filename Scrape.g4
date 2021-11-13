@@ -1,13 +1,48 @@
 
-/* Copyright 2021 Ken Domino.
- * This code is licensed under the MIT License.
- * Please include these header comments crediting my hard work.
- */
+/*
+
+MIT License
+
+Copyright (c) 2021 Ken Domino
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+c ISO/IEC 2020
+All rights reserved. Unless otherwise specified, or required in the context of its implementation, no part of this publication may
+be reproduced or utilized otherwise in any form or by any means, electronic or mechanical, including photocopying, or posting
+on the internet or an intranet, without prior written permission. Permission can be requested from either ISO at the address
+below or ISO's member body in the country of the requester.
+ISO copyright office
+CP 401  Ch. de Blandonnet 8
+CH-1214 Vernier, Geneva
+Phone: +41 22 749 01 11
+Email: copyright@iso.org
+Website: www.iso.org
+Published in Switzerland
+
+*/
+
 grammar Scrape;
 
 // A.1 Keywords [gram.key]
-typedef_name :  identifier ;
-namespace_name :  original_namespace_name |  namespace_alias ;
+// typedef_name :  identifier ;
+// namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  identifier ;
 namespace_alias :  identifier ;
 class_name :  identifier |  simple_template_id ;
@@ -15,8 +50,8 @@ enum_name :  identifier ;
 template_name :  identifier ;
 
 // A.2 Lexical conventions [gram.lex]
-hex_quad :  hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit ;
-universal_character_name :  '\\u' hex_quad |  '\\U' hex_quad hex_quad ;
+FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
+FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
 preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  'each non_white_space character that cannot be one of the above' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1205ISO/IEC 14882:2014(E)
 
@@ -26,47 +61,47 @@ h_char_sequence :  h_char+ ;
 h_char :  'any member of the source character set except new_line and >' ;
 q_char_sequence :  q_char+ ;
 q_char :  'any member of the source character set except new_line and "' ;
-pp_number : (  digit |  '.' digit ) ( digit | '\'' digit | '\'' nondigit | identifier_nondigit | 'e' sign | 'E' sign | '.' )* ;
-identifier :  identifier_nondigit ( identifier_nondigit | digit )* ;
-identifier_nondigit :  nondigit |  universal_character_name |  'other implementation_defined characters' ;
-nondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
-digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+pp_number : (  FDigit |  '.' FDigit ) ( FDigit | '\'' FDigit | '\'' FNondigit | identifier_nondigit | 'e' FSign | 'E' FSign | '.' )* ;
+identifier :  identifier_nondigit ( identifier_nondigit | FDigit )* ;
+identifier_nondigit :  FNondigit |  FUniversal_character_name |  'other implementation_defined characters' ;
+FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
+FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not' | 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1206ISO/IEC 14882:2014(E)
 
 literal :  integer_literal |  character_literal |  floating_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
-integer_literal :  decimal_literal integer_suffix ? |  octal_literal integer_suffix ? |  hexadecimal_literal integer_suffix ? |  binary_literal integer_suffix ? ;
-decimal_literal :  nonzero_digit ( '\'' ? digit )* ;
-octal_literal :  '0' ( '\'' ? octal_digit )* ;
-hexadecimal_literal : (  '0x' hexadecimal_digit |  '0X' hexadecimal_digit ) ( '\'' ? hexadecimal_digit )* ;
-binary_literal : (  '0b' binary_digit |  '0B' binary_digit ) ( '\'' ? binary_digit )* ;
-nonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-octal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
-hexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
-binary_digit :  '0' |  '1' ;
-integer_suffix :  unsigned_suffix long_suffix ? |  unsigned_suffix long_long_suffix ? |  long_suffix unsigned_suffix ? |  long_long_suffix unsigned_suffix ? ;
-unsigned_suffix :  'u' | 'U' ;
-long_suffix :  'l' | 'L' ;
-long_long_suffix :  'll' | 'LL' ;
-character_literal :  '\'' c_char_sequence '\'' |  u '\'' c_char_sequence '\'' |  U '\'' c_char_sequence '\'' |  L '\'' c_char_sequence '\'' ;
+integer_literal :  decimal_literal FInteger_suffix ? |  octal_literal FInteger_suffix ? |  hexadecimal_literal FInteger_suffix ? |  binary_literal FInteger_suffix ? ;
+decimal_literal :  FNonzero_digit ( '\'' ? FDigit )* ;
+octal_literal :  '0' ( '\'' ? FOctal_digit )* ;
+hexadecimal_literal : (  '0x' FHexadecimal_digit |  '0X' FHexadecimal_digit ) ( '\'' ? FHexadecimal_digit )* ;
+binary_literal : (  '0b' FBinary_digit |  '0B' FBinary_digit ) ( '\'' ? FBinary_digit )* ;
+FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
+FBinary_digit :  '0' |  '1' ;
+FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
+FUnsigned_suffix :  'u' | 'U' ;
+FLong_suffix :  'l' | 'L' ;
+FLong_long_suffix :  'll' | 'LL' ;
+character_literal :  '\'' FC_char_sequence '\'' |  'u' '\'' FC_char_sequence '\'' |  'U' '\'' FC_char_sequence '\'' |  'L' '\'' FC_char_sequence '\'' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1207ISO/IEC 14882:2014(E)
 
-c_char_sequence :  c_char+ ;
-c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character' |  escape_sequence |  universal_character_name ;
-escape_sequence :  simple_escape_sequence |  octal_escape_sequence |  hexadecimal_escape_sequence ;
-simple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
-octal_escape_sequence :  '\\' octal_digit |  '\\' octal_digit octal_digit |  '\\' octal_digit octal_digit octal_digit ;
-hexadecimal_escape_sequence : (  '\\x' hexadecimal_digit ) hexadecimal_digit* ;
-floating_literal :  fractional_constant exponent_part ? floating_suffix ? |  digit_sequence exponent_part floating_suffix ? ;
-fractional_constant :  digit_sequence ? '.' digit_sequence |  digit_sequence '.' ;
-exponent_part :  'e' sign ? digit_sequence |  'E' sign ? digit_sequence ;
-sign :  '+' | '-' ;
-digit_sequence :  digit ( '\'' ? digit )* ;
-floating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' |  encoding_prefix ? 'R' raw_string ;
-encoding_prefix :  'u8' |  u |  U |  L ;
+FC_char_sequence :  FC_char+ ;
+FC_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character' |  FEscape_sequence |  FUniversal_character_name ;
+FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
+FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
+FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
+FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) FHexadecimal_digit* ;
+floating_literal :  FFractional_constant FExponent_part ? FFloating_suffix ? |  FDigit_sequence FExponent_part FFloating_suffix ? ;
+FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
+FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? FDigit_sequence ;
+FSign :  '+' | '-' ;
+FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
+FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
+string_literal :  FEncoding_prefix ? '"' s_char_sequence ? '"' |  FEncoding_prefix ? 'R' raw_string ;
+FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 s_char_sequence :  s_char+ ;
-s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | escape_sequence | universal_character_name ;
+s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1208ISO/IEC 14882:2014(E)
 
 raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
@@ -78,13 +113,13 @@ boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;
 user_defined_integer_literal :  decimal_literal ud_suffix |  octal_literal ud_suffix |  hexadecimal_literal ud_suffix |  binary_literal ud_suffix ;
-user_defined_floating_literal :  fractional_constant exponent_part ? ud_suffix |  digit_sequence exponent_part ud_suffix ;
+user_defined_floating_literal :  FFractional_constant FExponent_part ? ud_suffix |  FDigit_sequence FExponent_part ud_suffix ;
 user_defined_string_literal :  string_literal ud_suffix ;
 user_defined_character_literal :  character_literal ud_suffix ;
 ud_suffix :  identifier ;
 
 // A.3 Basic concepts [gram.basic]
-translation_unit :  declaration_seq ? ;
+translation_unit :  declaration_seq ? EOF ;
 //  A.3 c ?ISO/IEC 2014 - All rights reserved 1209ISO/IEC 14882:2014(E)
 
 
@@ -138,7 +173,7 @@ conditional_expression :  logical_or_expression |  logical_or_expression '?' exp
 assignment_expression :  conditional_expression |  logical_or_expression assignment_operator initializer_clause |  throw_expression ;
 assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | '^=' | '|=' ;
 expression :  assignment_expression ( ',' assignment_expression )* ;
-constant_expression :  conditional_expression ;
+constant_expression_eof :  conditional_expression EOF ; constant_expression :  conditional_expression ;
 
 // A.5 Statements [gram.stmt]
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
@@ -172,7 +207,7 @@ decl_specifier :  storage_class_specifier |  type_specifier |  function_specifie
 decl_specifier_seq :  decl_specifier* (  decl_specifier attribute_specifier_seq ? ) ;
 storage_class_specifier :  'register' |  'static' |  'thread_local' |  'extern' |  'mutable' ;
 function_specifier :  'inline' |  'virtual' |  'explicit' ;
-typedef_name :  identifier ;
+// typedef_name :  identifier ;
 type_specifier :  trailing_type_specifier |  class_specifier |  enum_specifier ;
 trailing_type_specifier :  simple_type_specifier |  elaborated_type_specifier |  typename_specifier |  cv_qualifier ;
 type_specifier_seq :  type_specifier* (  type_specifier attribute_specifier_seq ? ) ;
@@ -194,7 +229,7 @@ enumerator_definition :  enumerator |  enumerator '=' constant_expression ;
 //  A.6 c ?ISO/IEC 2014 - All rights reserved 1216ISO/IEC 14882:2014(E)
 
 enumerator :  identifier ;
-namespace_name :  original_namespace_name |  namespace_alias ;
+// namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  identifier ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition ;
 named_namespace_definition :  original_namespace_definition |  extension_namespace_definition ;
@@ -327,7 +362,7 @@ type_id_list : (  type_id '...' ? ) ( ',' type_id '...' ? )* ;
 noexcept_specification :  'noexcept' '(' constant_expression ')' |  'noexcept' ;
 
 // A.14 Preprocessing directives [gram.cpp]
-preprocessing_file :  group ? ;
+preprocessing_file :  group ? EOF ;
 group :  group_part+ ;
 group_part :  if_section |  control_line |  text_line |  '#' non_directive ;
 if_section :  if_group elif_groups ? else_group ? endif_line ;

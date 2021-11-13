@@ -7,31 +7,42 @@ echo "Building scraper and generating a grammar from scratch."
 
 cp scraper/c++14.g4 ./Scrape.g4
 
+# Apply trkleene to the entire grammar to remove obvious recursions.
 echo ""
 echo "Rewrite recursion into kleene."
 trparse Scrape.g4 | \
 	trkleene | \
 	trsponge -c true
 
-exit 0
+# The typedef_name and namespace_name rules are not used in parsing.
+# Comment out these two productions.
 echo ""
-echo "Fix start rule..."
+echo "Comment keyword productions."
 trparse Scrape.g4 | \
-	trreplace "//parserRuleSpec[RULE_REF/text()='translation_unit']" "translation_unit :  declaration_seq ? EOF ;" | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='typedef_name' or RULE_REF/text()='namespace_name']" "//" | \
+	trsponge -c true
+	
+# Change the start rules for the grammar. Here we just
+# add an EOF to the end of each rule. There are actually three start
+# rules, two for preprocessing, the third for parsing C++ code after
+# preprocessing.
+echo ""
+echo "Fix start rules ..."
+trparse Scrape.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='translation_unit' or RULE_REF/text()='preprocessing_file']/SEMI" "EOF" | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='constant_expression']" "constant_expression_eof :  conditional_expression EOF ;" | \
 	trsponge -c true
 
+# The ISO C++ grammar uses a naming convention that isn't the same as
+# Antlr. Rename several RULE_REF symbols into lexer TOKEN_REF.
 echo ""
 echo "Renaming several basic literal rules..."
 trparse Scrape.g4 | \
 	trrename -r 'universal_character_name,FUniversal_character_name;hex_quad,FHex_quad;hexadecimal_digit,FHexadecimal_digit;binary_digit,FBinary_digit;octal_digit,FOctal_digit;nonzero_digit,FNonzero_digit;unsigned_suffix,FUnsigned_suffix;long_suffix,FLong_suffix;long_long_suffix,FLong_long_suffix;encoding_prefix,FEncoding_prefix' | \
-	trsponge -c true
-
-echo ""
-echo "Additional renaming of several basic literal rules..."
-trparse Scrape.g4 | \
 	trrename -r 'sign,FSign;exponent_part,FExponent_part;digit_sequence,FDigit_sequence;fractional_constant,FFractional_constant;hexadecimal_escape_sequence,FHexadecimal_escape_sequence;octal_escape_sequence,FOctal_escape_sequence;simple_escape_sequence,FSimple_escape_sequence;escape_sequence,FEscape_sequence;c_char,FC_char;c_char_sequence,FC_char_sequence;digit,FDigit;nondigit,FNondigit;floating_suffix,FFloating_suffix;integer_suffix,FInteger_suffix' | \
 	trsponge -c true
 
+exit 0
 echo ""
 echo "Taking care of converting RESTRICTED_CHARS5 into its proper form..."
 trparse Scrape.g4 | \

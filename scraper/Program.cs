@@ -1,4 +1,28 @@
-﻿// Notes on open-source C++
+﻿/*
+MIT License
+
+Copyright (c) 2021 Ken Domino
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+// Notes on open-source C++
 // https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/
 // https://github.com/microsoft/vcpkg
 
@@ -65,10 +89,45 @@ namespace scrape_pdf
         {
             var result = new StringBuilder();
             result.Append(@"
-/* Copyright 2021 Ken Domino.
- * This code is licensed under the MIT License.
- * Please include these header comments crediting my hard work.
- */
+/*
+
+MIT License
+
+Copyright (c) 2021 Ken Domino
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the ""Software""), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+© ISO/IEC 2020
+All rights reserved. Unless otherwise specified, or required in the context of its implementation, no part of this publication may
+be reproduced or utilized otherwise in any form or by any means, electronic or mechanical, including photocopying, or posting
+on the internet or an intranet, without prior written permission. Permission can be requested from either ISO at the address
+below or ISO’s member body in the country of the requester.
+ISO copyright office
+CP 401 • Ch. de Blandonnet 8
+CH-1214 Vernier, Geneva
+Phone: +41 22 749 01 11
+Email: copyright@iso.org
+Website: www.iso.org
+Published in Switzerland
+
+*/
+
 ");
 
             string src_file_name = args[0];
@@ -837,7 +896,8 @@ namespace scrape_pdf
             if (symbol == "import") symbol = "'import'";
             if (symbol == "include") symbol = "'include'";
             if (symbol == "inline") symbol = "'inline'";
-            if (symbol == "int") symbol = "'int'";
+	    if (symbol == "int") symbol = "'int'";
+	    if (symbol == "L") symbol = "'L'";
             if (symbol == "line") symbol = "'line'";
             if (symbol == "long") symbol = "'long'";
             if (symbol == "module") symbol = "'module'";
@@ -878,7 +938,9 @@ namespace scrape_pdf
             if (symbol == "typeid") symbol = "'typeid'";
             if (symbol == "typename") symbol = "'typename'";
             if (symbol == "typeof") symbol = "'typeof'";
-            if (symbol == "undef") symbol = "'undef'";
+	    if (symbol == "u") symbol = "'u'";
+	    if (symbol == "U") symbol = "'U'";
+	    if (symbol == "undef") symbol = "'undef'";
             if (symbol == "union") symbol = "'union'";
             if (symbol == "unsigned") symbol = "'unsigned'";
             if (symbol == "using") symbol = "'using'";
