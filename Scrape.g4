@@ -50,22 +50,22 @@ enum_name :  identifier ;
 template_name :  identifier ;
 
 // A.2 Lexical conventions [gram.lex]
-FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
-FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
+fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
+fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
 preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  'each non_white_space character that cannot be one of the above' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1205ISO/IEC 14882:2014(E)
 
 token :  identifier |  keyword |  literal |  operator |  punctuator ;
-header_name :  '<' h_char_sequence '>' |  '"' q_char_sequence '"' ;
-h_char_sequence :  h_char+ ;
-h_char :  'any member of the source character set except new_line and >' ;
-q_char_sequence :  q_char+ ;
-q_char :  'any member of the source character set except new_line and "' ;
+header_name :  '<' FH_char_sequence '>' |  '"' FQ_char_sequence '"' ;
+fragment FH_char_sequence :  FH_char+ ;
+fragment FH_char :  ~[ <\t\n>] ;
+fragment FQ_char_sequence :  FQ_char+ ;
+fragment FQ_char :  ~[ \t\n"] ;
 pp_number : (  FDigit |  '.' FDigit ) ( FDigit | '\'' FDigit | '\'' FNondigit | identifier_nondigit | 'e' FSign | 'E' FSign | '.' )* ;
 identifier :  identifier_nondigit ( identifier_nondigit | FDigit )* ;
 identifier_nondigit :  FNondigit |  FUniversal_character_name |  'other implementation_defined characters' ;
-FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
-FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+fragment FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
+fragment FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not' | 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1206ISO/IEC 14882:2014(E)
 
@@ -75,40 +75,40 @@ decimal_literal :  FNonzero_digit ( '\'' ? FDigit )* ;
 octal_literal :  '0' ( '\'' ? FOctal_digit )* ;
 hexadecimal_literal : (  '0x' FHexadecimal_digit |  '0X' FHexadecimal_digit ) ( '\'' ? FHexadecimal_digit )* ;
 binary_literal : (  '0b' FBinary_digit |  '0B' FBinary_digit ) ( '\'' ? FBinary_digit )* ;
-FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
-FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
-FBinary_digit :  '0' |  '1' ;
-FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
-FUnsigned_suffix :  'u' | 'U' ;
-FLong_suffix :  'l' | 'L' ;
-FLong_long_suffix :  'll' | 'LL' ;
+fragment FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+fragment FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+fragment FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
+fragment FBinary_digit :  '0' |  '1' ;
+fragment FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
+fragment FUnsigned_suffix :  'u' | 'U' ;
+fragment FLong_suffix :  'l' | 'L' ;
+fragment FLong_long_suffix :  'll' | 'LL' ;
 character_literal :  '\'' FC_char_sequence '\'' |  'u' '\'' FC_char_sequence '\'' |  'U' '\'' FC_char_sequence '\'' |  'L' '\'' FC_char_sequence '\'' ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1207ISO/IEC 14882:2014(E)
 
-FC_char_sequence :  FC_char+ ;
-FC_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character' |  FEscape_sequence |  FUniversal_character_name ;
-FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
-FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
-FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
-FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) FHexadecimal_digit* ;
+fragment FC_char_sequence :  FC_char+ ;
+fragment FC_char :  ~['\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
+fragment FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
+fragment FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
+fragment FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
+fragment FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) FHexadecimal_digit* ;
 floating_literal :  FFractional_constant FExponent_part ? FFloating_suffix ? |  FDigit_sequence FExponent_part FFloating_suffix ? ;
-FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
-FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? FDigit_sequence ;
-FSign :  '+' | '-' ;
-FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
-FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
-string_literal :  FEncoding_prefix ? '"' s_char_sequence ? '"' |  FEncoding_prefix ? 'R' raw_string ;
-FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
-s_char_sequence :  s_char+ ;
-s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
+fragment FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
+fragment FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? FDigit_sequence ;
+fragment FSign :  '+' | '-' ;
+fragment FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
+fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
+string_literal :  FEncoding_prefix ? '"' FS_char_sequence ? '"' |  FEncoding_prefix ? 'R' raw_string ;
+fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
+fragment FS_char_sequence :  FS_Char+ ;
+fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
 //  A.2 c ?ISO/IEC 2014 - All rights reserved 1208ISO/IEC 14882:2014(E)
 
-raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
-r_char_sequence :  r_char+ ;
-r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote ".' ;
-d_char_sequence :  d_char+ ;
-d_char :  'any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.' ;
+raw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
+fragment FR_char_sequence :  FR_char+ ;
+fragment FR_char :  ~[)\"] ;
+fragment FD_char_sequence :  FD_char+ ;
+fragment FD_char :  ~[ ()\\\r\n\t\u000B] ;
 boolean_literal :  'false' |  'true' ;
 pointer_literal :  'nullptr' ;
 user_defined_literal :  user_defined_integer_literal |  user_defined_floating_literal |  user_defined_string_literal |  user_defined_character_literal ;

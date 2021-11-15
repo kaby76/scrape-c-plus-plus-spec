@@ -40,40 +40,48 @@ echo "Renaming several basic literal rules..."
 trparse Scrape.g4 | \
 	trrename -r 'universal_character_name,FUniversal_character_name;hex_quad,FHex_quad;hexadecimal_digit,FHexadecimal_digit;binary_digit,FBinary_digit;octal_digit,FOctal_digit;nonzero_digit,FNonzero_digit;unsigned_suffix,FUnsigned_suffix;long_suffix,FLong_suffix;long_long_suffix,FLong_long_suffix;encoding_prefix,FEncoding_prefix' | \
 	trrename -r 'sign,FSign;exponent_part,FExponent_part;digit_sequence,FDigit_sequence;fractional_constant,FFractional_constant;hexadecimal_escape_sequence,FHexadecimal_escape_sequence;octal_escape_sequence,FOctal_escape_sequence;simple_escape_sequence,FSimple_escape_sequence;escape_sequence,FEscape_sequence;c_char,FC_char;c_char_sequence,FC_char_sequence;digit,FDigit;nondigit,FNondigit;floating_suffix,FFloating_suffix;integer_suffix,FInteger_suffix' | \
+	trrename -r 'h_char_sequence,FH_char_sequence;h_char,FH_char;q_char_sequence,FQ_char_sequence;q_char,FQ_char;s_char,FS_Char;s_char_sequence,FS_char_sequence;r_char,FR_char;r_char_sequence,FR_char_sequence;d_char,FD_char;d_char_sequence,FD_char_sequence' | \
 	trsponge -c true
 
-exit 0
 echo ""
-echo "Taking care of converting RESTRICTED_CHARS5 into its proper form..."
+echo "Taking care of several string literals"
+echo 1
 trparse Scrape.g4 | \
-	trreplace "//terminal/TOKEN_REF[text()='RESTRICTED_CHARS5']" "~['\\\r\n]" | \
+	trreplace --verbose "//STRING_LITERAL[text()='''any member of the source character set except new_line and >''']" "~[ <\t\n>]" | \
 	trsponge -c true
-
-echo ""
-echo Inserting "'fragment'" into basic rules...
+echo 2
 trparse Scrape.g4 | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FHex_quad' or text()='FUniversal_character_name' or text()='FBinary_digit' or text()='FOctal_digit' or text()='FNonzero_digit' or text()='FHexadecimal_digit' or text()='FUnsigned_suffix' or text()='FLong_suffix' or text()='FLong_long_suffix' or text()='FEncoding_prefix']" "fragment" | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FSign' or text()='FExponent_part' or text()='FDigit_sequence' or text()='FFractional_constant' or text()='FOctal_escape_sequence' or text()='FSimple_escape_sequence' or text()='FEscape_sequence' or text()='FC_char' or text()='FDigit' or text()='FNondigit' or text()='FFloating_suffix' or text()='FInteger_suffix']" "fragment" | \
+	trreplace --verbose "//STRING_LITERAL[text()='''any member of the source character set except new_line and \"''']" "~[ \t\n\"]" | \
 	trsponge -c true
-
-echo ""
-echo "We converted some rules that were parser rules into lexer rules."
-echo "Unfortunately, the grammar does not compile because Antlr4 does not handle"
-echo "left-recursion in lexer rule (it does for parser rules)."
-echo "In particular, the rules are Hexadecimal_escape_sequence, C_char_sequence, Digit_sequence"
+echo 3
+trparse Scrape.g4 | \
+	trreplace --verbose "//STRING_LITERAL[text()='''any member of the source character set except the single_quote \\'', backslash \\\\, or new_line character''']" "~['\\\r\n]" | \
+	trsponge -c true
+echo 4
+trparse Scrape.g4 | \
+	trreplace --verbose "//STRING_LITERAL[text()='''any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote \".''']"  '~[)\"]' | \
+	trsponge -c true
+echo 5
+trparse Scrape.g4 | \
+	trreplace --verbose "//STRING_LITERAL[text()='''any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\\\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.''']"  '~[ ()\\\r\n\t\u000B]' | \
+	trsponge -c true
 
 echo ""
 echo "Adding 'fragment' to selected lexer rules."
 trparse Scrape.g4 | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FDigit_sequence' or text()='FC_char_sequence' or text()='FHexadecimal_escape_sequence']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FHex_quad' or text()='FUniversal_character_name' or text()='FBinary_digit' or text()='FOctal_digit' or text()='FNonzero_digit' or text()='FHexadecimal_digit' or text()='FUnsigned_suffix' or text()='FLong_suffix' or text()='FLong_long_suffix' or text()='FEncoding_prefix']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FSign' or text()='FExponent_part' or text()='FDigit_sequence' or text()='FFractional_constant' or text()='FOctal_escape_sequence' or text()='FSimple_escape_sequence' or text()='FEscape_sequence' or text()='FC_char' or text()='FDigit' or text()='FNondigit' or text()='FFloating_suffix' or text()='FInteger_suffix']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FC_char_sequence' or text()='FHexadecimal_escape_sequence']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FH_char_sequence' or text()='FH_char' or text()='FQ_char_sequence' or text()='FQ_char' or text()='FS_Char' or text()='FS_char_sequence' or text()='FR_char' or text()='FR_char_sequence' or text()='FD_char' or text()='FD_char_sequence']" "fragment" | \
 	trsponge -c true
 	
+exit 0
+
 echo ""
 echo "Now renaming integer_literal, binary_literal, octal_literal, hexadecimal_literal"
 echo "into lexer rules."
 trparse Scrape.g4 | \
 	trrename -r 'integer_literal,Integer_literal;binary_literal,Binary_literal;octal_literal,Octal_literal;decimal_literal,Decimal_literal;hexadecimal_literal,Hexadecimal_literal' | \
-	trkleene "//lexerRuleSpec/TOKEN_REF[text()='Integer_literal' or text()='Binary_literal' or text()='Octal_literal' or text()='Decimal_literal' or text()='Hexadecimal_literal']" | \
 	trsponge -c true
 
 trparse Scrape.g4 | \
@@ -88,9 +96,6 @@ trparse Scrape.g4 | \
 	trkleene "//lexerRuleSpec/TOKEN_REF[text()='Identifier']" | \
 	trsponge -c true
 
-echo ""
-trparse Scrape.g4 | \
-	trsponge -c true
 
 echo ""
 echo "For now, we comment out preprocessing rules until we know what to do."
