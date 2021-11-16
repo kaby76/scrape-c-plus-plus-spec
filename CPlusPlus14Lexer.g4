@@ -38,48 +38,48 @@ Published in Switzerland
 
 */
 
-lexer grammar ScrapeLexer;
-fragment FD_char :  ~[ ()\\\r\n\t\u000B] ;
-fragment FD_char_sequence :  FD_char+ ;
-fragment FR_char :  ~[)\"] ;
-fragment FR_char_sequence :  FR_char+ ;
+lexer grammar CPlusPlus14Lexer;
 
-fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
-fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
-fragment FS_char_sequence :  FS_Char+ ;
-fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
-fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
-fragment FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
-fragment FSign :  '+' | '-' ;
-fragment FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? FDigit_sequence ;
-fragment FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
-fragment FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) FHexadecimal_digit* ;
-fragment FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
-fragment FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
-fragment FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
-fragment FC_char :  ~['\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
+
+
+fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
+fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
+fragment FH_char_sequence :  FH_char+ ;
+fragment FH_char :  ~[ <\t\n>] ;
+fragment FQ_char_sequence :  FQ_char+ ;
+fragment FQ_char :  ~[ \t\n"] ;
+fragment FIdentifier_nondigit :  FNondigit |  FUniversal_character_name |  'other implementation_defined characters' ;
+fragment FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
+fragment FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+fragment FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+fragment FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
+fragment FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
+fragment FBinary_digit :  '0' |  '1' ;
+fragment FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
+fragment FUnsigned_suffix :  'u' | 'U' ;
+fragment FLong_suffix :  'l' | 'L' ;
+fragment FLong_long_suffix :  'll' | 'LL' ;
 
 fragment FC_char_sequence :  FC_char+ ;
-fragment FLong_long_suffix :  'll' | 'LL' ;
-fragment FLong_suffix :  'l' | 'L' ;
-fragment FUnsigned_suffix :  'u' | 'U' ;
-fragment FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix FLong_long_suffix ? |  FLong_suffix FUnsigned_suffix ? |  FLong_long_suffix FUnsigned_suffix ? ;
-fragment FBinary_digit :  '0' |  '1' ;
-fragment FHexadecimal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ;
-fragment FOctal_digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ;
-fragment FNonzero_digit :  '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-fragment FDigit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-fragment FNondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
-fragment FIdentifier_nondigit :  FNondigit |  FUniversal_character_name |  'other implementation_defined characters' ;
-fragment FQ_char :  ~[ \t\n"] ;
-fragment FQ_char_sequence :  FQ_char+ ;
-fragment FH_char :  ~[ <\t\n>] ;
-fragment FH_char_sequence :  FH_char+ ;
-fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
+fragment FC_char :  ~['\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
+fragment FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
+fragment FSimple_escape_sequence :  '\\\'' | '\\"' | '\\?' | '\\\\' | '\\a' | '\\b' | '\\f' | '\\n' | '\\r' | '\\t' | '\\v' ;
+fragment FOctal_escape_sequence :  '\\' FOctal_digit |  '\\' FOctal_digit FOctal_digit |  '\\' FOctal_digit FOctal_digit FOctal_digit ;
+fragment FHexadecimal_escape_sequence : (  '\\x' FHexadecimal_digit ) FHexadecimal_digit* ;
+fragment FFractional_constant :  FDigit_sequence ? '.' FDigit_sequence |  FDigit_sequence '.' ;
+fragment FExponent_part :  'e' FSign ? FDigit_sequence |  'E' FSign ? FDigit_sequence ;
+fragment FSign :  '+' | '-' ;
+fragment FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
+fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
+fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
+fragment FS_char_sequence :  FS_Char+ ;
+fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
 
-
-
-fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ; 
+fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
+fragment FR_char_sequence :  FR_char+ ;
+fragment FR_char :  ~[)\"] ;
+fragment FD_char_sequence :  FD_char+ ;
+fragment FD_char :  ~[ ()\\\r\n\t\u000B] ; 
 
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';

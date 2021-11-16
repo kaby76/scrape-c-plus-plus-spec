@@ -7,6 +7,11 @@ echo "Building scraper and generating a grammar from scratch."
 name=CPlusPlus14
 grep -v '^//' scraper/c++14.g4 > ./$name.g4
 
+# Rename grammar as this is a prerequisite for splitting.
+trparse $name.g4 | \
+	trreplace "/grammarSpec/grammarDecl/identifier/TOKEN_REF[text()='Scrape']" "$name" | \
+	trsponge -c true
+
 # Apply trkleene to the entire grammar to remove obvious recursions.
 echo ""
 echo "Rewrite recursion into kleene."
@@ -143,12 +148,10 @@ trparse "$name"Parser.g4 | \
 	trsponge -c true
 
 
-
 trparse "$name"Lexer.g4 | \
 	trmove -a "//ruleSpec[lexerRuleSpec/FRAGMENT]" "//grammarSpec/grammarDecl/SEMI" | \
 	trsponge -c true
 
-	
 exit 0
 
 echo ""

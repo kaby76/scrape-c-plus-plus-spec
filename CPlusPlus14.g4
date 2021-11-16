@@ -38,7 +38,7 @@ Published in Switzerland
 
 */
 
-grammar Scrape;
+grammar CPlusPlus14;
 
 typedef_name :  Identifier ;
 namespace_name :  original_namespace_name |  namespace_alias ;

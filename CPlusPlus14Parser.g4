@@ -38,10 +38,10 @@ Published in Switzerland
 
 */
 
-parser grammar ScrapeParser;
+parser grammar CPlusPlus14Parser;
 
 
-options { tokenVocab=ScrapeLexer; superClass=ParserBase; }
+options { tokenVocab=CPlusPlus14Lexer; superClass=ParserBase; }
 // typedef_name :  Identifier ;
 // namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  Identifier ;
