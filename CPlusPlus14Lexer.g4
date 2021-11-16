@@ -42,8 +42,6 @@ lexer grammar CPlusPlus14Lexer;
 options { superClass=LexerBase; }
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
-
-
 fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
 fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
 fragment FH_char_sequence :  FH_char+ ;
@@ -61,7 +59,6 @@ fragment FInteger_suffix :  FUnsigned_suffix FLong_suffix ? |  FUnsigned_suffix 
 fragment FUnsigned_suffix :  'u' | 'U' ;
 fragment FLong_suffix :  'l' | 'L' ;
 fragment FLong_long_suffix :  'll' | 'LL' ;
-
 fragment FC_char_sequence :  FC_char+ ;
 fragment FC_char :  ~['\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
 fragment FEscape_sequence :  FSimple_escape_sequence |  FOctal_escape_sequence |  FHexadecimal_escape_sequence ;
@@ -75,13 +72,14 @@ fragment FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
 fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
 fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 fragment FS_char_sequence :  FS_Char+ ;
-fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | FEscape_sequence | FUniversal_character_name ;
-
+fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' |  FEscape_sequence |  FUniversal_character_name ;
 fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
 fragment FR_char_sequence :  FR_char+ ;
 fragment FR_char :  ~[)\"] ;
 fragment FD_char_sequence :  FD_char+ ;
 fragment FD_char :  ~[ ()\\\r\n\t\u000B] ;
+
+KWGnuAttribute: '__attribute__';
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
 KWAnd: 'and';
@@ -243,4 +241,3 @@ User_defined_floating_literal :  FFractional_constant FExponent_part ? FUd_suffi
 User_defined_string_literal :  String_literal FUd_suffix ;
 User_defined_character_literal :  Character_literal FUd_suffix ;
 FUd_suffix :  Identifier ;
-

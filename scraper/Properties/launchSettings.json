@@ -2,7 +2,7 @@
   "profiles": {
     "scrape-pdf": {
       "commandName": "Project",
-      "commandLineArgs": "\"c:\\Users\\Kenne\\Downloads\\C++17-ISOIEC-148822017.pdf\"",
+      "commandLineArgs": "\"c:\\Users\\Kenne\\Downloads\\C++14-ISOIEC-148822014.pdf",
       "workingDirectory": "C:\\msys64\\home\\kenne\\scrape-c-plus-plus-spec\\scraper"
     }
   }

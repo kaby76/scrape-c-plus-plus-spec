@@ -1,6 +1,8 @@
 
 options { superClass=LexerBase; }
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
+
+KWGnuAttribute: '__attribute__';
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
 KWAnd: 'and';

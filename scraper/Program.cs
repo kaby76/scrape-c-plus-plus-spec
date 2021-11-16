@@ -196,8 +196,8 @@ Published in Switzerland
                 if (pdfText.Substring(first).StartsWith("A."))
                 {
                     cursor = pdfText.IndexOf('\n', first);
-                    result.AppendLine();
-                    result.AppendLine("// " + pdfText.Substring(first, cursor - first));
+                    //result.AppendLine();
+                    //result.AppendLine("// " + pdfText.Substring(first, cursor - first));
                     continue;
                 }
 
@@ -248,8 +248,8 @@ Published in Switzerland
                             result.AppendLine();
                         else
                             result.AppendLine(" ;");
-                        result.AppendLine("// " + rhs);
-                        result.AppendLine();
+                        //result.AppendLine("// " + rhs);
+                        //result.AppendLine();
                         break;
                     }
                     if (rhs.StartsWith("A."))
@@ -259,8 +259,8 @@ Published in Switzerland
                             result.AppendLine();
                         else
                             result.AppendLine(" ;");
-                        result.AppendLine();
-                        result.AppendLine("// " + rhs);
+                        //result.AppendLine();
+                        //result.AppendLine("// " + rhs);
                         break;
                     }
                     if (first_time)
@@ -502,8 +502,8 @@ Published in Switzerland
                     Version.iso_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"s_char :  any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;",
-                @"s_char :  'any member of the source character set except the double_quote "", backslash \\. or new_line character' | escape_sequence | universal_character_name ;",
+            FixupOutput(ref output, @"any member of the source character set except |  the double_quote '"",' backslash '\\,' or new_line character",
+                                    @"'any member of the source character set except the double_quote "", backslash \\. or new_line character'",
                 version switch
                 {
                     Version.draft_cpp_14 => 1,
@@ -764,8 +764,8 @@ Published in Switzerland
                     Version.iso_cpp_20 => 0,
                     _ => 1
                 });
-            FixupOutput(ref output, @"literal_operator_id :  operator string_literal identifier |  operator user_defined_string_literal ;",
-                @"literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;");
+            FixupOutput(ref output, @"operator string_literal identifier |  operator user_defined_string_literal",
+                @"'operator' string_literal identifier |  'operator' user_defined_string_literal");
 
             // Section 12
 

@@ -39,8 +39,6 @@ Published in Switzerland
 */
 
 grammar Scrape;
-
-// A.1 Keywords [gram.key]
 typedef_name :  identifier ;
 namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  identifier ;
@@ -48,13 +46,9 @@ namespace_alias :  identifier ;
 class_name :  identifier |  simple_template_id ;
 enum_name :  identifier ;
 template_name :  identifier ;
-
-// A.2 Lexical conventions [gram.lex]
 hex_quad :  hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit ;
 universal_character_name :  '\\u' hex_quad |  '\\U' hex_quad hex_quad ;
 preprocessing_token :  header_name |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  'each non_white_space character that cannot be one of the above' ;
-//  A.2 c ?ISO/IEC 2014 - All rights reserved 1205ISO/IEC 14882:2014(E)
-
 token :  identifier |  keyword |  literal |  operator |  punctuator ;
 header_name :  '<' h_char_sequence '>' |  '"' q_char_sequence '"' ;
 h_char_sequence :  h_char |  h_char_sequence h_char ;
@@ -67,8 +61,6 @@ identifier_nondigit :  nondigit |  universal_character_name |  'other implementa
 nondigit :  'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '_' ;
 digit :  '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
 preprocessing_op_or_punc :  '{' | '}' | '[' | ']' | '#' | '##' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | '%:' | '%:%:' | ';' | ':' | '...' | 'new' | 'delete' | '?' | '::' | '.' | '.*' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not' | 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
-//  A.2 c ?ISO/IEC 2014 - All rights reserved 1206ISO/IEC 14882:2014(E)
-
 literal :  integer_literal |  character_literal |  floating_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
 integer_literal :  decimal_literal integer_suffix ? |  octal_literal integer_suffix ? |  hexadecimal_literal integer_suffix ? |  binary_literal integer_suffix ? ;
 decimal_literal :  nonzero_digit |  decimal_literal '\'' ? digit ;
@@ -84,8 +76,6 @@ unsigned_suffix :  'u' | 'U' ;
 long_suffix :  'l' | 'L' ;
 long_long_suffix :  'll' | 'LL' ;
 character_literal :  '\'' c_char_sequence '\'' |  'u' '\'' c_char_sequence '\'' |  'U' '\'' c_char_sequence '\'' |  'L' '\'' c_char_sequence '\'' ;
-//  A.2 c ?ISO/IEC 2014 - All rights reserved 1207ISO/IEC 14882:2014(E)
-
 c_char_sequence :  c_char |  c_char_sequence c_char ;
 c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character' |  escape_sequence |  universal_character_name ;
 escape_sequence :  simple_escape_sequence |  octal_escape_sequence |  hexadecimal_escape_sequence ;
@@ -101,9 +91,7 @@ floating_suffix :  'f' | 'l' | 'F' | 'L' ;
 string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' |  encoding_prefix ? 'R' raw_string ;
 encoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 s_char_sequence :  s_char |  s_char_sequence s_char ;
-s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' | escape_sequence | universal_character_name ;
-//  A.2 c ?ISO/IEC 2014 - All rights reserved 1208ISO/IEC 14882:2014(E)
-
+s_char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' |  escape_sequence |  universal_character_name ;
 raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
 r_char :  'any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote ".' ;
@@ -117,13 +105,7 @@ user_defined_floating_literal :  fractional_constant exponent_part ? ud_suffix |
 user_defined_string_literal :  string_literal ud_suffix ;
 user_defined_character_literal :  character_literal ud_suffix ;
 ud_suffix :  identifier ;
-
-// A.3 Basic concepts [gram.basic]
 translation_unit :  declaration_seq ? ;
-//  A.3 c ?ISO/IEC 2014 - All rights reserved 1209ISO/IEC 14882:2014(E)
-
-
-// A.4 Expressions [gram.expr]
 primary_expression :  literal |  'this' |  '(' expression ')' |  id_expression |  lambda_expression ;
 id_expression :  unqualified_id |  qualified_id ;
 unqualified_id :  identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  '~' |  class_name |  '~' |  decltype_specifier |  template_id ;
@@ -137,8 +119,6 @@ capture_list :  capture '...' ? |  capture_list ',' capture '...' ? ;
 capture :  simple_capture |  init_capture ;
 simple_capture :  identifier |  '&' identifier |  'this' ;
 init_capture :  identifier initializer |  '&' identifier initializer ;
-//  A.4 c ?ISO/IEC 2014 - All rights reserved 1210ISO/IEC 14882:2014(E)
-
 lambda_declarator :  '(' parameter_declaration_clause ')' 'mutable' ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 postfix_expression :  primary_expression |  postfix_expression '[' expression ']' |  postfix_expression '[' braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '.' pseudo_destructor_name |  postfix_expression '->' pseudo_destructor_name |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
 expression_list :  initializer_list ;
@@ -148,8 +128,6 @@ unary_operator :  '*' | '&' | '+' | '-' | '!' | '~' ;
 new_expression :  '::' ? 'new' new_placement ? new_type_id new_initializer ? |  '::' ? 'new' new_placement ? '(' type_id ')' new_initializer ? ;
 new_placement :  '(' expression_list ')' ;
 new_type_id :  type_specifier_seq new_declarator ? ;
-//  A.4 c ?ISO/IEC 2014 - All rights reserved 1211ISO/IEC 14882:2014(E)
-
 new_declarator :  ptr_operator new_declarator ? |  noptr_new_declarator ;
 noptr_new_declarator :  '[' expression ']' attribute_specifier_seq ? |  noptr_new_declarator '[' constant_expression ']' attribute_specifier_seq ? ;
 new_initializer :  '(' expression_list ? ')' |  braced_init_list ;
@@ -165,8 +143,6 @@ equality_expression :  relational_expression |  equality_expression '==' relatio
 and_expression :  equality_expression |  and_expression '&' equality_expression ;
 exclusive_or_expression :  and_expression |  exclusive_or_expression '^' and_expression ;
 inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression '|' exclusive_or_expression ;
-//  A.4 c ?ISO/IEC 2014 - All rights reserved 1212ISO/IEC 14882:2014(E)
-
 logical_and_expression :  inclusive_or_expression |  logical_and_expression '&&' inclusive_or_expression ;
 logical_or_expression :  logical_and_expression |  logical_or_expression '||' logical_and_expression ;
 conditional_expression :  logical_or_expression |  logical_or_expression '?' expression ':' assignment_expression ;
@@ -174,8 +150,6 @@ assignment_expression :  conditional_expression |  logical_or_expression assignm
 assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | '^=' | '|=' ;
 expression :  assignment_expression |  expression ',' assignment_expression ;
 constant_expression :  conditional_expression ;
-
-// A.5 Statements [gram.stmt]
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
 labeled_statement :  attribute_specifier_seq ? identifier ':' statement |  attribute_specifier_seq ? 'case' constant_expression ':' statement |  attribute_specifier_seq ? 'default' ':' statement ;
 expression_statement :  expression ? ';' ;
@@ -183,16 +157,12 @@ compound_statement :  '{' statement_seq ? '}' ;
 statement_seq :  statement |  statement_seq statement ;
 selection_statement :  'if' '(' condition ')' statement |  'if' '(' condition ')' statement 'else' statement |  'switch' '(' condition ')' statement ;
 condition :  expression |  attribute_specifier_seq ? decl_specifier_seq declarator '=' initializer_clause |  attribute_specifier_seq ? decl_specifier_seq declarator braced_init_list ;
-//  A.5 c ?ISO/IEC 2014 - All rights reserved 1213ISO/IEC 14882:2014(E)
-
 iteration_statement :  'while' '(' condition ')' statement |  'do' statement 'while' '(' expression ')' ';' |  'for' '(' for_init_statement condition ? ';' expression ? ')' statement |  'for' '(' for_range_declaration ':' for_range_initializer ')' statement ;
 for_init_statement :  expression_statement |  simple_declaration ;
 for_range_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator ;
 for_range_initializer :  expression |  braced_init_list ;
 jump_statement :  'break' ';' |  'continue' ';' |  'return' expression ? ';' |  'return' braced_init_list ';' |  'goto' identifier ';' ;
 declaration_statement :  block_declaration ;
-
-// A.6 Declarations [gram.dcl]
 declaration_seq :  declaration |  declaration_seq declaration ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
@@ -200,8 +170,6 @@ alias_declaration :  'using' identifier attribute_specifier_seq ? '=' type_id ';
 simple_declaration :  decl_specifier_seq ? init_declarator_list ? ';' |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list ';' ;
 static_assert_declaration :  'static_assert' '(' constant_expression ',' string_literal ')' ';' ;
 empty_declaration :  ';' ;
-//  A.6 c ?ISO/IEC 2014 - All rights reserved 1214ISO/IEC 14882:2014(E)
-
 attribute_declaration :  attribute_specifier_seq ';' ;
 decl_specifier :  storage_class_specifier |  type_specifier |  function_specifier |  'friend' |  'typedef' |  'constexpr' ;
 decl_specifier_seq :  decl_specifier attribute_specifier_seq ? |  decl_specifier decl_specifier_seq ;
@@ -212,8 +180,6 @@ type_specifier :  trailing_type_specifier |  class_specifier |  enum_specifier ;
 trailing_type_specifier :  simple_type_specifier |  elaborated_type_specifier |  typename_specifier |  cv_qualifier ;
 type_specifier_seq :  type_specifier attribute_specifier_seq ? |  type_specifier type_specifier_seq ;
 trailing_type_specifier_seq :  trailing_type_specifier attribute_specifier_seq ? |  trailing_type_specifier trailing_type_specifier_seq ;
-//  A.6 c ?ISO/IEC 2014 - All rights reserved 1215ISO/IEC 14882:2014(E)
-
 simple_type_specifier :  nested_name_specifier ? type_name |  nested_name_specifier 'template' simple_template_id |  'char' |  'char16_t' |  'char32_t' |  'wchar_t' |  'bool' |  'short' |  'int' |  'long' |  'signed' |  'unsigned' |  'float' |  'double' |  'void' |  'auto' |  decltype_specifier ;
 type_name :  class_name |  enum_name |  typedef_name |  simple_template_id ;
 decltype_specifier :  'decltype' '(' expression ')' |  'decltype' '(' 'auto' ')' ;
@@ -226,8 +192,6 @@ enum_key :  'enum' |  'enum' 'class' |  'enum' 'struct' ;
 enum_base :  ':' type_specifier_seq ;
 enumerator_list :  enumerator_definition |  enumerator_list ',' enumerator_definition ;
 enumerator_definition :  enumerator |  enumerator '=' constant_expression ;
-//  A.6 c ?ISO/IEC 2014 - All rights reserved 1216ISO/IEC 14882:2014(E)
-
 enumerator :  identifier ;
 namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  identifier ;
@@ -249,16 +213,12 @@ attribute_specifier :  '[' '[' attribute_list ']' ']' |  alignment_specifier ;
 alignment_specifier :  'alignas' '(' type_id '...' ? ')' |  'alignas' '(' constant_expression '...' ? ')' ;
 attribute_list :  attribute ? |  attribute_list ',' attribute ? |  attribute '...' |  attribute_list ',' attribute '...' ;
 attribute :  attribute_token attribute_argument_clause ? ;
-//  A.6 c ?ISO/IEC 2014 - All rights reserved 1217ISO/IEC 14882:2014(E)
-
 attribute_token :  identifier |  attribute_scoped_token ;
 attribute_scoped_token :  attribute_namespace '::' identifier ;
 attribute_namespace :  identifier ;
 attribute_argument_clause :  '(' balanced_token_seq ')' ;
 balanced_token_seq :  balanced_token ? |  balanced_token_seq balanced_token ;
 balanced_token :  '(' balanced_token_seq ')' |  '[' balanced_token_seq ']' |  '{' balanced_token_seq '}' |  'any token other than a parenthesis, a bracket, or a brace' ;
-
-// A.7 Declarators [gram.decl]
 init_declarator_list :  init_declarator |  init_declarator_list ',' init_declarator ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
@@ -270,8 +230,6 @@ ptr_operator :  '*' attribute_specifier_seq ? cv_qualifier_seq ? |  '&' attribut
 cv_qualifier_seq :  cv_qualifier cv_qualifier_seq ? ;
 cv_qualifier :  'const' |  'volatile' ;
 ref_qualifier :  '&' |  '&&' ;
-//  A.7 c ?ISO/IEC 2014 - All rights reserved 1218ISO/IEC 14882:2014(E)
-
 declarator_id :  '...' ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
@@ -288,11 +246,7 @@ initializer :  brace_or_equal_initializer |  '(' expression_list ')' ;
 brace_or_equal_initializer :  '=' initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
 initializer_list :  initializer_clause '...' ? |  initializer_list ',' initializer_clause '...' ? ;
-//  A.7 c ?ISO/IEC 2014 - All rights reserved 1219ISO/IEC 14882:2014(E)
-
 braced_init_list :  '{' initializer_list ',' ? '}' |  '{' '}' ;
-
-// A.8 Classes [gram.class]
 class_name :  identifier |  simple_template_id ;
 class_specifier :  class_head '{' member_specification ? '}' ;
 class_head :  class_key attribute_specifier_seq ? class_head_name class_virt_specifier ? base_clause ? |  class_key attribute_specifier_seq ? base_clause ? ;
@@ -306,18 +260,12 @@ member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declara
 virt_specifier_seq :  virt_specifier |  virt_specifier_seq virt_specifier ;
 virt_specifier :  'override' |  'final' ;
 pure_specifier :  '=' '0' ;
-
-// A.9 Derived classes [gram.derived]
 base_clause :  ':' base_specifier_list ;
-//  A.9 c ?ISO/IEC 2014 - All rights reserved 1220ISO/IEC 14882:2014(E)
-
 base_specifier_list :  base_specifier '...' ? |  base_specifier_list ',' base_specifier '...' ? ;
 base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? 'virtual' access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier 'virtual' ? base_type_specifier ;
 class_or_decltype :  nested_name_specifier ? class_name |  decltype_specifier ;
 base_type_specifier :  class_or_decltype ;
 access_specifier :  'private' |  'protected' |  'public' ;
-
-// A.10 Special member functions [gram.special]
 conversion_function_id :  'operator' conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator conversion_declarator ? ;
@@ -325,15 +273,9 @@ ctor_initializer :  ':' mem_initializer_list ;
 mem_initializer_list :  mem_initializer '...' ? |  mem_initializer '...' ? ',' mem_initializer_list ;
 mem_initializer :  mem_initializer_id '(' expression_list ? ')' |  mem_initializer_id braced_init_list ;
 mem_initializer_id :  class_or_decltype |  identifier ;
-
-// A.11 Overloading [gram.over]
 operator_function_id :  'operator' operator ;
 operator :  'new' | 'delete' | 'new' '[' ']' | 'delete' '[' ']' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '~' | '!' | '=' | '<' | '>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<' | '>>' | '>>=' | '<<=' | '==' | '!=' | '<=' | '>=' | '&&' | '||' | '++' | '--' | ',' | '->*' | '->' | '(' ')' | '[' ']' ;
 literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;
-//  A.11 c ?ISO/IEC 2014 - All rights reserved 1221ISO/IEC 14882:2014(E)
-
-
-// A.12 Templates [gram.temp]
 template_declaration :  'template' '<' template_parameter_list '>' declaration ;
 template_parameter_list :  template_parameter |  template_parameter_list ',' template_parameter ;
 template_parameter :  type_parameter |  parameter_declaration ;
@@ -346,22 +288,16 @@ template_argument :  constant_expression |  type_id |  id_expression ;
 typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;
 explicit_instantiation :  'extern' ? 'template' declaration ;
 explicit_specialization :  'template' '<' '>' declaration ;
-
-// A.13 Exception handling [gram.except]
 try_block :  'try' compound_statement handler_seq ;
 function_try_block :  'try' ctor_initializer ? compound_statement handler_seq ;
 handler_seq :  handler handler_seq ? ;
 handler :  'catch' '(' exception_declaration ')' compound_statement ;
 exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;
-//  A.13 c ?ISO/IEC 2014 - All rights reserved 1222ISO/IEC 14882:2014(E)
-
 throw_expression :  'throw' assignment_expression ? ;
 exception_specification :  dynamic_exception_specification |  noexcept_specification ;
 dynamic_exception_specification :  'throw' '(' type_id_list ? ')' ;
 type_id_list :  type_id '...' ? |  type_id_list ',' type_id '...' ? ;
 noexcept_specification :  'noexcept' '(' constant_expression ')' |  'noexcept' ;
-
-// A.14 Preprocessing directives [gram.cpp]
 preprocessing_file :  group ? ;
 group :  group_part |  group group_part ;
 group_part :  if_section |  control_line |  text_line |  '#' non_directive ;
@@ -373,13 +309,9 @@ else_group :  '#' 'else' new_line group ? ;
 endif_line :  '#' 'endif' new_line ;
 control_line :  '#' 'include' pp_tokens new_line |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
 text_line :  pp_tokens ? new_line ;
-//  A.14 c ?ISO/IEC 2014 - All rights reserved 1223ISO/IEC 14882:2014(E)
-
 non_directive :  pp_tokens new_line ;
 lparen :  'a ( character not immediately preceded by white_space' ;
 identifier_list :  identifier |  identifier_list ',' identifier ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token |  pp_tokens preprocessing_token ;
 new_line :  'the new_line character' ;
-//  A.14 c ?ISO/IEC 2014 - All rights reserved 1224ISO/IEC 14882:2014(E)
-

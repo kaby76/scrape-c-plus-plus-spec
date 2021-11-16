@@ -40,7 +40,6 @@ Published in Switzerland
 
 parser grammar CPlusPlus14Parser;
 
-
 options { tokenVocab=CPlusPlus14Lexer; superClass=ParserBase; }
 // typedef_name :  Identifier ;
 // namespace_name :  original_namespace_name |  namespace_alias ;
@@ -50,18 +49,13 @@ class_name :  Identifier |  simple_template_id ;
 enum_name :  Identifier ;
 template_name :  Identifier ;
 preprocessing_token :  Header_name |  Identifier |  pp_number |  Character_literal |  User_defined_character_literal |  String_literal |  User_defined_string_literal |  preprocessing_op_or_punc |  'each non_white_space character that cannot be one of the above' ;
-
 token :  Identifier |  keyword |  literal |  operator |  punctuator ;
 pp_number : (  FDigit |  Dot FDigit ) ( FDigit | '\'' FDigit | '\'' FNondigit | FIdentifier_nondigit | 'e' FSign | 'E' FSign | Dot )* ;
 preprocessing_op_or_punc :  LeftBrace | RightBrace | LeftBracket | RightBracket | Pound | PoundPound | LeftParen | RightParen | LtColon | ColonGt | LtPer | PerGt | PerColon | PerColonPerColon | Semi | Colon | Ellipsis | KWNew | KWDelete | Question | Doublecolon | Dot | DotStar | Plus | Minus | Star | Div | Mod | Caret | And | Or | Tilde | Not | Assign | Less | Greater | PlusAssign | MinusAssign | StarAssign | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShift | RightShift | RightShiftAssign | LeftShiftAssign | Equal | NotEqual | LessEqual | GreaterEqual | AndAnd | OrOr | PlusPlus | MinusMinus | Comma | ArrowStar | Arrow | KWAnd | KWAndEq | KWBitAnd | KWBitOr | KWCompl | KWNot | KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
-
 literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
 boolean_literal :  KWFalse_ |  KWTrue_ ;
 pointer_literal :  KWNullptr ;
-
 translation_unit :  declaration_seq ? EOF ;
-
-
 primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression ;
 id_expression :  unqualified_id |  qualified_id ;
 unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde |  class_name |  Tilde |  decltype_specifier |  template_id ;
@@ -75,7 +69,6 @@ capture_list : (  capture Ellipsis ? ) ( Comma capture Ellipsis ? )* ;
 capture :  simple_capture |  init_capture ;
 simple_capture :  Identifier |  And Identifier |  KWThis ;
 init_capture :  Identifier initializer |  And Identifier initializer ;
-
 lambda_declarator :  LeftParen parameter_declaration_clause RightParen KWMutable ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 postfix_expression : (  primary_expression |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ) ( LeftBracket expression RightBracket | LeftBracket braced_init_list RightBracket | LeftParen expression_list ? RightParen | Dot KWTemplate ? id_expression | Arrow KWTemplate ? id_expression | Dot pseudo_destructor_name | Arrow pseudo_destructor_name | PlusPlus | MinusMinus )* ;
 expression_list :  initializer_list ;
@@ -85,7 +78,6 @@ unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl ;
 new_expression :  Doublecolon ? KWNew new_placement ? new_type_id new_initializer ? |  Doublecolon ? KWNew new_placement ? LeftParen type_id RightParen new_initializer ? ;
 new_placement :  LeftParen expression_list RightParen ;
 new_type_id :  type_specifier_seq new_declarator ? ;
-
 new_declarator :  ptr_operator*  noptr_new_declarator ;
 noptr_new_declarator : (  LeftBracket expression RightBracket attribute_specifier_seq ? ) ( LeftBracket constant_expression RightBracket attribute_specifier_seq ? )* ;
 new_initializer :  LeftParen expression_list ? RightParen |  braced_init_list ;
@@ -101,7 +93,6 @@ equality_expression :  relational_expression ( Equal relational_expression | Not
 and_expression :  equality_expression ( ( And | KWBitAnd ) equality_expression )* ;
 exclusive_or_expression :  and_expression ( ( Caret | KWXor ) and_expression )* ;
 inclusive_or_expression :  exclusive_or_expression ( ( Or | KWBitOr ) exclusive_or_expression )* ;
-
 logical_and_expression :  inclusive_or_expression ( ( AndAnd | KWAnd ) inclusive_or_expression )* ;
 logical_or_expression :  logical_and_expression ( ( OrOr | KWOr ) logical_and_expression )* ;
 conditional_expression :  logical_or_expression |  logical_or_expression Question expression Colon assignment_expression ;
@@ -109,7 +100,6 @@ assignment_expression :  conditional_expression |  logical_or_expression assignm
 assignment_operator :  Assign | StarAssign | DivAssign | ModAssign | PlusAssign | MinusAssign | RightShiftAssign | LeftShiftAssign | AndAssign | XorAssign | OrAssign | KWAndEq | KWOrEq | KWXorEq ;
 expression :  assignment_expression ( Comma assignment_expression )* ;
 constant_expression_eof :  conditional_expression EOF ; constant_expression :  conditional_expression ;
-
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
 labeled_statement :  attribute_specifier_seq ? Identifier Colon statement |  attribute_specifier_seq ? KWCase constant_expression Colon statement |  attribute_specifier_seq ? KWDefault Colon statement ;
 expression_statement :  expression ? Semi ;
@@ -117,14 +107,12 @@ compound_statement :  LeftBrace statement_seq ? RightBrace ;
 statement_seq :  statement+ ;
 selection_statement :  KWIf LeftParen condition RightParen statement |  KWIf LeftParen condition RightParen statement KWElse statement |  KWSwitch LeftParen condition RightParen statement ;
 condition :  expression |  attribute_specifier_seq ? decl_specifier_seq declarator Assign initializer_clause |  attribute_specifier_seq ? decl_specifier_seq declarator braced_init_list ;
-
 iteration_statement :  KWWhile LeftParen condition RightParen statement |  KWDo statement KWWhile LeftParen expression RightParen Semi |  KWFor LeftParen for_init_statement condition ? Semi expression ? RightParen statement |  KWFor LeftParen for_range_declaration Colon for_range_initializer RightParen statement ;
 for_init_statement :  expression_statement |  simple_declaration ;
 for_range_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator ;
 for_range_initializer :  expression |  braced_init_list ;
 jump_statement :  KWBreak Semi |  KWContinue Semi |  KWReturn expression ? Semi |  KWReturn braced_init_list Semi |  KWGoto Identifier Semi ;
 declaration_statement :  block_declaration ;
-
 declaration_seq :  declaration+ ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
@@ -132,7 +120,6 @@ alias_declaration :  KWUsing Identifier attribute_specifier_seq ? Assign type_id
 simple_declaration :  decl_specifier_seq ? init_declarator_list ? Semi |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi ;
 static_assert_declaration :  KWStatic_assert LeftParen constant_expression Comma String_literal RightParen Semi ;
 empty_declaration :  Semi ;
-
 attribute_declaration :  attribute_specifier_seq Semi ;
 decl_specifier :  storage_class_specifier |  type_specifier |  function_specifier |  KWFriend |  KWTypedef |  KWConstexpr ;
 decl_specifier_seq :  decl_specifier* (  decl_specifier attribute_specifier_seq ? ) ;
@@ -143,7 +130,6 @@ type_specifier :  trailing_type_specifier |  class_specifier |  enum_specifier ;
 trailing_type_specifier :  simple_type_specifier |  elaborated_type_specifier |  typename_specifier |  cv_qualifier ;
 type_specifier_seq :  type_specifier* (  type_specifier attribute_specifier_seq ? ) ;
 trailing_type_specifier_seq :  trailing_type_specifier* (  trailing_type_specifier attribute_specifier_seq ? ) ;
-
 simple_type_specifier :  nested_name_specifier ? type_name |  nested_name_specifier KWTemplate simple_template_id |  KWChar |  KWChar16 |  KWChar32 |  KWWchar |  KWBool |  KWShort |  KWInt |  KWLong |  KWSigned |  KWUnsigned |  KWFloat |  KWDouble |  KWVoid |  KWAuto |  decltype_specifier ;
 type_name :  class_name |  enum_name |  typedef_name |  simple_template_id ;
 decltype_specifier :  KWDecltype LeftParen expression RightParen |  KWDecltype LeftParen KWAuto RightParen ;
@@ -156,7 +142,6 @@ enum_key :  KWEnum |  KWEnum KWClass |  KWEnum KWStruct ;
 enum_base :  Colon type_specifier_seq ;
 enumerator_list :  enumerator_definition ( Comma enumerator_definition )* ;
 enumerator_definition :  enumerator |  enumerator Assign constant_expression ;
-
 enumerator :  Identifier ;
 // namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  Identifier ;
@@ -178,14 +163,12 @@ attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket Right
 alignment_specifier :  KWAlignas LeftParen type_id Ellipsis ? RightParen |  KWAlignas LeftParen constant_expression Ellipsis ? RightParen ;
 attribute_list : (  attribute ? |  attribute Ellipsis ) ( Comma attribute ? | Comma attribute Ellipsis )* ;
 attribute :  attribute_token attribute_argument_clause ? ;
-
 attribute_token :  Identifier |  attribute_scoped_token ;
 attribute_scoped_token :  attribute_namespace Doublecolon Identifier ;
 attribute_namespace :  Identifier ;
 attribute_argument_clause :  LeftParen balanced_token_seq RightParen ;
 balanced_token_seq :  balanced_token ? balanced_token* ;
 balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balanced_token_seq RightBracket |  LeftBrace balanced_token_seq RightBrace |  'any token other than a parenthesis, a bracket, or a brace' ;
-
 init_declarator_list :  init_declarator ( Comma init_declarator )* ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
@@ -197,7 +180,6 @@ ptr_operator :  Star attribute_specifier_seq ? cv_qualifier_seq ? |  And attribu
 cv_qualifier_seq :  cv_qualifier* ;
 cv_qualifier :  KWConst |  KWVolatile ;
 ref_qualifier :  And |  AndAnd ;
-
 declarator_id :  Ellipsis ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
@@ -214,9 +196,7 @@ initializer :  brace_or_equal_initializer |  LeftParen expression_list RightPare
 brace_or_equal_initializer :  Assign initializer_clause |  braced_init_list ;
 initializer_clause :  assignment_expression |  braced_init_list ;
 initializer_list : (  initializer_clause Ellipsis ? ) ( Comma initializer_clause Ellipsis ? )* ;
-
 braced_init_list :  LeftBrace initializer_list Comma ? RightBrace |  LeftBrace RightBrace ;
-
 class_name :  Identifier |  simple_template_id ;
 class_specifier :  class_head LeftBrace member_specification ? RightBrace ;
 class_head :  class_key attribute_specifier_seq ? class_head_name class_virt_specifier ? base_clause ? |  class_key attribute_specifier_seq ? base_clause ? ;
@@ -230,15 +210,12 @@ member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declara
 virt_specifier_seq :  virt_specifier+ ;
 virt_specifier :  KWOverride |  KWFinal ;
 pure_specifier :  Assign Octal_literal ;
-
 base_clause :  Colon base_specifier_list ;
-
 base_specifier_list : (  base_specifier Ellipsis ? ) ( Comma base_specifier Ellipsis ? )* ;
 base_specifier :  attribute_specifier_seq ? base_type_specifier |  attribute_specifier_seq ? KWVirtual access_specifier ? base_type_specifier |  attribute_specifier_seq ? access_specifier KWVirtual ? base_type_specifier ;
 class_or_decltype :  nested_name_specifier ? class_name |  decltype_specifier ;
 base_type_specifier :  class_or_decltype ;
 access_specifier :  KWPrivate |  KWProtected |  KWPublic ;
-
 conversion_function_id :  KWOperator conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator* ;
@@ -246,12 +223,9 @@ ctor_initializer :  Colon mem_initializer_list ;
 mem_initializer_list : (  mem_initializer Ellipsis ? Comma )* (  mem_initializer Ellipsis ? ) ;
 mem_initializer :  mem_initializer_id LeftParen expression_list ? RightParen |  mem_initializer_id braced_init_list ;
 mem_initializer_id :  class_or_decltype |  Identifier ;
-
 operator_function_id :  KWOperator operator ;
 operator :  KWNew | KWDelete | KWNew LeftBracket RightBracket | KWDelete LeftBracket RightBracket | Plus | Minus | Star | Div | Mod | Caret | And | Or | Tilde | Not | Assign | Less | Greater | PlusAssign | MinusAssign | StarAssign | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShift | RightShift | RightShiftAssign | LeftShiftAssign | Equal | NotEqual | LessEqual | GreaterEqual | AndAnd | OrOr | PlusPlus | MinusMinus | Comma | ArrowStar | Arrow | LeftParen RightParen | LeftBracket RightBracket ;
 literal_operator_id :  KWOperator String_literal Identifier |  KWOperator User_defined_string_literal ;
-
-
 template_declaration :  KWTemplate Less template_parameter_list Greater declaration ;
 template_parameter_list :  template_parameter ( Comma template_parameter )* ;
 template_parameter :  type_parameter |  parameter_declaration ;
@@ -264,19 +238,16 @@ template_argument :  constant_expression |  type_id |  id_expression ;
 typename_specifier :  KWTypename_ nested_name_specifier Identifier |  KWTypename_ nested_name_specifier KWTemplate ? simple_template_id ;
 explicit_instantiation :  KWExtern ? KWTemplate declaration ;
 explicit_specialization :  KWTemplate Less Greater declaration ;
-
 try_block :  KWTry compound_statement handler_seq ;
 function_try_block :  KWTry ctor_initializer ? compound_statement handler_seq ;
 handler_seq :  handler* ;
 handler :  KWCatch LeftParen exception_declaration RightParen compound_statement ;
 exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  Ellipsis ;
-
 throw_expression :  KWThrow assignment_expression ? ;
 exception_specification :  dynamic_exception_specification |  noexcept_specification ;
 dynamic_exception_specification :  KWThrow LeftParen type_id_list ? RightParen ;
 type_id_list : (  type_id Ellipsis ? ) ( Comma type_id Ellipsis ? )* ;
 noexcept_specification :  KWNoexcept LeftParen constant_expression RightParen |  KWNoexcept ;
-
 preprocessing_file :  group ? EOF ;
 group :  group_part+ ;
 group_part :  if_section |  control_line |  text_line |  Pound non_directive ;
@@ -288,11 +259,9 @@ else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound 'endif' new_line ;
 control_line :  Pound 'include' pp_tokens new_line |  Pound 'define' Identifier replacement_list new_line |  Pound 'define' Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound 'define' Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound 'define' Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound 'undef' Identifier new_line |  Pound 'line' pp_tokens new_line |  Pound 'error' pp_tokens ? new_line |  Pound 'pragma' pp_tokens ? new_line |  Pound new_line ;
 text_line :  pp_tokens ? new_line ;
-
 non_directive :  pp_tokens new_line ;
 lparen :  'a ( character not immediately preceded by white_space' ;
 identifier_list :  Identifier ( Comma Identifier )* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+ ;
 new_line :  'the new_line character' ;
-
