@@ -147,10 +147,10 @@ trparse "$name"Parser.g4 | \
 	trfoldlit | \
 	trsponge -c true
 
-
 trparse "$name"Lexer.g4 | \
-	trmove -a "//ruleSpec[lexerRuleSpec/FRAGMENT]" "//grammarSpec/grammarDecl/SEMI" | \
+	trmove "//ruleSpec[lexerRuleSpec/FRAGMENT]" "(//ruleSpec)[1]" | \
 	trsponge -c true
+
 
 exit 0
 

@@ -38,7 +38,9 @@ Published in Switzerland
 
 */
 
-lexer grammar CPlusPlus14Lexer;
+lexer grammar CPlusPlus14Lexer; 
+options { superClass=LexerBase; }
+tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
 
 
@@ -79,8 +81,7 @@ fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_cha
 fragment FR_char_sequence :  FR_char+ ;
 fragment FR_char :  ~[)\"] ;
 fragment FD_char_sequence :  FD_char+ ;
-fragment FD_char :  ~[ ()\\\r\n\t\u000B] ; 
-
+fragment FD_char :  ~[ ()\\\r\n\t\u000B] ;
 KWAlignas: 'alignas';
 KWAlignof: 'alignof';
 KWAnd: 'and';
