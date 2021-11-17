@@ -4,7 +4,6 @@ options { superClass=LexerBase; }
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
 KWGnuAttribute: '__attribute__';
-
 KWAlignas: 'alignas';
 KWAlignof: 'alignof'
 // GNU
@@ -153,7 +152,7 @@ Question: '?';
 RightBrace: '}';
 RightBracket: ']';
 RightParen: ')';
-//RightShift: '>>';
+// RightShift: '>>';
 RightShiftAssign: '>>=';
 Semi: ';';
 Star: '*';
@@ -228,7 +227,6 @@ mode PP;
 
 PPCOMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
 PPML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
-
 PPKWAnd: 'and' -> type(KWAnd);
 PPKWAndEq: 'and_eq' -> type(KWAndEq);
 PPKWBitAnd: 'bitand' -> type(KWBitAnd);
@@ -268,7 +266,6 @@ Header_name :  ( '<' H_char_sequence '>' |  '"' Q_char_sequence '"' ) -> type(St
 PPEOL: [\r\n]+ -> type(Newline);
 PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);
-
 PPLeftBrace: '{' -> type(LeftBrace);
 PPRightBrace: '}' -> type(RightBrace);
 PPLeftBracket: '[' -> type(LeftBracket);
@@ -326,9 +323,7 @@ PPComma: ',' -> type(Comma);
 PPArrow: '->' -> type(Arrow);
 PPArrowStar: '->*' -> type(ArrowStar);
 PPNotEqual: '!=' -> type(NotEqual);
-
 PPContinue : [\\][\r\n]+ -> channel(HIDDEN);
 PPString_literal : ( FEncoding_prefix ? '"' FS_char_sequence ? '"' | FEncoding_prefix ? 'R' FRaw_string ) -> type(String_literal) ;
 PPCharacter_literal :  ( FEncoding_prefix ? '\'' FC_char_sequence '\'' ) -> type(Character_literal) ;
-
 PPAny : .;

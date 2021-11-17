@@ -148,9 +148,32 @@ trparse "$name"Parser.g4 | \
 	trsponge -c true
 
 trparse "$name"Lexer.g4 | \
+	trinsert "//lexerRuleSpec[TOKEN_REF/text()='FUd_suffix']" "fragment" | \
 	trmove "//ruleSpec[lexerRuleSpec/FRAGMENT]" "(//ruleSpec)[1]" | \
 	trsponge -c true
 
+# The typedef_name and namespace_name rules are not used in parsing.
+# Comment out these two productions.
+# These are done after splitting so that the comments go to the parser.
+echo ""
+echo "Comment lexer productions."
+trparse "$name"Lexer.g4 | \
+	trinsert "//lexerRuleSpec[TOKEN_REF/text()='RightShift']" "//" | \
+	trsponge -c true
+
+echo ""
+echo "Fix FUd_suffix"
+trparse "$name"Lexer.g4 | \
+	trsponge -c true
+
+cat addin2 >> "$name"Lexer.g4
+cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4
+mv temp."$name"Lexer.g4 "$name"Lexer.g4
+
+trparse "$name"Lexer.g4 | \
+	trmove -a "//lexerRuleSpec[TOKEN_REF[text()='Header_name']]" "//lexerRuleSpec[TOKEN_REF[text()='Pp_number']]" | \
+	trinsert "//lexerRuleSpec[TOKEN_REF[text()='Header_name']]/SEMI" " -> type(String_literal)" | \
+	trsponge -c true
 
 exit 0
 

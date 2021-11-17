@@ -4,10 +4,16 @@ tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWE
 
 KWGnuAttribute: '__attribute__';
 KWAlignas: 'alignas';
-KWAlignof: 'alignof';
+KWAlignof: 'alignof'
+// GNU
+| '__alignof__'
+;
 KWAnd: 'and';
 KWAndEq: 'and_eq';
-KWAsm: 'asm';
+KWAsm: 'asm'
+// GNU
+ | '__asm__'
+;
 KWAuto: 'auto';
 KWBitAnd: 'bitand';
 KWBitOr: 'bitor';
@@ -77,7 +83,11 @@ KWThrow: 'throw';
 KWTrue_: 'true';
 KWTry: 'try';
 KWTypedef: 'typedef';
-KWTypeid_: 'typeid';
+KWTypeid_: 'typeid'
+// GNU
+| '__typeof__'
+| '__typeof'
+;
 KWTypename_: 'typename';
 KWUnion: 'union';
 KWUnsigned: 'unsigned';
