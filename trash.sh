@@ -141,12 +141,6 @@ trparse "$name"Lexer.g4 | \
 cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4
 mv temp."$name"Lexer.g4 "$name"Lexer.g4
 
-echo ""
-echo "Folding lexer symbols"
-trparse "$name"Parser.g4 | \
-	trfoldlit | \
-	trsponge -c true
-
 trparse "$name"Lexer.g4 | \
 	trinsert "//lexerRuleSpec[TOKEN_REF/text()='FUd_suffix']" "fragment" | \
 	trmove "//ruleSpec[lexerRuleSpec/FRAGMENT]" "(//ruleSpec)[1]" | \
@@ -175,12 +169,8 @@ trparse "$name"Lexer.g4 | \
 	trinsert "//lexerRuleSpec[TOKEN_REF[text()='Header_name']]/SEMI" " -> type(String_literal)" | \
 	trsponge -c true
 
-exit 0
-
 echo ""
-echo "For now, we comment out preprocessing rules until we know what to do."
-trparse Scrape.g4 | \
-	trinsert "//ruleSpec/parserRuleSpec/RULE_REF[text()='preprocessing_token' or text()='token' or text()='pp_number' or text()='preprocessing_file' or text()='group' or text()='group_part' or text()='if_section' or text()='if_group' or text()='elif_groups' or text()='elif_group' or text()='else_group' or text()='endif_line' or text()='control_line' or text()='text_line' or text()='non_directive' or text()='lparen' or text()='replacement_list' or text()='pp_tokens' or text()='new_line']" '// ' | \
+echo "Folding lexer symbols"
+trparse "$name"Parser.g4 | \
+	trfoldlit | \
 	trsponge -c true
-
-	
