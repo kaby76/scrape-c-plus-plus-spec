@@ -95,6 +95,10 @@ trparse $name.g4 | \
 	trsplit | \
 	trsponge -c true
 
+echo ""
+echo Removing $name.g4 because it is no longer needed. Use "$name"Lexer.g4 and "$name"Parser.g4
+rm -f $name.g4
+
 # The typedef_name and namespace_name rules are not used in parsing.
 # Comment out these two productions.
 # These are done after splitting so that the comments go to the parser.
