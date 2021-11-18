@@ -133,7 +133,13 @@ rm -f $name.g4
 echo ""
 echo "Comment keyword productions."
 trparse "$name"Parser.g4 | \
-	trinsert "//parserRuleSpec[RULE_REF/text()='typedef_name' or RULE_REF/text()='namespace_name']" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='enum_name'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='original_namespace_name'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='namespace_alias'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='class_name'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='template_name'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='typedef_name'])[1]" "//" | \
+	trinsert "(//parserRuleSpec[RULE_REF/text()='namespace_name'])[1]" "//" | \
 	trsponge -c true
 
 # This has to be done in order for tr
