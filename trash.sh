@@ -7,6 +7,10 @@ echo "Building scraper and generating a grammar from scratch."
 name=CPlusPlus14
 grep -v '^//' scraper/c++14.g4 > ./$name.g4
 
+cat addin3 >> "$name".g4
+cat "$name".g4 | unix2dos -f > temp."$name".g4
+mv temp."$name".g4 "$name".g4
+
 # Rename grammar as this is a prerequisite for splitting.
 trparse $name.g4 | \
 	trreplace "/grammarSpec/grammarDecl/identifier/TOKEN_REF[text()='Scrape']" "$name" | \
@@ -46,47 +50,40 @@ trparse $name.g4 | \
 
 echo ""
 echo "Taking care of several string literals"
-echo 1
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set except new_line and >''']" "~[ <\t\n>]" | \
 	trsponge -c true
-echo 2
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set except new_line and \"''']" '~[ \t\n"]' | \
 	trsponge -c true
-echo 3
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set except the single_quote \\'', backslash \\\\, or new_line character''']" "~['\\\r\n]" | \
 	trsponge -c true
-echo 4
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote \".''']"  '~[)"]' | \
 	trsponge -c true
-echo 5
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\\\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.''']"  '~[ ()\\\r\n\t\u000B]' | \
 	trsponge -c true
-echo 6
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''each non_white_space character that cannot be one of the above''']"  '~Newline' | \
 	trsponge -c true
-echo 7
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''>>''']"  'Greater Greater' | \
 	trsponge -c true
-echo 8
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''typeid''']"  'KWTypeid_' | \
 	trsponge -c true
-echo 9
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''alignof''']"  'KWAlignof' | \
 	trsponge -c true
-echo 9
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''asm''']"  'KWAsm' | \
 	trsponge -c true
-	
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''the new_line character''']"  'Newline' | \
+	trsponge -c true
+
 echo ""
 echo "Adding 'fragment' to selected lexer rules."
 trparse $name.g4 | \
