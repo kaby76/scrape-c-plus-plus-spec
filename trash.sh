@@ -89,6 +89,9 @@ trparse $name.g4 | \
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any token other than a parenthesis, a bracket, or a brace''']"  "~('(' | ')' | '{' | '}' | '[' | ']')+" | \
 	trsponge -c true
+trparse $name.g4 | \
+	trreplace "//ruleSpec/parserRuleSpec[RULE_REF[text()='pp_number']]" "pp_number : Floating_literal;" | \
+	trsponge -c true
 
 	
 echo ""

@@ -50,7 +50,7 @@ enum_name :  Identifier ;
 template_name :  Identifier ;
 preprocessing_token :  FHeader_name |  Identifier |  pp_number |  Character_literal |  User_defined_character_literal |  String_literal |  User_defined_string_literal |  preprocessing_op_or_punc |  ~Newline ;
 token :  Identifier |  keyword |  literal |  operator |  punctuator ;
-pp_number : (  FDigit |  Dot FDigit ) ( FDigit | '\'' FDigit | '\'' FNondigit | FIdentifier_nondigit | 'e' FSign | 'E' FSign | Dot )* ;
+pp_number : Floating_literal;
 preprocessing_op_or_punc :  LeftBrace | RightBrace | LeftBracket | RightBracket | Pound | PoundPound | LeftParen | RightParen | LtColon | ColonGt | LtPer | PerGt | PerColon | PerColonPerColon | Semi | Colon | Ellipsis | KWNew | KWDelete | Question | Doublecolon | Dot | DotStar | Plus | Minus | Star | Div | Mod | Caret | And | Or | Tilde | Not | Assign | Less | Greater | PlusAssign | MinusAssign | StarAssign | DivAssign | ModAssign | XorAssign | AndAssign | OrAssign | LeftShift | Greater Greater | RightShiftAssign | LeftShiftAssign | Equal | NotEqual | LessEqual | GreaterEqual | AndAnd | OrOr | PlusPlus | MinusMinus | Comma | ArrowStar | Arrow | KWAnd | KWAndEq | KWBitAnd | KWBitOr | KWCompl | KWNot | KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
 literal :  Integer_literal |  Character_literal |  Floating_literal |  String_literal |  boolean_literal |  pointer_literal |  User_defined_literal ;
 boolean_literal :  KWFalse_ |  KWTrue_ ;
