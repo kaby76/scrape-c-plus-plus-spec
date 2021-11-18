@@ -168,7 +168,7 @@ attribute_scoped_token :  attribute_namespace Doublecolon Identifier ;
 attribute_namespace :  Identifier ;
 attribute_argument_clause :  LeftParen balanced_token_seq RightParen ;
 balanced_token_seq :  balanced_token ? balanced_token* ;
-balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balanced_token_seq RightBracket |  LeftBrace balanced_token_seq RightBrace |  'any token other than a parenthesis, a bracket, or a brace' ;
+balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balanced_token_seq RightBracket |  LeftBrace balanced_token_seq RightBrace |  ~(LeftParen | RightParen | LeftBrace | RightBrace | LeftBracket | RightBracket)+ ;
 init_declarator_list :  init_declarator ( Comma init_declarator )* ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
