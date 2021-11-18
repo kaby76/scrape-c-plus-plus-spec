@@ -44,6 +44,7 @@ tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWE
 
 fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
 fragment FUniversal_character_name :  '\\u' FHex_quad |  '\\U' FHex_quad FHex_quad ;
+fragment FHeader_name :  '<' FH_char_sequence '>' |  '"' FQ_char_sequence '"' ;
 fragment FH_char_sequence :  FH_char+ ;
 fragment FH_char :  ~[ <\t\n>] ;
 fragment FQ_char_sequence :  FQ_char+ ;
@@ -75,7 +76,7 @@ fragment FS_char_sequence :  FS_Char+ ;
 fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' |  FEscape_sequence |  FUniversal_character_name ;
 fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
 fragment FR_char_sequence :  FR_char+ ;
-fragment FR_char :  ~[)\"] ;
+fragment FR_char :  ~[)"] ;
 fragment FD_char_sequence :  FD_char+ ;
 fragment FD_char :  ~[ ()\\\r\n\t\u000B] ;
 fragment FUd_suffix :  Identifier ;
@@ -290,7 +291,7 @@ PPKWUndef: 'undef' -> type(KWUndef);
 PPKWXor: 'xor' -> type(KWXor);
 PPKWXorEq: 'xor_eq' -> type(KWXorEq);
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
-Header_name :  '<' FH_char_sequence '>' |  '"' FQ_char_sequence '"'  -> type(String_literal) ;
+Header_name : FHeader_name -> type(String_literal);
 PPEOL: [\r\n]+ -> type(Newline);
 PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);

@@ -38,6 +38,7 @@ PPKWUndef: 'undef' -> type(KWUndef);
 PPKWXor: 'xor' -> type(KWXor);
 PPKWXorEq: 'xor_eq' -> type(KWXorEq);
 Pp_number : (  FDigit |  '.' FDigit ) ( FDigit | FIdentifier_nondigit | '\'' FDigit | '\'' FNondigit | 'e' FSign | 'E' FSign | '.' ) * -> type(Floating_literal) ;
+Header_name : FHeader_name -> type(String_literal);
 PPEOL: [\r\n]+ -> type(Newline);
 PPWS : [\t ]+ -> channel(HIDDEN);
 PPIdentifier : (  FIdentifier_nondigit ) ( FIdentifier_nondigit | FDigit ) * -> type(Identifier);

@@ -641,6 +641,30 @@ Published in Switzerland
                     Version.iso_cpp_20 => 0,
                     _ => 1
                 });
+            FixupOutput(ref output, @"'::' |  '~' |",
+                                    @"'::' '~'",
+                version switch
+                {
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 2,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
+                    _ => 1
+                });
+            FixupOutput(ref output, @"'nested_name_specifier ?~' |",
+                                    @"nested_name_specifier ? '~'",
+                version switch
+                {
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
+                    _ => 1
+                });
 
             // Section 5
 

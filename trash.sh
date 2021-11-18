@@ -38,9 +38,10 @@ trparse $name.g4 | \
 	trrename -r 'universal_character_name,FUniversal_character_name;hex_quad,FHex_quad;hexadecimal_digit,FHexadecimal_digit;binary_digit,FBinary_digit;octal_digit,FOctal_digit;nonzero_digit,FNonzero_digit;unsigned_suffix,FUnsigned_suffix;long_suffix,FLong_suffix;long_long_suffix,FLong_long_suffix;encoding_prefix,FEncoding_prefix' | \
 	trrename -r 'sign,FSign;exponent_part,FExponent_part;digit_sequence,FDigit_sequence;fractional_constant,FFractional_constant;hexadecimal_escape_sequence,FHexadecimal_escape_sequence;octal_escape_sequence,FOctal_escape_sequence;simple_escape_sequence,FSimple_escape_sequence;escape_sequence,FEscape_sequence;c_char,FC_char;c_char_sequence,FC_char_sequence;digit,FDigit;nondigit,FNondigit;floating_suffix,FFloating_suffix;integer_suffix,FInteger_suffix' | \
 	trrename -r 'h_char_sequence,FH_char_sequence;h_char,FH_char;q_char_sequence,FQ_char_sequence;q_char,FQ_char;s_char,FS_Char;s_char_sequence,FS_char_sequence;r_char,FR_char;r_char_sequence,FR_char_sequence;d_char,FD_char;d_char_sequence,FD_char_sequence' | \
-	trrename -r 'header_name,Header_name' | \
+	trrename -r 'header_name,FHeader_name' | \
 	trrename -r 'identifier,Identifier;identifier_nondigit,FIdentifier_nondigit' | \
 	trrename -r 'raw_string,FRaw_string' | \
+	trrename -r 'asdf,Aasdf' | \
 	trsponge -c true
 
 echo ""
@@ -51,7 +52,7 @@ trparse $name.g4 | \
 	trsponge -c true
 echo 2
 trparse $name.g4 | \
-	trreplace "//STRING_LITERAL[text()='''any member of the source character set except new_line and \"''']" "~[ \t\n\"]" | \
+	trreplace "//STRING_LITERAL[text()='''any member of the source character set except new_line and \"''']" '~[ \t\n"]' | \
 	trsponge -c true
 echo 3
 trparse $name.g4 | \
@@ -59,13 +60,33 @@ trparse $name.g4 | \
 	trsponge -c true
 echo 4
 trparse $name.g4 | \
-	trreplace "//STRING_LITERAL[text()='''any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote \".''']"  '~[)\"]' | \
+	trreplace "//STRING_LITERAL[text()='''any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote \".''']"  '~[)"]' | \
 	trsponge -c true
 echo 5
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the basic source character set except: space, the left parenthesis (, the right parenthesis ), the backslash \\\\, and the control characters representing horizontal tab, vertical tab, form feed, and newline.''']"  '~[ ()\\\r\n\t\u000B]' | \
 	trsponge -c true
-
+echo 6
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''each non_white_space character that cannot be one of the above''']"  '~Newline' | \
+	trsponge -c true
+echo 7
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''>>''']"  'Greater Greater' | \
+	trsponge -c true
+echo 8
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''typeid''']"  'KWTypeid_' | \
+	trsponge -c true
+echo 9
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''alignof''']"  'KWAlignof' | \
+	trsponge -c true
+echo 9
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''asm''']"  'KWAsm' | \
+	trsponge -c true
+	
 echo ""
 echo "Adding 'fragment' to selected lexer rules."
 trparse $name.g4 | \
@@ -73,7 +94,7 @@ trparse $name.g4 | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FSign' or text()='FExponent_part' or text()='FDigit_sequence' or text()='FFractional_constant' or text()='FOctal_escape_sequence' or text()='FSimple_escape_sequence' or text()='FEscape_sequence' or text()='FC_char' or text()='FDigit' or text()='FNondigit' or text()='FFloating_suffix' or text()='FInteger_suffix']" "fragment" | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FC_char_sequence' or text()='FHexadecimal_escape_sequence']" "fragment" | \
 	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FH_char_sequence' or text()='FH_char' or text()='FQ_char_sequence' or text()='FQ_char' or text()='FS_Char' or text()='FS_char_sequence' or text()='FR_char' or text()='FR_char_sequence' or text()='FD_char' or text()='FD_char_sequence']" "fragment" | \
-	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FRaw_string']" "fragment" | \
+	trinsert "//ruleSpec/lexerRuleSpec/TOKEN_REF[text()='FRaw_string' or text()='FHeader_name']" "fragment" | \
 	trsponge -c true
 
 echo ""
@@ -167,11 +188,6 @@ trparse "$name"Lexer.g4 | \
 cat addin2 >> "$name"Lexer.g4
 cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4
 mv temp."$name"Lexer.g4 "$name"Lexer.g4
-
-trparse "$name"Lexer.g4 | \
-	trmove -a "//lexerRuleSpec[TOKEN_REF[text()='Header_name']]" "//lexerRuleSpec[TOKEN_REF[text()='Pp_number']]" | \
-	trinsert "//lexerRuleSpec[TOKEN_REF[text()='Header_name']]/SEMI" " -> type(String_literal)" | \
-	trsponge -c true
 
 echo ""
 echo "Folding lexer symbols"
