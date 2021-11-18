@@ -260,7 +260,7 @@ endif_line :  Pound PPKWEndif new_line ;
 control_line :  Pound PPKWInclude pp_tokens new_line |  Pound PPKWDefine Identifier replacement_list new_line |  Pound PPKWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound PPKWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound PPKWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound PPKWUndef Identifier new_line |  Pound PPKWLine pp_tokens new_line |  Pound PPKWError pp_tokens ? new_line |  Pound PPKWPragma pp_tokens ? new_line |  Pound new_line ;
 text_line :  pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
-lparen :  'a ( character not immediately preceded by white_space' ;
+lparen :  LeftParen ;
 identifier_list :  Identifier ( Comma Identifier )* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+ ;

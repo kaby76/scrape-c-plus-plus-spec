@@ -83,6 +83,9 @@ trparse $name.g4 | \
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''the new_line character''']"  'Newline' | \
 	trsponge -c true
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''a ( character not immediately preceded by white_space''']"  "'('" | \
+	trsponge -c true
 
 echo ""
 echo "Adding 'fragment' to selected lexer rules."
