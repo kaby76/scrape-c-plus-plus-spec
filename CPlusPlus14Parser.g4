@@ -265,5 +265,8 @@ identifier_list :  Identifier ( Comma Identifier )* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+ ;
 new_line :  Newline ;
+
+// Defs from "addin3".
+
 keyword : KWAlignas | KWContinue | KWFriend | KWRegister | KWTrue_ | KWAlignof | KWDecltype | KWGoto | KWReinterpret_cast | KWTry | KWAsm | KWDefault | KWIf | KWReturn | KWTypedef | KWAuto | KWDelete | KWInline | KWShort | KWTypeid_ | KWBool | KWDo | KWInt | KWSigned | KWTypename_ | KWBreak | KWDouble | KWLong | KWSizeof | KWUnion | KWCase | KWDynamic_cast | KWMutable | KWStatic | KWUnsigned | KWCatch | KWElse | KWNamespace | KWStatic_assert | KWUsing | KWChar | KWEnum | KWNew | KWStatic_cast | KWVirtual | KWChar16 | KWExplicit | KWNoexcept | KWStruct | KWVoid | KWChar32 | KWExport | KWNullptr | KWSwitch | KWVolatile | KWClass | KWExtern | KWOperator | KWTemplate | KWWchar | KWConst | KWFalse_ | KWPrivate | KWThis | KWWhile | KWConstexpr | KWFloat | KWProtected | KWThread_local | KWConst_cast | KWFor | KWPublic | KWThrow | KWAnd | KWAndEq | KWBitAnd | KWBitOr | KWCompl | KWNot | KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
 punctuator : preprocessing_op_or_punc ;

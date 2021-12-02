@@ -315,5 +315,8 @@ identifier_list :  Identifier ( ',' Identifier )* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+ ;
 new_line :  Newline ;
+
+// Defs from "addin3".
+
 keyword : 'alignas' | 'continue' | 'friend' | 'register' | 'true' | KWAlignof | 'decltype' | 'goto' | 'reinterpret_cast' | 'try' | KWAsm | 'default' | 'if' | 'return' | 'typedef' | 'auto' | 'delete' | 'inline' | 'short' | KWTypeid_ | 'bool' | 'do' | 'int' | 'signed' | 'typename' | 'break' | 'double' | 'long' | 'sizeof' | 'union' | 'case' | 'dynamic_cast' | 'mutable' | 'static' | 'unsigned' | 'catch' | 'else' | 'namespace' | 'static_assert' | 'using' | 'char' | 'enum' | 'new' | 'static_cast' | 'virtual' | 'char16_t' | 'explicit' | 'noexcept' | 'struct' | 'void' | 'char32_t' | 'export' | 'nullptr' | 'switch' | 'volatile' | 'class' | 'extern' | 'operator' | 'template' | 'wchar_t' | 'const' | 'false' | 'private' | 'this' | 'while' | 'constexpr' | 'float' | 'protected' | 'thread_local' | 'const_cast' | 'for' | 'public' | 'throw' | 'and' | 'and_eq' | 'bitand' | 'bitor' | 'compl' | 'not' | 'not_eq' | 'or' | 'or_eq' | 'xor' | 'xor_eq' ;
 punctuator : preprocessing_op_or_punc ;
