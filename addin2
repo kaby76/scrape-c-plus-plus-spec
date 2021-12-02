@@ -1,3 +1,6 @@
+
+// Defs from "addin2".
+
 WS : [\n\r\t ]+ -> channel(HIDDEN);
 //Newline: [\n\r];
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
