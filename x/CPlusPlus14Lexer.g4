@@ -39,7 +39,10 @@ Published in Switzerland
 */
 
 lexer grammar CPlusPlus14Lexer; 
+// Defs from "addin".
+
 options { superClass=LexerBase; }
+
 tokens { KWDefine, KWDefined, KWInclude, KWUndef, KWIfndef, KWIfdef, KWElse, KWEndif, KWIf, KWPragma, KWElif, KWLine, KWError, KWWarning, Newline }
 
 fragment FHex_quad :  FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit FHexadecimal_digit ;
@@ -251,6 +254,9 @@ User_defined_integer_literal :  Decimal_literal FUd_suffix |  Octal_literal FUd_
 User_defined_floating_literal :  FFractional_constant FExponent_part ? FUd_suffix |  FDigit_sequence FExponent_part FUd_suffix ;
 User_defined_string_literal :  String_literal FUd_suffix ;
 User_defined_character_literal :  Character_literal FUd_suffix ;
+
+// Defs from "addin2".
+
 WS : [\n\r\t ]+ -> channel(HIDDEN);
 //Newline: [\n\r];
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);

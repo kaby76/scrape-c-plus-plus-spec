@@ -85,8 +85,8 @@ namespace Test
         public override IParseTree VisitPostfix_expression([NotNull] CPlusPlus14Parser.Postfix_expressionContext context)
         {
             // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
+            // postfix_expression : (  primary_expression |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ) ( LeftBracket expression RightBracket | LeftBracket braced_init_list RightBracket | LeftParen expression_list ? RightParen | Dot KWTemplate ? id_expression | Arrow KWTemplate ? id_expression | Dot pseudo_destructor_name | Arrow pseudo_destructor_name | PlusPlus | MinusMinus )* ;
             var pri = context.primary_expression();
-            var post = context.postfix_expression();
             var exp = context.expression();
             var exp_list = context.expression_list();
             var simp_type = context.simple_type_specifier();
@@ -95,15 +95,15 @@ namespace Test
             {
                 Visit(pri);
             }
-            else if (post != null && exp_list != null)
+            else if (typename != null && exp_list != null)
             {
                 //Visit(post);
                 //Visit(exp_list);
                 // Find post in symbol table.
                 // Symbol is actually unevaluated.
-                var s = post.GetText();
+                var s = typename.GetText();
                 //var s = v.ToString();
-                var replace = EvalExpr(s, exp_list);
+                var replace = EvalExpr(s, exp_list.First());
                 if (replace != null)
                 {
                     _rewriter.Replace(context.Start, context.Stop, replace);

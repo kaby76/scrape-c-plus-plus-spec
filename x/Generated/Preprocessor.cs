@@ -225,8 +225,8 @@ namespace Test
                                         {
                                             if (_noisy) System.Console.Error.WriteLine("Input reparse and expand " + todo);
                                             var str = new AntlrInputStream(todo);
-                                            var lexer = new Cpp14Lexer(str);
-                                            lexer.PushMode(Cpp14Lexer.PP);
+                                            var lexer = new CPlusPlus14Lexer(str);
+                                            lexer.PushMode(CPlusPlus14Lexer.PP);
                                             var tokens = new CommonTokenStream(lexer);
                                             var parser = new CPlusPlus14Parser(tokens);
                                             var listener_lexer = new ErrorListener<int>(true);
@@ -292,90 +292,117 @@ namespace Test
 
         public override IParseTree VisitIf_section([NotNull] CPlusPlus14Parser.If_sectionContext context)
         {
-            // if_section: (Pound KWIf constant_expression new_line group ? | Pound KWIfdef Identifier new_line group ? | Pound KWIfndef Identifier new_line group ? ) elif_groups? else_group ? endif_line;
-            var type_if = context.KWIf();
-            var type_ifdef = context.KWIfdef();
-            var type_ifndef = context.KWIfndef();
-            var test = context.constant_expression();
-            var group = context.group();
+            var if_group = context.if_group();
+            VisitIf_group(if_group);
+            var test = if_group.constant_expression();
+            var st = test.GetText();
+            Visit(test);
+            var v = _state[test];
+            ConvertToBool(v, out bool b);
+            _state[context] = b;
             var elif = context.elif_groups();
             var els = context.else_group();
-            if (type_if != null)
+            if (elif != null && !b)
             {
-                var st = test.GetText();
-                Visit(test);
-                var v = _state[test];
-                ConvertToBool(v, out bool b);
+                Visit(elif);
+                var v2 = _state[elif];
+                ConvertToBool(v2, out bool b2);
+                b = b2;
                 _state[context] = b;
-                if (b)
-                {
-                    Visit(group);
-                }
-                if (elif != null && !b)
-                {
-                    Visit(elif);
-                    var v2 = _state[elif];
-                    ConvertToBool(v2, out bool b2);
-                    b = b2;
-                    _state[context] = b;
-                }
-                if (els != null && !b)
-                {
-                    Visit(els);
-                    //var v3 = state[els];
-                    //state[context] = v3;
-                }
             }
-            else if (type_ifdef != null)
+            if (els != null && !b)
             {
-                var id = context.Identifier();
-                bool b = _preprocessor_symbols.IsDefined(id.GetText());
-                _state[context] = b;
-                if (b)
-                {
-                    Visit(group);
-                }
-                if (elif != null && !b)
-                {
-                    Visit(elif);
-                    var v2 = _state[elif];
-                    ConvertToBool(v2, out bool b2);
-                    b = b2;
-                    _state[context] = b;
-                }
-                if (els != null && !b)
-                {
-                    Visit(els);
-                    //var v3 = state[els];
-                    //state[context] = v3;
-                }
-            }
-            else if (type_ifndef != null)
-            {
-                var id = context.Identifier();
-                bool b = !_preprocessor_symbols.IsDefined(id.GetText());
-                _state[context] = b;
-                if (b)
-                {
-                    Visit(group);
-                }
-                if (elif != null && !b)
-                {
-                    Visit(elif);
-                    var v2 = _state[elif];
-                    ConvertToBool(v2, out bool b2);
-                    b = b2;
-                    _state[context] = b;
-                }
-                if (els != null && !b)
-                {
-                    Visit(els);
-                    //var v3 = state[els];
-                    //state[context] = v3;
-                }
+                Visit(els);
             }
             return null;
         }
+
+        //public override IParseTree xVisitIf_([NotNull] CPlusPlus14Parser.If_sectionContext context)
+        //{
+        //    // if_section: (Pound KWIf constant_expression new_line group ? | Pound KWIfdef Identifier new_line group ? | Pound KWIfndef Identifier new_line group ? ) elif_groups? else_group ? endif_line;
+        //    var type_if = context.KWIf();
+        //    var type_ifdef = context.KWIfdef();
+        //    var type_ifndef = context.KWIfndef();
+        //    var test = context.constant_expression();
+        //    var group = context.group();
+        //    var elif = context.elif_groups();
+        //    var els = context.else_group();
+        //    if (type_if != null)
+        //    {
+        //        var st = test.GetText();
+        //        Visit(test);
+        //        var v = _state[test];
+        //        ConvertToBool(v, out bool b);
+        //        _state[context] = b;
+        //        if (b)
+        //        {
+        //            Visit(group);
+        //        }
+        //        if (elif != null && !b)
+        //        {
+        //            Visit(elif);
+        //            var v2 = _state[elif];
+        //            ConvertToBool(v2, out bool b2);
+        //            b = b2;
+        //            _state[context] = b;
+        //        }
+        //        if (els != null && !b)
+        //        {
+        //            Visit(els);
+        //            //var v3 = state[els];
+        //            //state[context] = v3;
+        //        }
+        //    }
+        //    else if (type_ifdef != null)
+        //    {
+        //        var id = context.Identifier();
+        //        bool b = _preprocessor_symbols.IsDefined(id.GetText());
+        //        _state[context] = b;
+        //        if (b)
+        //        {
+        //            Visit(group);
+        //        }
+        //        if (elif != null && !b)
+        //        {
+        //            Visit(elif);
+        //            var v2 = _state[elif];
+        //            ConvertToBool(v2, out bool b2);
+        //            b = b2;
+        //            _state[context] = b;
+        //        }
+        //        if (els != null && !b)
+        //        {
+        //            Visit(els);
+        //            //var v3 = state[els];
+        //            //state[context] = v3;
+        //        }
+        //    }
+        //    else if (type_ifndef != null)
+        //    {
+        //        var id = context.Identifier();
+        //        bool b = !_preprocessor_symbols.IsDefined(id.GetText());
+        //        _state[context] = b;
+        //        if (b)
+        //        {
+        //            Visit(group);
+        //        }
+        //        if (elif != null && !b)
+        //        {
+        //            Visit(elif);
+        //            var v2 = _state[elif];
+        //            ConvertToBool(v2, out bool b2);
+        //            b = b2;
+        //            _state[context] = b;
+        //        }
+        //        if (els != null && !b)
+        //        {
+        //            Visit(els);
+        //            //var v3 = state[els];
+        //            //state[context] = v3;
+        //        }
+        //    }
+        //    return null;
+        //}
 
         public override IParseTree VisitIf_group([NotNull] CPlusPlus14Parser.If_groupContext context)
         {
@@ -540,8 +567,8 @@ namespace Test
                         strg = strg.Replace("\\\n", " ");
                         strg = strg.Replace("\\\r", " ");
                         var str = new AntlrInputStream(strg);
-                        var lexer = new Cpp14Lexer(str);
-                        lexer.PushMode(Cpp14Lexer.PP);
+                        var lexer = new CPlusPlus14Lexer(str);
+                        lexer.PushMode(CPlusPlus14Lexer.PP);
                         var tokens = new CommonTokenStream(lexer);
                         var parser = new CPlusPlus14Parser(tokens);
                         var listener_lexer = new ErrorListener<int>(true);

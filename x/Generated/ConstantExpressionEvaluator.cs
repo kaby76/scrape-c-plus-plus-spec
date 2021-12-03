@@ -213,9 +213,8 @@ namespace Test
 
         public override IParseTree VisitPostfix_expression([NotNull] CPlusPlus14Parser.Postfix_expressionContext context)
         {
-            // postfix_expression :  primary_expression |  postfix_expression LeftBracket expression RightBracket |  postfix_expression LeftBracket braced_init_list RightBracket |  postfix_expression LeftParen expression_list ? RightParen |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression Dot KWTemplate ?  id_expression |  postfix_expression Arrow KWTemplate ? id_expression |  postfix_expression Dot pseudo_destructor_name |  postfix_expression Arrow pseudo_destructor_name |  postfix_expression PlusPlus |  postfix_expression MinusMinus |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ;
+            // postfix_expression : (  primary_expression |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ) ( LeftBracket expression RightBracket | LeftBracket braced_init_list RightBracket | LeftParen expression_list ? RightParen | Dot KWTemplate ? id_expression | Arrow KWTemplate ? id_expression | Dot pseudo_destructor_name | Arrow pseudo_destructor_name | PlusPlus | MinusMinus )* ;
             var pri = context.primary_expression();
-            var post = context.postfix_expression();
             var exp = context.expression();
             var exp_list = context.expression_list();
             var simp_type = context.simple_type_specifier();
@@ -225,17 +224,17 @@ namespace Test
                 Visit(pri);
                 _state[context] = _state[pri];
             }
-            else if (post != null && exp_list != null)
-            {
-                Visit(post);
-                Visit(exp_list);
-                // Find post in symbol table.
-                var v = _state[post];
-                // Symbol is actually unevaluated.
-                var s = post.GetText();
-                //var s = v.ToString();
-                _state[context] = EvalExpr(s, exp_list);
-            }
+            //else if (post != null && exp_list != null)
+            //{
+                //Visit(post);
+                //Visit(exp_list);
+                //// Find post in symbol table.
+                //var v = _state[post];
+                //// Symbol is actually unevaluated.
+                //var s = post.GetText();
+                ////var s = v.ToString();
+                //_state[context] = EvalExpr(s, exp_list);
+            //}
             else throw new Exception();
             return null;
         }
@@ -362,26 +361,29 @@ namespace Test
         public override IParseTree VisitPm_expression([NotNull] CPlusPlus14Parser.Pm_expressionContext context)
         {
             // pm_expression :  cast_expression |  pm_expression DotStar cast_expression |  pm_expression ArrowStar cast_expression ;
-            var cast = context.cast_expression();
-            var pm = context.pm_expression();
-            if (pm != null)
+            // pm_expression :  cast_expression ( DotStar cast_expression | ArrowStar cast_expression )* ;
+            var casts = context.cast_expression();
+            //var pm = context.pm_expression();
+            //if (pm != null)
+            //{
+            //    Visit(pm);
+            //    var v = _state[pm];
+            //    var l = (int)v;
+            //    Visit(cast);
+            //    var v2 = (int)_state[cast];
+            //    if (context.DotStar() != null)
+            //    {
+            //        _state[context] = l * v2;
+            //    }
+            //    else if (context.ArrowStar() != null)
+            //    {
+            //        _state[context] = l / v2;
+            //    }
+            //}
+            //else
             {
-                Visit(pm);
-                var v = _state[pm];
-                var l = (int)v;
-                Visit(cast);
-                var v2 = (int)_state[cast];
-                if (context.DotStar() != null)
-                {
-                    _state[context] = l * v2;
-                }
-                else if (context.ArrowStar() != null)
-                {
-                    _state[context] = l / v2;
-                }
-            }
-            else
-            {
+                if (casts.Count() > 1) throw new Exception();
+                var cast = casts[0];
                 Visit(cast);
                 _state[context] = _state[cast];
             }
@@ -390,31 +392,33 @@ namespace Test
 
         public override IParseTree VisitMultiplicative_expression([NotNull] CPlusPlus14Parser.Multiplicative_expressionContext context)
         {
-            // multiplicative_expression :  pm_expression |  multiplicative_expression Star pm_expression |  multiplicative_expression Div pm_expression |  multiplicative_expression Mod pm_expression ;
-            var pm = context.pm_expression();
-            var mul = context.multiplicative_expression();
-            if (mul != null)
+            // multiplicative_expression :  pm_expression ( Star pm_expression | Div pm_expression | Mod pm_expression )* ;
+            var pms = context.pm_expression();
+            //var mul = context.multiplicative_expression();
+            //if (mul != null)
+            //{
+            //    Visit(mul);
+            //    var v = _state[mul];
+            //    var l = (int)v;
+            //    Visit(pm);
+            //    var v2 = (int)_state[pm];
+            //    if (context.Star() != null)
+            //    {
+            //        _state[context] = l * v2;
+            //    }
+            //    else if (context.Div() != null)
+            //    {
+            //        _state[context] = l / v2;
+            //    }
+            //    else if (context.Mod() != null)
+            //    {
+            //        _state[context] = l % v2;
+            //    }
+            //}
+            //else
             {
-                Visit(mul);
-                var v = _state[mul];
-                var l = (int)v;
-                Visit(pm);
-                var v2 = (int)_state[pm];
-                if (context.Star() != null)
-                {
-                    _state[context] = l * v2;
-                }
-                else if (context.Div() != null)
-                {
-                    _state[context] = l / v2;
-                }
-                else if (context.Mod() != null)
-                {
-                    _state[context] = l % v2;
-                }
-            }
-            else
-            {
+                if (pms.Count() > 1) throw new Exception();
+                var pm = pms[0];
                 Visit(pm);
                 _state[context] = _state[pm];
             }
@@ -425,15 +429,13 @@ namespace Test
         {
             // additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
             var mul = context.multiplicative_expression();
-            var add = context.additive_expression();
             var plus = context.Plus();
-            if (add != null)
+            if (plus != null)
             {
-                Visit(add);
-                Visit(mul);
-                var lhs_v = _state[add];
+                Visit(mul[0]);
+                var lhs_v = _state[mul[0]];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[mul];
+                var rhs_v = _state[mul[1]];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
@@ -453,8 +455,8 @@ namespace Test
             }
             else
             {
-                Visit(mul);
-                _state[context] = _state[mul];
+                Visit(mul[0]);
+                _state[context] = _state[mul[0]];
             }
             return null;
         }
@@ -462,15 +464,15 @@ namespace Test
         public override IParseTree VisitShift_expression([NotNull] CPlusPlus14Parser.Shift_expressionContext context)
         {
             // shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression RightShift additive_expression ;
+            // shift_expression :  additive_expression ( LeftShift additive_expression | Greater Greater additive_expression )* ;
             var add = context.additive_expression();
-            var shift = context.shift_expression();
+            var shift = context.Greater();
             if (shift != null)
             {
-                Visit(shift);
-                Visit(add);
-                var lhs_v = _state[shift];
+                Visit(add[0]);
+                var lhs_v = _state[add[0]];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[add];
+                var rhs_v = _state[add[1]];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
                 if (lhs_n is int && rhs_n is int)
                 {
@@ -490,8 +492,8 @@ namespace Test
             }
             else
             {
-                Visit(add);
-                _state[context] = _state[add];
+                Visit(add[0]);
+                _state[context] = _state[add[0]];
             }
             return null;
         }
@@ -499,78 +501,90 @@ namespace Test
         public override IParseTree VisitRelational_expression([NotNull] CPlusPlus14Parser.Relational_expressionContext context)
         {
             // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
+            // relational_expression :  shift_expression ( Less shift_expression | Greater shift_expression | LessEqual shift_expression | GreaterEqual shift_expression )* ;
             var shift = context.shift_expression();
-            var rel = context.relational_expression();
-            if (rel != null)
+            var lt = context.Less();
+            var le = context.Less();
+            var gt = context.Greater();
+            var ge = context.GreaterEqual();
+            if (lt != null)
             {
-                Visit(rel);
-                Visit(shift);
-                var lhs_v = _state[rel];
+                Visit(shift[0]);
+                var lhs_v = _state[shift[0]];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[shift];
-                if (rhs_v == null)
-                {
-
-                }
+                var rhs_v = _state[shift[1]];
                 ParseNumber(rhs_v.ToString(), out object rhs_n);
-                if (context.Less() != null)
-                {
-                    if (lhs_n is int && rhs_n is int)
-                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
-                    else if (lhs_n is long || rhs_n is long)
-                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
-                    else throw new Exception();
-                }
-                else if (context.LessEqual() != null)
-                {
-                    if (lhs_n is int && rhs_n is int)
-                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
-                    else if (lhs_n is long || rhs_n is long)
-                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
-                    else throw new Exception();
-                }
-                else if (context.Greater() != null)
-                {
-                    if (lhs_n is int && rhs_n is int)
-                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
-                    else if (lhs_n is long || rhs_n is long)
-                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
-                    else throw new Exception();
-                }
-                else if (context.GreaterEqual() != null)
-                {
-                    if (lhs_n is int && rhs_n is int)
-                        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
-                    else if (lhs_n is long || rhs_n is long)
-                        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
-                    else throw new Exception();
-                }
+                if (lhs_n is int && rhs_n is int)
+                    _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
+                else if (lhs_n is long || rhs_n is long)
+                    _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
+                else throw new Exception();
+            } else if (le != null)
+            {
+                Visit(shift[0]);
+                var lhs_v = _state[shift[0]];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var rhs_v = _state[shift[1]];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                    _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
+                else if (lhs_n is long || rhs_n is long)
+                    _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
+                else throw new Exception();
+            }
+            else if (gt != null)
+            {
+                Visit(shift[0]);
+                var lhs_v = _state[shift[0]];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var rhs_v = _state[shift[1]];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                    _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
+                else if (lhs_n is long || rhs_n is long)
+                    _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
+                else throw new Exception();
+            }
+            else if (ge != null)
+            {
+                Visit(shift[0]);
+                var lhs_v = _state[shift[0]];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var rhs_v = _state[shift[1]];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                    _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
+                else if (lhs_n is long || rhs_n is long)
+                    _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
+                else throw new Exception();
             }
             else
             {
-                Visit(shift);
-                _state[context] = _state[shift];
+                Visit(shift[0]);
+                _state[context] = _state[shift[0]];
             }
             return null;
         }
 
         public override IParseTree VisitEquality_expression([NotNull] CPlusPlus14Parser.Equality_expressionContext context)
         {
-            // equality_expression :  relational_expression |  equality_expression Equal relational_expression |  equality_expression NotEqual relational_expression ;
-            var rel = context.relational_expression();
-            var eq = context.equality_expression();
+            // equality_expression :  relational_expression ( Equal relational_expression | NotEqual relational_expression )* ;
+            var rels = context.relational_expression();
+            //var eq = context.equality_expression();
             object l = null;
-            if (eq != null)
+            //if (eq != null)
+            //{
+            //    Visit(eq);
+            //    var v = _state[eq];
+            //    l = v == null ? null : v;
+            //    Visit(rel);
+            //    var v2 = _state[rel];
+            //    _state[context] = v == v2;
+            //}
+            //else
             {
-                Visit(eq);
-                var v = _state[eq];
-                l = v == null ? null : v;
-                Visit(rel);
-                var v2 = _state[rel];
-                _state[context] = v == v2;
-            }
-            else
-            {
+                if (rels.Count() > 1) throw new Exception();
+                var rel = rels[0];
                 Visit(rel);
                 _state[context] = _state[rel];
             }
@@ -580,34 +594,35 @@ namespace Test
         public override IParseTree VisitAnd_expression([NotNull] CPlusPlus14Parser.And_expressionContext context)
         {
             // and_expression :  equality_expression |  and_expression ( And | KWBitAnd ) equality_expression ;
-            var eq = context.equality_expression();
-            var and = context.and_expression();
-            if (and != null)
+            var eqs = context.equality_expression();
+            //if (and != null)
+            //{
+            //    Visit(and);
+            //    Visit(eq);
+            //    var lhs_v = _state[and];
+            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
+            //    var rhs_v = _state[eq];
+            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
+            //    if (lhs_n is int && rhs_n is int)
+            //    {
+            //        int lhs = (int)lhs_n;
+            //        int rhs = (int)rhs_n;
+            //        int res = lhs & rhs;
+            //        _state[context] = res;
+            //    }
+            //    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            //    {
+            //        long lhs = (long)lhs_n;
+            //        long rhs = (long)rhs_n;
+            //        long res = lhs & rhs;
+            //        _state[context] = res;
+            //    }
+            //    else throw new Exception();
+            //}
+            //else
             {
-                Visit(and);
-                Visit(eq);
-                var lhs_v = _state[and];
-                ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[eq];
-                ParseNumber(rhs_v.ToString(), out object rhs_n);
-                if (lhs_n is int && rhs_n is int)
-                {
-                    int lhs = (int)lhs_n;
-                    int rhs = (int)rhs_n;
-                    int res = lhs & rhs;
-                    _state[context] = res;
-                }
-                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
-                {
-                    long lhs = (long)lhs_n;
-                    long rhs = (long)rhs_n;
-                    long res = lhs & rhs;
-                    _state[context] = res;
-                }
-                else throw new Exception();
-            }
-            else
-            {
+                if (eqs.Count() > 1) throw new Exception();
+                var eq = eqs[0];
                 Visit(eq);
                 _state[context] = _state[eq];
             }
@@ -617,34 +632,36 @@ namespace Test
         public override IParseTree VisitExclusive_or_expression([NotNull] CPlusPlus14Parser.Exclusive_or_expressionContext context)
         {
             // exclusive_or_expression :  and_expression |  exclusive_or_expression ( Caret | KWXor ) and_expression ;
-            var and = context.and_expression();
-            var xor = context.exclusive_or_expression();
-            if (xor != null)
+            var ands = context.and_expression();
+            //var xor = context.exclusive_or_expression();
+            //if (xor != null)
+            //{
+            //    Visit(xor);
+            //    Visit(and);
+            //    var lhs_v = _state[xor];
+            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
+            //    var rhs_v = _state[and];
+            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
+            //    if (lhs_n is int && rhs_n is int)
+            //    {
+            //        int lhs = (int)lhs_n;
+            //        int rhs = (int)rhs_n;
+            //        int res = lhs ^ rhs;
+            //        _state[context] = res;
+            //    }
+            //    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            //    {
+            //        long lhs = (long)lhs_n;
+            //        long rhs = (long)rhs_n;
+            //        long res = lhs ^ rhs;
+            //        _state[context] = res;
+            //    }
+            //    else throw new Exception();
+            //}
+            //else
             {
-                Visit(xor);
-                Visit(and);
-                var lhs_v = _state[xor];
-                ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[and];
-                ParseNumber(rhs_v.ToString(), out object rhs_n);
-                if (lhs_n is int && rhs_n is int)
-                {
-                    int lhs = (int)lhs_n;
-                    int rhs = (int)rhs_n;
-                    int res = lhs ^ rhs;
-                    _state[context] = res;
-                }
-                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
-                {
-                    long lhs = (long)lhs_n;
-                    long rhs = (long)rhs_n;
-                    long res = lhs ^ rhs;
-                    _state[context] = res;
-                }
-                else throw new Exception();
-            }
-            else
-            {
+                if (ands.Count() > 1) throw new Exception();
+                var and = ands[0];
                 Visit(and);
                 _state[context] = _state[and];
             }
@@ -654,34 +671,35 @@ namespace Test
         public override IParseTree VisitInclusive_or_expression([NotNull] CPlusPlus14Parser.Inclusive_or_expressionContext context)
         {
             // inclusive_or_expression :  exclusive_or_expression |  inclusive_or_expression ( Or | KWBitOr ) exclusive_or_expression ;
-            var ior = context.inclusive_or_expression();
-            var xor = context.exclusive_or_expression();
-            if (ior != null)
+            var xors = context.exclusive_or_expression();
+            //if (ior != null)
+            //{
+            //    Visit(ior);
+            //    Visit(xor);
+            //    var lhs_v = _state[ior];
+            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
+            //    var rhs_v = _state[xor];
+            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
+            //    if (lhs_n is int && rhs_n is int)
+            //    {
+            //        int lhs = (int)lhs_n;
+            //        int rhs = (int)rhs_n;
+            //        int res = lhs | rhs;
+            //        _state[context] = res;
+            //    }
+            //    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+            //    {
+            //        long lhs = (long)lhs_n;
+            //        long rhs = (long)rhs_n;
+            //        long res = lhs | rhs;
+            //        _state[context] = res;
+            //    }
+            //    else throw new Exception();
+            //}
+            //else
             {
-                Visit(ior);
-                Visit(xor);
-                var lhs_v = _state[ior];
-                ParseNumber(lhs_v.ToString(), out object lhs_n);
-                var rhs_v = _state[xor];
-                ParseNumber(rhs_v.ToString(), out object rhs_n);
-                if (lhs_n is int && rhs_n is int)
-                {
-                    int lhs = (int)lhs_n;
-                    int rhs = (int)rhs_n;
-                    int res = lhs | rhs;
-                    _state[context] = res;
-                }
-                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
-                {
-                    long lhs = (long)lhs_n;
-                    long rhs = (long)rhs_n;
-                    long res = lhs | rhs;
-                    _state[context] = res;
-                }
-                else throw new Exception();
-            }
-            else
-            {
+                if (xors.Count() > 1) throw new Exception();
+                var xor = xors[0];
                 Visit(xor);
                 _state[context] = _state[xor];
             }
@@ -691,26 +709,28 @@ namespace Test
         public override IParseTree VisitLogical_and_expression([NotNull] CPlusPlus14Parser.Logical_and_expressionContext context)
         {
             // logical_and_expression :  inclusive_or_expression |  logical_and_expression ( AndAnd | KWAnd ) inclusive_or_expression ;
-            var ior = context.inclusive_or_expression();
-            var and = context.logical_and_expression();
-            if (and != null)
+            var iors = context.inclusive_or_expression();
+            //var and = context.logical_and_expression();
+            //if (and != null)
+            //{
+            //    Visit(and);
+            //    var v = _state[and];
+            //    ConvertToBool(v, out bool b);
+            //    if (!b)
+            //    {
+            //        _state[context] = b;
+            //        return null;
+            //    }
+            //    Visit(ior);
+            //    var v2 = _state[ior];
+            //    ConvertToBool(v2, out bool b2);
+            //    _state[context] = b2;
+            //    return null;
+            //}
+            //else
             {
-                Visit(and);
-                var v = _state[and];
-                ConvertToBool(v, out bool b);
-                if (!b)
-                {
-                    _state[context] = b;
-                    return null;
-                }
-                Visit(ior);
-                var v2 = _state[ior];
-                ConvertToBool(v2, out bool b2);
-                _state[context] = b2;
-                return null;
-            }
-            else
-            {
+                if (iors.Count() > 1) throw new Exception();
+                var ior = iors[0];
                 Visit(ior);
                 _state[context] = _state[ior];
             }
@@ -720,26 +740,28 @@ namespace Test
         public override IParseTree VisitLogical_or_expression([NotNull] CPlusPlus14Parser.Logical_or_expressionContext context)
         {
             // logical_or_expression :  logical_and_expression |  logical_or_expression ( OrOr | KWOr ) logical_and_expression ;
-            var or = context.logical_or_expression();
-            var and = context.logical_and_expression();
-            if (or != null)
+            var ands = context.logical_and_expression();
+            //var or = context.logical_or_expression();
+            //if (or != null)
+            //{
+            //    Visit(or);
+            //    var v = _state[or];
+            //    ConvertToBool(v, out bool b);
+            //    if (b)
+            //    {
+            //        _state[context] = b;
+            //        return null;
+            //    }
+            //    Visit(and);
+            //    var v2 = _state[and];
+            //    ConvertToBool(v2, out bool b2);
+            //    _state[context] = b2;
+            //    return null;
+            //}
+            //else
             {
-                Visit(or);
-                var v = _state[or];
-                ConvertToBool(v, out bool b);
-                if (b)
-                {
-                    _state[context] = b;
-                    return null;
-                }
-                Visit(and);
-                var v2 = _state[and];
-                ConvertToBool(v2, out bool b2);
-                _state[context] = b2;
-                return null;
-            }
-            else
-            {
+                if (ands.Count() > 1) throw new Exception();
+                var and = ands[0];
                 Visit(and);
                 _state[context] = _state[and];
             }
@@ -813,9 +835,11 @@ namespace Test
 
         public override IParseTree VisitExpression([NotNull] CPlusPlus14Parser.ExpressionContext context)
         {
-            var child = context.assignment_expression();
-            Visit(child);
-            _state[context] = _state[child];
+            var assignments = context.assignment_expression();
+            if (assignments.Count() > 1) throw new Exception();
+            var assignment = assignments[0];
+            Visit(assignment);
+            _state[context] = _state[assignment];
             return null;
         }
 
