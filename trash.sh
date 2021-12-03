@@ -202,8 +202,13 @@ cat addin2 >> "$name"Lexer.g4
 cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4
 mv temp."$name"Lexer.g4 "$name"Lexer.g4
 
+# We're going to fold the lexer symbols now, but afterward
+# the parser grammar will be wrong because we mutate the token type.
 echo ""
 echo "Folding lexer symbols"
 trparse "$name"Parser.g4 | \
 	trfoldlit | \
+	trsponge -c true
+trparse "$name"Parser.g4 | \
+	trrename -r "PPKWAnd,KWAnd;PPKWAndEq,KWAndEq;PPKWBitAnd,KWBitAnd;PPKWBitOr,KWBitOr;PPKWCompl,KWCompl;PPKWDefine,KWDefine;PPKWDefined,KWDefined;PPKWDelete,KWDelete;PPKWElif,KWElif;PPKWElse,KWElse;PPKWEndif,KWEndif;PPKWError,KWError;PPKWWarning,KWWarning;PPKWFalse,KWFalse;PPKWTrue,KWTrue_;PPKWIf,KWIf;PPKWIfdef,KWIfdef;PPKWIfndef,KWIfndef;PPKWInclude,KWInclude;PPKWLine,KWLine;PPKWNew,KWNew;PPKWNot,KWNot;PPKWNotEq,KWNotEq;PPKWOr,KWOr;PPKWOrEq,KWOrEq;PPKWPragma,KWPragma;PPKWUndef,KWUndef;PPKWXor,KWXor;PPKWXorEq,KWXorEq" | \
 	trsponge -c true
