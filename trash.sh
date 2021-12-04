@@ -214,5 +214,8 @@ trparse "$name"Parser.g4 | \
 	trsponge -c true
 
 trparse "$name"Parser.g4 | \
-	trinsert "//parserRuleSpec[RULE_REF/text()='text_line']//RULE_REF[text()='pp_tokens']" "{ InputStream.LA(1) != Cpp14Lexer.Pound }?" | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='text_line']//RULE_REF[text()='pp_tokens']" "{ InputStream.LA(1) != CPlusPlus14Lexer.Pound }?" | \
+	trsponge -c true
+trparse "$name"Parser.g4 | \
+	trinsert -a "//parserRuleSpec[RULE_REF/text()='group_part']//RULE_REF[text()='text_line']" "; // " | \
 	trsponge -c true

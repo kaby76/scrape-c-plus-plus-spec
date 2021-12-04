@@ -250,7 +250,7 @@ type_id_list : (  type_id Ellipsis ? ) ( Comma type_id Ellipsis ? )* ;
 noexcept_specification :  KWNoexcept LeftParen constant_expression RightParen |  KWNoexcept ;
 preprocessing_file :  group ? EOF ;
 group :  group_part+ ;
-group_part :  if_section |  control_line |  text_line |  Pound non_directive ;
+group_part :  if_section |  control_line |  text_line ; //  |  Pound non_directive ;
 if_section :  if_group elif_groups ? else_group ? endif_line ;
 if_group :  Pound KWIf constant_expression new_line group ? |  Pound KWIfdef Identifier new_line group ? |  Pound KWIfndef Identifier new_line group ? ;
 elif_groups :  elif_group+ ;
@@ -258,13 +258,15 @@ elif_group :  Pound KWElif constant_expression new_line group ? ;
 else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound KWEndif new_line ;
 control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound KWError pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
-text_line :  pp_tokens ? new_line ;
+text_line :  { InputStream.LA(1) != CPlusPlus14Lexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen ;
 identifier_list :  Identifier ( Comma Identifier )* ;
 replacement_list :  pp_tokens ? ;
 pp_tokens :  preprocessing_token+ ;
 new_line :  Newline ;
+
 // Defs from "addin3".
+
 keyword : KWAlignas | KWContinue | KWFriend | KWRegister | KWTrue_ | KWAlignof | KWDecltype | KWGoto | KWReinterpret_cast | KWTry | KWAsm | KWDefault | KWIf | KWReturn | KWTypedef | KWAuto | KWDelete | KWInline | KWShort | KWTypeid_ | KWBool | KWDo | KWInt | KWSigned | KWTypename_ | KWBreak | KWDouble | KWLong | KWSizeof | KWUnion | KWCase | KWDynamic_cast | KWMutable | KWStatic | KWUnsigned | KWCatch | KWElse | KWNamespace | KWStatic_assert | KWUsing | KWChar | KWEnum | KWNew | KWStatic_cast | KWVirtual | KWChar16 | KWExplicit | KWNoexcept | KWStruct | KWVoid | KWChar32 | KWExport | KWNullptr | KWSwitch | KWVolatile | KWClass | KWExtern | KWOperator | KWTemplate | KWWchar | KWConst | KWFalse_ | KWPrivate | KWThis | KWWhile | KWConstexpr | KWFloat | KWProtected | KWThread_local | KWConst_cast | KWFor | KWPublic | KWThrow | KWAnd | KWAndEq | KWBitAnd | KWBitOr | KWCompl | KWNot | KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
 punctuator : preprocessing_op_or_punc ;
