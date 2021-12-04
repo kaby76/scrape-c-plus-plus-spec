@@ -38,7 +38,7 @@ public class Program
     {
 
         //args = new string[] { "-file", "/home/ken/qtbase/src/corelib/global/qnamespace.h" };
-
+        bool noisy = false;
         bool show_tree = false;
         bool show_tokens = false;
         bool old = false;
@@ -48,7 +48,12 @@ public class Program
         System.Text.Encoding encoding = null;
         for (int i = 0; i < args.Length; ++i)
         {
-            if (args[i].Equals("-tokens"))
+            if (args[i].Equals("-noisy"))
+            {
+                noisy = true;
+                continue;
+            }
+            else if (args[i].Equals("-tokens"))
             {
                 show_tokens = true;
                 continue;
@@ -122,6 +127,7 @@ public class Program
         }
         var tokens = new CommonTokenStream(lexer);
         var parser = new CPlusPlus14Parser(tokens);
+        parser._noisy = noisy;
         var listener_lexer = new ErrorListener<int>();
         var listener_parser = new ErrorListener<IToken>();
         lexer.AddErrorListener(listener_lexer);

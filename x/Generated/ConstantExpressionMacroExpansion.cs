@@ -14,7 +14,7 @@ namespace Test
         PreprocessorSymbols _preprocessor_symbols;
         Antlr4.Runtime.TokenStreamRewriter _rewriter;
         ITokenStream _tokens;
-        bool _noisy = false;
+        public bool _noisy = false;
 
         public ConstantExpressionMacroExpansion(PreprocessorSymbols preprocessor_symbols)
         {

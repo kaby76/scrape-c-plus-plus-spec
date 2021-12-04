@@ -212,3 +212,7 @@ trparse "$name"Parser.g4 | \
 trparse "$name"Parser.g4 | \
 	trrename -r "PPKWAnd,KWAnd;PPKWAndEq,KWAndEq;PPKWBitAnd,KWBitAnd;PPKWBitOr,KWBitOr;PPKWCompl,KWCompl;PPKWDefine,KWDefine;PPKWDefined,KWDefined;PPKWDelete,KWDelete;PPKWElif,KWElif;PPKWElse,KWElse;PPKWEndif,KWEndif;PPKWError,KWError;PPKWWarning,KWWarning;PPKWFalse,KWFalse;PPKWTrue,KWTrue_;PPKWIf,KWIf;PPKWIfdef,KWIfdef;PPKWIfndef,KWIfndef;PPKWInclude,KWInclude;PPKWLine,KWLine;PPKWNew,KWNew;PPKWNot,KWNot;PPKWNotEq,KWNotEq;PPKWOr,KWOr;PPKWOrEq,KWOrEq;PPKWPragma,KWPragma;PPKWUndef,KWUndef;PPKWXor,KWXor;PPKWXorEq,KWXorEq" | \
 	trsponge -c true
+
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='text_line']//RULE_REF[text()='pp_tokens']" "{ InputStream.LA(1) != Cpp14Lexer.Pound }?" | \
+	trsponge -c true

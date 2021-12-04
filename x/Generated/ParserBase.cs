@@ -30,11 +30,12 @@ public abstract class ParserBase : Parser
         var src = input.TokenSource;
         ICharStream stream = src.InputStream;
         var fn = stream.SourceName;
+        // Implement backslash-newlines as per Section 2.2, paragraph #2.
         var strg = stream.ToString();
-        strg = strg.Replace("\\\r\n", " ");
-        strg = strg.Replace("\\\n\r", " ");
-        strg = strg.Replace("\\\n", " ");
-        strg = strg.Replace("\\\r", " ");
+        strg = strg.Replace("\\\r\n", "");
+        strg = strg.Replace("\\\n\r", "");
+        strg = strg.Replace("\\\n", "");
+        strg = strg.Replace("\\\r", "");
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
         //if (SeeOutput) System.Console.Error.WriteLine(strg);
@@ -51,6 +52,11 @@ public abstract class ParserBase : Parser
         if (File.Exists(SourceName))
         {
             visitor._probe_locations.Insert(0, Path.GetDirectoryName(SourceName));
+        }
+        if (_noisy)
+        {
+            var sb = Test.TreeOutput.OutputTree(tree, lexer, pp, tokens);
+            System.Console.Error.WriteLine(sb.ToString());
         }
         visitor.Visit(tree);
         var real_input = visitor._sb.ToString();

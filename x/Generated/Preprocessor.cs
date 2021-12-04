@@ -292,27 +292,25 @@ namespace Test
 
         public override IParseTree VisitIf_section([NotNull] CPlusPlus14Parser.If_sectionContext context)
         {
+            // if_section :  if_group elif_groups ? else_group ? endif_line ;
+            // if_group :  Pound KWIf constant_expression new_line group ? |  Pound KWIfdef Identifier new_line group ? |  Pound KWIfndef Identifier new_line group ? ;
             var if_group = context.if_group();
-            VisitIf_group(if_group);
-            var test = if_group.constant_expression();
-            var st = test.GetText();
-            Visit(test);
-            var v = _state[test];
-            ConvertToBool(v, out bool b);
+            var else_group = context.else_group();
+            var elif_groups = context.elif_groups();
+            Visit(if_group);
+            var b = (bool)_state[if_group];
             _state[context] = b;
-            var elif = context.elif_groups();
-            var els = context.else_group();
-            if (elif != null && !b)
+            if (elif_groups != null && !b)
             {
-                Visit(elif);
-                var v2 = _state[elif];
-                ConvertToBool(v2, out bool b2);
-                b = b2;
+                Visit(elif_groups);
+                b = (bool)_state[elif_groups];
                 _state[context] = b;
             }
-            if (els != null && !b)
+            if (else_group != null && !b)
             {
-                Visit(els);
+                Visit(else_group);
+                b = (bool)_state[else_group];
+                _state[context] = b;
             }
             return null;
         }
