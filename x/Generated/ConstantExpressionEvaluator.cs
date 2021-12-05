@@ -715,30 +715,28 @@ namespace Test
         public override IParseTree VisitLogical_and_expression([NotNull] CPlusPlus14Parser.Logical_and_expressionContext context)
         {
             // logical_and_expression :  inclusive_or_expression |  logical_and_expression ( AndAnd | KWAnd ) inclusive_or_expression ;
+            // logical_and_expression :  inclusive_or_expression ( ( AndAnd | KWAnd ) inclusive_or_expression )* ;
             var iors = context.inclusive_or_expression();
-            //var and = context.logical_and_expression();
-            //if (and != null)
-            //{
-            //    Visit(and);
-            //    var v = _state[and];
-            //    ConvertToBool(v, out bool b);
-            //    if (!b)
-            //    {
-            //        _state[context] = b;
-            //        return null;
-            //    }
-            //    Visit(ior);
-            //    var v2 = _state[ior];
-            //    ConvertToBool(v2, out bool b2);
-            //    _state[context] = b2;
-            //    return null;
-            //}
-            //else
+            var ior = iors[0];
+            Visit(ior);
+            ConvertToBool(_state[ior], out bool b);
+            _state[context] = b;
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (iors.Count() > 1) throw new Exception();
-                var ior = iors[0];
-                Visit(ior);
-                _state[context] = _state[ior];
+                if (!(bool)_state[context]) break;
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                if (opt.Symbol.Type == CPlusPlus14Parser.AndAnd)
+                {
+                    var next = context.children[i + 1];
+                    Visit(next);
+                    var v = _state[next];
+                    ConvertToBool(v, out bool bnext);
+                    if (!b)
+                    {
+                        _state[context] = bnext;
+                    }
+                }
             }
             return null;
         }
