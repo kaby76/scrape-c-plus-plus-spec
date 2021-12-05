@@ -726,13 +726,13 @@ namespace Test
                 if (!(bool)_state[context]) break;
                 var op = context.children[i];
                 var opt = op as TerminalNodeImpl;
-                if (opt.Symbol.Type == CPlusPlus14Parser.AndAnd)
+                if (opt.Symbol.Type == CPlusPlus14Parser.AndAnd || opt.Symbol.Type == CPlusPlus14Parser.KWAnd)
                 {
                     var next = context.children[i + 1];
                     Visit(next);
                     var v = _state[next];
                     ConvertToBool(v, out bool bnext);
-                    if (!b)
+                    if (! bnext)
                     {
                         _state[context] = bnext;
                     }
@@ -743,31 +743,29 @@ namespace Test
 
         public override IParseTree VisitLogical_or_expression([NotNull] CPlusPlus14Parser.Logical_or_expressionContext context)
         {
-            // logical_or_expression :  logical_and_expression |  logical_or_expression ( OrOr | KWOr ) logical_and_expression ;
+            // logical_or_expression :  logical_and_expression ( ( OrOr | KWOr ) logical_and_expression )* ;
             var ands = context.logical_and_expression();
-            //var or = context.logical_or_expression();
-            //if (or != null)
-            //{
-            //    Visit(or);
-            //    var v = _state[or];
-            //    ConvertToBool(v, out bool b);
-            //    if (b)
-            //    {
-            //        _state[context] = b;
-            //        return null;
-            //    }
-            //    Visit(and);
-            //    var v2 = _state[and];
-            //    ConvertToBool(v2, out bool b2);
-            //    _state[context] = b2;
-            //    return null;
-            //}
-            //else
+            var and = ands[0];
+            Visit(and);
+            ConvertToBool(_state[and], out bool b);
+            _state[context] = b;
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (ands.Count() > 1) throw new Exception();
-                var and = ands[0];
-                Visit(and);
-                _state[context] = _state[and];
+                if ((bool)_state[context]) break;
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                if (opt.Symbol.Type == CPlusPlus14Parser.OrOr || opt.Symbol.Type == CPlusPlus14Parser.KWOr)
+                {
+                    var next = context.children[i + 1];
+                    Visit(next);
+                    var v = _state[next];
+                    ConvertToBool(v, out bool bnext);
+                    if (bnext)
+                    {
+                        _state[context] = bnext;
+                        break;
+                    }
+                }
             }
             return null;
         }
