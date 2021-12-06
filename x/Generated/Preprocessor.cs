@@ -309,8 +309,6 @@ namespace Test
             if (else_group != null && !b)
             {
                 Visit(else_group);
-                b = (bool)_state[else_group];
-                _state[context] = b;
             }
             return null;
         }
