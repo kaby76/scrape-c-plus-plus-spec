@@ -74,7 +74,7 @@ postfix_expression : (  primary_expression |  simple_type_specifier LeftParen ex
 expression_list :  initializer_list ;
 pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Tilde  type_name |  nested_name_specifier KWTemplate simple_template_id Doublecolon Tilde  type_name |  nested_name_specifier ? Tilde  type_name |  Tilde |  decltype_specifier ;
 unary_expression :  KWSizeof* (  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ) ;
-unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl ;
+unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl | KWDefined ;
 new_expression :  Doublecolon ? KWNew new_placement ? new_type_id new_initializer ? |  Doublecolon ? KWNew new_placement ? LeftParen type_id RightParen new_initializer ? ;
 new_placement :  LeftParen expression_list RightParen ;
 new_type_id :  type_specifier_seq new_declarator ? ;

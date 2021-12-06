@@ -219,3 +219,8 @@ trparse "$name"Parser.g4 | \
 trparse "$name"Parser.g4 | \
 	trinsert -a "//parserRuleSpec[RULE_REF/text()='group_part']//RULE_REF[text()='text_line']" "; // " | \
 	trsponge -c true
+
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='unary_operator']/SEMI" "| KWDefined" | \
+	trsponge -c true
+
