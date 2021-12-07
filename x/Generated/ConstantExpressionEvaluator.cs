@@ -527,10 +527,10 @@ namespace Test
             var shift = shifts[0];
             Visit(shift);
             _state[context] = _state[shift];
-            var previous = shift;
             for (int i = 1; i < context.children.Count(); i += 2)
             {
-                var lhs_v = _state[previous];
+                var lhs = context.children[i - 1];
+                var lhs_v = _state[lhs];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
                 var op = context.children[i];
                 var opt = op as TerminalNodeImpl;
@@ -569,23 +569,20 @@ namespace Test
         {
             // equality_expression :  relational_expression ( Equal relational_expression | NotEqual relational_expression )* ;
             var rels = context.relational_expression();
-            //var eq = context.equality_expression();
-            object l = null;
-            //if (eq != null)
-            //{
-            //    Visit(eq);
-            //    var v = _state[eq];
-            //    l = v == null ? null : v;
-            //    Visit(rel);
-            //    var v2 = _state[rel];
-            //    _state[context] = v == v2;
-            //}
-            //else
+            var rel = rels[0];
+            Visit(rel);
+            _state[context] = _state[rel];
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (rels.Count() > 1) throw new Exception();
-                var rel = rels[0];
-                Visit(rel);
-                _state[context] = _state[rel];
+                var lhs = context.children[i - 1];
+                var lhs_v = _state[lhs];
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                var rhs = context.children[i + 1];
+                Visit(rhs);
+                var rhs_v = _state[rhs];
+                bool res = opt.Symbol.Type == CPlusPlus14Lexer.Equal ? lhs_v == rhs_v : !(lhs_v == rhs_v);
+                _state[context] = res;
             }
             return null;
         }
@@ -918,6 +915,22 @@ namespace Test
             try
             {
                 l = Convert.ToInt64(s, 10);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                l = Convert.ToInt32(s, 16);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                l = Convert.ToInt64(s, 16);
                 return;
             }
             catch (Exception)

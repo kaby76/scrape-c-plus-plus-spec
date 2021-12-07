@@ -224,3 +224,7 @@ trparse "$name"Parser.g4 | \
 	trinsert "//parserRuleSpec[RULE_REF/text()='unary_operator']/SEMI" "| KWDefined" | \
 	trsponge -c true
 
+# GNU extension.
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='control_line']/SEMI" "| Pound KWWarning pp_tokens ? new_line" | \
+	trsponge -c true
