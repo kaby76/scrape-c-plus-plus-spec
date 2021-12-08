@@ -2,7 +2,7 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "commandLineArgs": "-noisy -file ../../test/z8.cpp",
+      "commandLineArgs": "-noisy -file ../../test/z.cpp",
       "workingDirectory": "c:\\msys64\\home\\Kenne\\scrape-c-plus-plus-spec\\x\\Generated"
     }
   }

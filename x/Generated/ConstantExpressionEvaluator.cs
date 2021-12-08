@@ -390,8 +390,8 @@ namespace Test
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
-                    long l = (long)lhs_n;
-                    long r = (long)rhs_n;
+                    long l = Convert.ToInt64(lhs_n);
+                    long r = Convert.ToInt64(rhs_n);
                     long res;
                     if (opt.Symbol.Type == CPlusPlus14Lexer.Plus) res = l + r;
                     else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
@@ -445,7 +445,6 @@ namespace Test
             var mul = muls[0];
             Visit(mul);
             _state[context] = _state[mul];
-            var previous = mul;
             for (int i = 1; i < context.children.Count(); i += 2)
             {
                 var lhs_v = _state[context];
@@ -468,8 +467,8 @@ namespace Test
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
-                    long l = (long)lhs_n;
-                    long r = (long)rhs_n;
+                    long l = Convert.ToInt64(lhs_n);
+                    long r = Convert.ToInt64(rhs_n);
                     long res;
                     if (opt.Symbol.Type == CPlusPlus14Lexer.Plus) res = l + r;
                     else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
@@ -483,39 +482,62 @@ namespace Test
 
         public override IParseTree VisitShift_expression([NotNull] CPlusPlus14Parser.Shift_expressionContext context)
         {
-            // shift_expression :  additive_expression |  shift_expression LeftShift additive_expression |  shift_expression RightShift additive_expression ;
             // shift_expression :  additive_expression ( LeftShift additive_expression | Greater Greater additive_expression )* ;
             var adds = context.additive_expression();
-            //var shift = context.Greater();
-            //if (shift != null)
-            //{
-            //    Visit(add[0]);
-            //    var lhs_v = _state[add[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[add[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //    {
-            //        int lhs = (int)lhs_n;
-            //        int rhs = (int)rhs_n;
-            //        int res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
-            //        _state[context] = res;
-            //    }
-            //    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
-            //    {
-            //        long lhs = (long)lhs_n;
-            //        int rhs = (int)rhs_n;
-            //        long res = context.LeftShift() != null ? lhs << rhs : lhs >> rhs;
-            //        _state[context] = res;
-            //    }
-            //    else throw new Exception();
-            //}
-            //else
+            var add = adds[0];
+            Visit(add);
+            _state[context] = _state[add];
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (adds.Count() > 1) throw new Exception();
-                var add = adds[0];
-                Visit(add);
-                _state[context] = _state[add];
+                var lhs_v = _state[context];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                if (opt.Symbol.Type == CPlusPlus14Lexer.LeftShift)
+                {
+                    var rhs = context.children[i + 1];
+                    Visit(rhs);
+                    var rhs_v = _state[rhs];
+                    ParseNumber(rhs_v.ToString(), out object rhs_n);
+                    if (lhs_n is int && rhs_n is int)
+                    {
+                        var l = (int)lhs_n;
+                        var r = (int)rhs_n;
+                        var res = l << r;
+                        _state[context] = res;
+                    }
+                    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int))
+                    {
+                        var l = Convert.ToInt64(lhs_n);
+                        var r = (int)rhs_n;
+                        var res = l << r;
+                        _state[context] = res;
+                    }
+                    else throw new Exception();
+                }
+                else if (opt.Symbol.Type == CPlusPlus14Lexer.Greater)
+                {
+                    i++;
+                    var rhs = context.children[i + 1];
+                    Visit(rhs);
+                    var rhs_v = _state[rhs];
+                    ParseNumber(rhs_v.ToString(), out object rhs_n);
+                    if (lhs_n is int && rhs_n is int)
+                    {
+                        var l = (int)lhs_n;
+                        var r = (int)rhs_n;
+                        var res = l >> r;
+                        _state[context] = res;
+                    }
+                    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int))
+                    {
+                        var l = Convert.ToInt64(lhs_n);
+                        var r = (int)rhs_n;
+                        var res = l >> r;
+                        _state[context] = res;
+                    }
+                    else throw new Exception();
+                }
             }
             return null;
         }
@@ -551,8 +573,8 @@ namespace Test
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
-                    long l = (long)lhs_n;
-                    long r = (long)rhs_n;
+                    long l = Convert.ToInt64(lhs_n);
+                    long r = Convert.ToInt64(rhs_n);
                     bool res = false;
                     if (opt.Symbol.Type == CPlusPlus14Lexer.Less) res = l < r;
                     else if (opt.Symbol.Type == CPlusPlus14Lexer.Greater) res = l > r;
@@ -691,8 +713,8 @@ namespace Test
                 }
                 else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
                 {
-                    long l = (long)lhs_n;
-                    long r = (long)rhs_n;
+                    long l = Convert.ToInt64(lhs_n);
+                    long r = Convert.ToInt64(rhs_n);
                     long res = l | r;
                     _state[context] = res;
                 }
@@ -1075,7 +1097,7 @@ namespace Test
             }
             else if (v is long)
             {
-                long i = (long)v;
+                long i = Convert.ToInt64(v);
                 b = i != 0;
             }
             else if (v is string)
@@ -1094,7 +1116,7 @@ namespace Test
                     }
                     else if (n is long)
                     {
-                        long i = (long)n;
+                        long i = Convert.ToInt64(n);
                         b = i != 0;
                     }
                     else throw new Exception();
