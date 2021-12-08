@@ -257,7 +257,7 @@ elif_groups :  elif_group+ ;
 elif_group :  Pound KWElif constant_expression new_line group ? ;
 else_group :  Pound KWElse new_line group ? ;
 endif_line :  Pound KWEndif new_line ;
-control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound KWError pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line | Pound new_line | Pound KWWarning pp_tokens ? new_line ;
+control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound KWError pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line | Pound new_line | Pound KWWarning pp_tokens ? new_line |  Pound KWDefine Identifier replacement_list new_line ;
 text_line :  { InputStream.LA(1) != CPlusPlus14Lexer.Pound }? pp_tokens ? new_line ;
 non_directive :  pp_tokens new_line ;
 lparen :  LeftParen ;
