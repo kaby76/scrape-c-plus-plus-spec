@@ -228,3 +228,9 @@ trparse "$name"Parser.g4 | \
 trparse "$name"Parser.g4 | \
 	trinsert "//parserRuleSpec[RULE_REF/text()='control_line']/SEMI" "| Pound KWWarning pp_tokens ? new_line" | \
 	trsponge -c true
+
+# Reorder control_line alts so that macros with parameters work.
+trparse "$name"Parser.g4 | \
+	trdelete "//parserRuleSpec[RULE_REF/text()='control_line']/ruleBlock/ruleAltList/labeledAlt[*//RULE_REF/text()='replacement_list' and *//TOKEN_REF/text()='KWDefine' and not(*//RULE_REF/text()='lparen')]/(self::labeledAlt|self::labeledAlt/preceding-sibling::OR)" | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='control_line']/SEMI" "| Pound KWDefine Identifier replacement_list new_line" | \
+	trsponge -c true
