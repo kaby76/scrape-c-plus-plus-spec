@@ -47,6 +47,7 @@ public abstract class ParserBase : Parser
         var tree = pp.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Test.Preprocessor(tokens, locations);
+        visitor._noisy = this._noisy;
         visitor._preprocessor_symbols = new Test.PreprocessorSymbols(init_table);
         visitor._current_file_name = fn;
         if (File.Exists(SourceName))
@@ -157,6 +158,7 @@ public abstract class ParserBase : Parser
         var pp = new CPlusPlus14Parser(tokens);
         var tree = pp.preprocessing_file();
         var visitor = new Test.Preprocessor(tokens, locations);
+        visitor._noisy = this._noisy;
         visitor._current_file_name = init_header;
         visitor.Visit(tree);
         var result = visitor._preprocessor_symbols;

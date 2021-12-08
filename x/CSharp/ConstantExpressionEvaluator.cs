@@ -260,7 +260,7 @@ namespace Test
 
         public override IParseTree VisitUnary_expression([NotNull] CPlusPlus14Parser.Unary_expressionContext context)
         {
-            // unary_expression :  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof unary_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ;
+            // unary_expression :  KWSizeof* (  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ) ;
             var post = context.postfix_expression();
             var cast = context.cast_expression();
             var plus = context.PlusPlus();
@@ -360,32 +360,45 @@ namespace Test
 
         public override IParseTree VisitPm_expression([NotNull] CPlusPlus14Parser.Pm_expressionContext context)
         {
-            // pm_expression :  cast_expression |  pm_expression DotStar cast_expression |  pm_expression ArrowStar cast_expression ;
             // pm_expression :  cast_expression ( DotStar cast_expression | ArrowStar cast_expression )* ;
             var casts = context.cast_expression();
-            //var pm = context.pm_expression();
-            //if (pm != null)
-            //{
-            //    Visit(pm);
-            //    var v = _state[pm];
-            //    var l = (int)v;
-            //    Visit(cast);
-            //    var v2 = (int)_state[cast];
-            //    if (context.DotStar() != null)
-            //    {
-            //        _state[context] = l * v2;
-            //    }
-            //    else if (context.ArrowStar() != null)
-            //    {
-            //        _state[context] = l / v2;
-            //    }
-            //}
-            //else
+            var cast = casts[0];
+            Visit(cast);
+            _state[context] = _state[cast];
+            var previous = cast;
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (casts.Count() > 1) throw new Exception();
-                var cast = casts[0];
-                Visit(cast);
-                _state[context] = _state[cast];
+                // Unknow what this means for preprocessing.
+                throw new Exception();
+                var lhs_v = _state[context];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                var rhs = context.children[i + 1];
+                Visit(rhs);
+                var rhs_v = _state[rhs];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                {
+                    int l = (int)lhs_n;
+                    int r = (int)rhs_n;
+                    int res;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.DotStar) res = l + r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
+                    else throw new Exception();
+                    _state[context] = res;
+                }
+                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+                {
+                    long l = (long)lhs_n;
+                    long r = (long)rhs_n;
+                    long res;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.Plus) res = l + r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
+                    else throw new Exception();
+                    _state[context] = res;
+                }
+                else throw new Exception();
             }
             return null;
         }
@@ -427,38 +440,43 @@ namespace Test
 
         public override IParseTree VisitAdditive_expression([NotNull] CPlusPlus14Parser.Additive_expressionContext context)
         {
-            // additive_expression :  multiplicative_expression |  additive_expression Plus multiplicative_expression |  additive_expression Minus multiplicative_expression ;
+            // additive_expression :  multiplicative_expression ( Plus multiplicative_expression | Minus multiplicative_expression )* ;
             var muls = context.multiplicative_expression();
-            //var plus = context.Plus();
-            //if (plus != null)
-            //{
-            //    Visit(mul[0]);
-            //    var lhs_v = _state[mul[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[mul[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //    {
-            //        int lhs = (int)lhs_n;
-            //        int rhs = (int)rhs_n;
-            //        int res = plus != null ? lhs + rhs : lhs - rhs;
-            //        _state[context] = res;
-            //    }
-            //    else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
-            //    {
-            //        long lhs = (long)lhs_n;
-            //        long rhs = (long)rhs_n;
-            //        long res = plus != null ? lhs + rhs : lhs - rhs;
-            //        _state[context] = res;
-            //    }
-            //    else throw new Exception();
-            //}
-            //else
+            var mul = muls[0];
+            Visit(mul);
+            _state[context] = _state[mul];
+            var previous = mul;
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (muls.Count() > 1) throw new Exception();
-                var mul = muls[0];
-                Visit(mul);
-                _state[context] = _state[mul];
+                var lhs_v = _state[context];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                var rhs = context.children[i + 1];
+                Visit(rhs);
+                var rhs_v = _state[rhs];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                {
+                    int l = (int)lhs_n;
+                    int r = (int)rhs_n;
+                    int res;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.Plus) res = l + r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
+                    else throw new Exception();
+                    _state[context] = res;
+                }
+                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+                {
+                    long l = (long)lhs_n;
+                    long r = (long)rhs_n;
+                    long res;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.Plus) res = l + r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Minus) res = l - r;
+                    else throw new Exception();
+                    _state[context] = res;
+                }
+                else throw new Exception();
             }
             return null;
         }
@@ -504,70 +522,45 @@ namespace Test
 
         public override IParseTree VisitRelational_expression([NotNull] CPlusPlus14Parser.Relational_expressionContext context)
         {
-            // relational_expression :  shift_expression |  relational_expression Less shift_expression |  relational_expression Greater shift_expression |  relational_expression LessEqual shift_expression |  relational_expression GreaterEqual shift_expression ;
             // relational_expression :  shift_expression ( Less shift_expression | Greater shift_expression | LessEqual shift_expression | GreaterEqual shift_expression )* ;
             var shifts = context.shift_expression();
-            //var lt = context.Less();
-            //var le = context.Less();
-            //var gt = context.Greater();
-            //var ge = context.GreaterEqual();
-            //if (lt != null)
-            //{
-            //    Visit(shift[0]);
-            //    var lhs_v = _state[shift[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[shift[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) < 0;
-            //    else if (lhs_n is long || rhs_n is long)
-            //        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) < 0;
-            //    else throw new Exception();
-            //} else if (le != null)
-            //{
-            //    Visit(shift[0]);
-            //    var lhs_v = _state[shift[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[shift[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) <= 0;
-            //    else if (lhs_n is long || rhs_n is long)
-            //        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) <= 0;
-            //    else throw new Exception();
-            //}
-            //else if (gt != null)
-            //{
-            //    Visit(shift[0]);
-            //    var lhs_v = _state[shift[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[shift[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) > 0;
-            //    else if (lhs_n is long || rhs_n is long)
-            //        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) > 0;
-            //    else throw new Exception();
-            //}
-            //else if (ge != null)
-            //{
-            //    Visit(shift[0]);
-            //    var lhs_v = _state[shift[0]];
-            //    ParseNumber(lhs_v.ToString(), out object lhs_n);
-            //    var rhs_v = _state[shift[1]];
-            //    ParseNumber(rhs_v.ToString(), out object rhs_n);
-            //    if (lhs_n is int && rhs_n is int)
-            //        _state[context] = ((int)lhs_n).CompareTo((int)rhs_n) >= 0;
-            //    else if (lhs_n is long || rhs_n is long)
-            //        _state[context] = ((long)lhs_n).CompareTo((long)rhs_n) >= 0;
-            //    else throw new Exception();
-            //}
-            //else
+            var shift = shifts[0];
+            Visit(shift);
+            _state[context] = _state[shift];
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (shifts.Count() > 1) throw new Exception();
-                var shift = shifts[0];
-                Visit(shift);
-                _state[context] = _state[shift];
+                var lhs = context.children[i - 1];
+                var lhs_v = _state[lhs];
+                ParseNumber(lhs_v.ToString(), out object lhs_n);
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                var rhs = context.children[i + 1];
+                Visit(rhs);
+                var rhs_v = _state[rhs];
+                ParseNumber(rhs_v.ToString(), out object rhs_n);
+                if (lhs_n is int && rhs_n is int)
+                {
+                    int l = (int)lhs_n;
+                    int r = (int)rhs_n;
+                    bool res = false;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.Less) res = l < r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Greater) res = l > r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.LessEqual) res = l < r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.GreaterEqual) res = l > r;
+                    _state[context] = res;
+                }
+                else if ((lhs_n is long || lhs_n is int) && (rhs_n is int || rhs_n is long))
+                {
+                    long l = (long)lhs_n;
+                    long r = (long)rhs_n;
+                    bool res = false;
+                    if (opt.Symbol.Type == CPlusPlus14Lexer.Less) res = l < r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.Greater) res = l > r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.LessEqual) res = l < r;
+                    else if (opt.Symbol.Type == CPlusPlus14Lexer.GreaterEqual) res = l > r;
+                    _state[context] = res;
+                }
+                else throw new Exception();
             }
             return null;
         }
@@ -576,23 +569,20 @@ namespace Test
         {
             // equality_expression :  relational_expression ( Equal relational_expression | NotEqual relational_expression )* ;
             var rels = context.relational_expression();
-            //var eq = context.equality_expression();
-            object l = null;
-            //if (eq != null)
-            //{
-            //    Visit(eq);
-            //    var v = _state[eq];
-            //    l = v == null ? null : v;
-            //    Visit(rel);
-            //    var v2 = _state[rel];
-            //    _state[context] = v == v2;
-            //}
-            //else
+            var rel = rels[0];
+            Visit(rel);
+            _state[context] = _state[rel];
+            for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (rels.Count() > 1) throw new Exception();
-                var rel = rels[0];
-                Visit(rel);
-                _state[context] = _state[rel];
+                var lhs = context.children[i - 1];
+                var lhs_v = _state[lhs];
+                var op = context.children[i];
+                var opt = op as TerminalNodeImpl;
+                var rhs = context.children[i + 1];
+                Visit(rhs);
+                var rhs_v = _state[rhs];
+                bool res = opt.Symbol.Type == CPlusPlus14Lexer.Equal ? lhs_v == rhs_v : !(lhs_v == rhs_v);
+                _state[context] = res;
             }
             return null;
         }
@@ -681,10 +671,10 @@ namespace Test
             var xor = xors[0];
             Visit(xor);
             _state[context] = _state[xor];
-            var previous = xor;
             for (int i = 1; i < context.children.Count(); i += 2)
             {
-                var lhs_v = _state[context];
+                var lhs = context.children[i - 1];
+                var lhs_v = _state[lhs];
                 ParseNumber(lhs_v.ToString(), out object lhs_n);
                 var op = context.children[i];
                 var opt = op as TerminalNodeImpl;
@@ -717,23 +707,29 @@ namespace Test
             var iors = context.inclusive_or_expression();
             var ior = iors[0];
             Visit(ior);
-            ConvertToBool(_state[ior], out bool b);
-            _state[context] = b;
+            _state[context] = _state[ior];
             for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if (!(bool)_state[context]) break;
+                var lhs = context.children[i - 1];
+                ConvertToBool(_state[lhs], out bool blhs);
+                if (!blhs)
+                {
+                    _state[context] = false;
+                    break;
+                }
+                else
+                {
+                    _state[context] = true;
+                }
+                var rhs = context.children[i + 1];
                 var op = context.children[i];
                 var opt = op as TerminalNodeImpl;
-                if (opt.Symbol.Type == CPlusPlus14Parser.AndAnd || opt.Symbol.Type == CPlusPlus14Parser.KWAnd)
+                Visit(rhs);
+                ConvertToBool(_state[rhs], out bool brhs);
+                if (!brhs)
                 {
-                    var next = context.children[i + 1];
-                    Visit(next);
-                    var v = _state[next];
-                    ConvertToBool(v, out bool bnext);
-                    if (! bnext)
-                    {
-                        _state[context] = bnext;
-                    }
+                    _state[context] = false;
+                    break;
                 }
             }
             return null;
@@ -745,24 +741,29 @@ namespace Test
             var ands = context.logical_and_expression();
             var and = ands[0];
             Visit(and);
-            ConvertToBool(_state[and], out bool b);
-            _state[context] = b;
+            _state[context] = _state[and];
             for (int i = 1; i < context.children.Count(); i += 2)
             {
-                if ((bool)_state[context]) break;
+                var lhs = context.children[i - 1];
+                ConvertToBool(_state[lhs], out bool blhs);
+                if (blhs)
+                {
+                    _state[context] = true;
+                    break;
+                }
+                else
+                {
+                    _state[context] = false;
+                }
+                var rhs = context.children[i + 1];
                 var op = context.children[i];
                 var opt = op as TerminalNodeImpl;
-                if (opt.Symbol.Type == CPlusPlus14Parser.OrOr || opt.Symbol.Type == CPlusPlus14Parser.KWOr)
+                Visit(rhs);
+                ConvertToBool(_state[rhs], out bool brhs);
+                if (brhs)
                 {
-                    var next = context.children[i + 1];
-                    Visit(next);
-                    var v = _state[next];
-                    ConvertToBool(v, out bool bnext);
-                    if (bnext)
-                    {
-                        _state[context] = bnext;
-                        break;
-                    }
+                    _state[context] = true;
+                    break;
                 }
             }
             return null;
@@ -903,6 +904,22 @@ namespace Test
                 s = s.Substring(0, s.Length - 1);
             else if (char.IsDigit(s[s.Length - 1]))
             { }
+            try
+            {
+                l = Convert.ToInt32(s, 10);
+                return;
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                l = Convert.ToInt64(s, 10);
+                return;
+            }
+            catch (Exception)
+            {
+            }
             try
             {
                 l = Convert.ToInt32(s, 16);

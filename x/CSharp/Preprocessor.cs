@@ -19,7 +19,7 @@ namespace Test
         CommonTokenStream _stream;
         public string _current_file_name;
         public List<string> _probe_locations;
-        private bool _noisy = false;
+        public bool _noisy = false;
 
         public Preprocessor(CommonTokenStream stream, List<string> probe_locations)
         {
@@ -36,12 +36,8 @@ namespace Test
             // Do macro expansion+evaluation.
 
             ConstantExpressionMacroExpansion ccc = new ConstantExpressionMacroExpansion(_preprocessor_symbols);
+            ccc._noisy = this._noisy;
             var new_replacement = ccc.Expand(_stream, context);
-            if (new_replacement.Contains("QT_VERSION_CHECK"))
-            {
-
-            }
-
             ConstantExpressionEvaluator ddd = new ConstantExpressionEvaluator(_preprocessor_symbols);
             _state[context] = ddd.Evaluate(new_replacement);
             return null;
@@ -240,6 +236,7 @@ namespace Test
                                             DateTime after = DateTime.Now;
                                             if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                                             var visitor = new Preprocessor(tokens, this._probe_locations);
+                                            visitor._noisy = this._noisy;
                                             visitor._current_file_name = this._current_file_name;
                                             visitor._preprocessor_symbols = this._preprocessor_symbols;
                                             visitor._probe_locations = this._probe_locations;
@@ -309,8 +306,6 @@ namespace Test
             if (else_group != null && !b)
             {
                 Visit(else_group);
-                b = (bool)_state[else_group];
-                _state[context] = b;
             }
             return null;
         }
@@ -560,10 +555,10 @@ namespace Test
                         _probe_locations.Insert(0, to_add);
                         // Add file to input.
                         var strg = File.ReadAllText(p);
-                        strg = strg.Replace("\\\r\n", " ");
-                        strg = strg.Replace("\\\n\r", " ");
-                        strg = strg.Replace("\\\n", " ");
-                        strg = strg.Replace("\\\r", " ");
+                        strg = strg.Replace("\\\r\n", "");
+                        strg = strg.Replace("\\\n\r", "");
+                        strg = strg.Replace("\\\n", "");
+                        strg = strg.Replace("\\\r", "");
                         var str = new AntlrInputStream(strg);
                         var lexer = new CPlusPlus14Lexer(str);
                         lexer.PushMode(CPlusPlus14Lexer.PP);
@@ -580,6 +575,7 @@ namespace Test
                         DateTime after = DateTime.Now;
                         if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
                         var visitor = new Preprocessor(tokens, this._probe_locations);
+                        visitor._noisy = this._noisy;
                         visitor._current_file_name = p;
                         visitor._state = this._state;
                         visitor._preprocessor_symbols = this._preprocessor_symbols;
