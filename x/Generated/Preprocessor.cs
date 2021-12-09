@@ -96,7 +96,7 @@ namespace Test
                     }
 
                     // Collect all tokens, including new lines, and expand macros.
-                    var toks = context.children
+                    List<IParseTree> toks = context.children
                         .ToList()
                         .GetRange(start, count)
                         .SelectMany(ch =>
@@ -109,161 +109,8 @@ namespace Test
                             var arr = list.ToArray();
                             return arr;
                         }).ToList();
-
-                    StringBuilder eval = new StringBuilder();
-                    if (toks != null)
-                    {
-                        for (int i = 0; i < toks.Count; ++i)
-                        {
-                            var tok = toks[i];
-                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Text == "\\")
-                            {
-                                var next_tok = toks[i + 1];
-                                if (next_tok.GetText() == "n")
-                                {
-                                    i += 1;
-                                    Add(_sb, this._stream, tok, "");
-                                    _sb.AppendLine();
-                                    continue;
-                                }
-                            }
-                            if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == CPlusPlus14Parser.Identifier)
-                            {
-                                var fun = tok.GetText();
-                                if (this._preprocessor_symbols.Find(
-                                    fun,
-                                    out List<string> ids,
-                                    out CPlusPlus14Parser.Replacement_listContext repls,
-                                    out CommonTokenStream st,
-                                    out string fn))
-                                {
-                                    // First, get the parameters of the macro.
-                                    var lparms = ids;
-                                    // If there are no parameters, then just add the macro value to the output.
-                                    if (lparms == null || lparms.Count == 0)
-                                    {
-                                        var foo = repls?.pp_tokens()?.preprocessing_token();
-                                        if (foo != null)
-                                        {
-                                            foreach (var s in repls.pp_tokens().preprocessing_token())
-                                            {
-                                                Add(_sb, st, s);
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // There are some parameters of the macro.
-                                        // Scan ahead for the argument values of the macro. We'll use this
-                                        // to make substitutions.
-                                        var (get_args, e) = GetArgs(lparms, toks, i);
-                                        i = e;
-                                        // Instantiate the macro.
-                                        StringBuilder sb2 = new StringBuilder();
-                                        Dictionary<string, string> map = new Dictionary<string, string>();
-                                        for (int k = 0; k < lparms.Count; ++k)
-                                        {
-                                            if (lparms[k] == "...")
-                                            {
-                                                // all args from this point on are matched to this parameter.
-                                                map["__VA_ARGS__"] = string.Join("", get_args.Skip(k));
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                map[lparms[k]] = get_args[k];
-                                            }
-                                        }
-                                        var pp_tokens = repls.pp_tokens();
-                                        if (pp_tokens == null)
-                                        {
-                                            continue;
-                                        }
-                                        var frontier = TreeEdits.Frontier(
-                                            pp_tokens)
-                                            .ToList();
-                                        var toks2 = frontier.ToList();
-                                        if (toks2 == null)
-                                        {
-                                            continue;
-                                        }
-                                        bool stringize = false;
-                                        foreach (var t in toks2)
-                                        {
-                                            var value = t.Symbol.Text;
-                                            if (value == "#")
-                                            {
-                                                stringize = true;
-                                                continue;
-                                            }
-                                            if (map.TryGetValue(value, out string xxx))
-                                            {
-                                                if (stringize)
-                                                    Add(sb2, st, t, '"' + xxx + '"');
-                                                else
-                                                    Add(sb2, st, t, xxx);
-                                            }
-                                            else
-                                            {
-                                                Add(sb2, st, t);
-                                            }
-                                            stringize = false;
-                                        }
-                                        // Reparse and call recursively until fix-point.
-                                        var todo = sb2.ToString();
-                                        var regex = new Regex("[ \t]*[#][#][ \t]*");
-                                        todo = regex.Replace(todo, "");
-                                        do
-                                        {
-                                            if (_noisy) System.Console.Error.WriteLine("Input reparse and expand " + todo);
-                                            var str = new AntlrInputStream(todo);
-                                            var lexer = new CPlusPlus14Lexer(str);
-                                            lexer.PushMode(CPlusPlus14Lexer.PP);
-                                            var tokens = new CommonTokenStream(lexer);
-                                            var parser = new CPlusPlus14Parser(tokens);
-                                            var listener_lexer = new ErrorListener<int>(false);
-                                            var listener_parser = new ErrorListener<IToken>(false);
-                                            lexer.RemoveErrorListeners();
-                                            parser.RemoveErrorListeners();
-                                            lexer.AddErrorListener(listener_lexer);
-                                            parser.AddErrorListener(listener_parser);
-                                            DateTime before = DateTime.Now;
-                                            var tree = parser.group();
-                                            DateTime after = DateTime.Now;
-                                            if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
-                                            var visitor = new Preprocessor(tokens, this._probe_locations);
-                                            visitor._noisy = this._noisy;
-                                            visitor._current_file_name = this._current_file_name;
-                                            visitor._preprocessor_symbols = this._preprocessor_symbols;
-                                            visitor._probe_locations = this._probe_locations;
-                                            visitor.Visit(tree);
-                                            this._preprocessor_symbols = visitor._preprocessor_symbols;
-                                            this._probe_locations = visitor._probe_locations;
-                                            var new_todo = visitor._sb.ToString();
-                                            new_todo = regex.Replace(new_todo, "");
-                                            if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
-                                            {
-                                                new_todo = new_todo.ToLower();
-                                            }
-                                            if (_noisy) System.Console.Error.WriteLine("Got back " + new_todo);
-                                            if (new_todo == todo)
-                                                break;
-                                            todo = new_todo;
-                                        } while (true);
-                                        _sb.Append(todo);
-                                    }
-                                }
-                                else
-                                {
-                                    Add(_sb, this._stream, tok);
-                                }
-                            }
-                            else
-                            {
-                                Add(_sb, this._stream, tok);
-                            }
-                        }
-                    }
+                    var additional = ExpandAllMacros(toks);
+                    _sb.Append(additional);
                 }
                 else if (context.GetChild(c) != null)
                 {
@@ -276,6 +123,163 @@ namespace Test
                 }
             }
             return null;
+        }
+
+        private string ExpandAllMacros(List<IParseTree> toks)
+        {
+            StringBuilder eval = new StringBuilder();
+            if (toks != null && toks.Any())
+            {
+                bool any_macros = false;
+                for (int i = 0; i < toks.Count; ++i)
+                {
+                    var tok = toks[i];
+                    if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Text == "\\")
+                    {
+                        var next_tok = toks[i + 1];
+                        if (next_tok.GetText() == "n")
+                        {
+                            i += 1;
+                            Add(eval, this._stream, tok, "");
+                            eval.AppendLine();
+                            continue;
+                        }
+                    }
+                    if (tok is TerminalNodeImpl && (tok as TerminalNodeImpl).Symbol.Type == CPlusPlus14Parser.Identifier)
+                    {
+                        var fun = tok.GetText();
+                        if (this._preprocessor_symbols.Find(
+                            fun,
+                            out List<string> ids,
+                            out CPlusPlus14Parser.Replacement_listContext repls,
+                            out CommonTokenStream st,
+                            out string fn))
+                        {
+                            any_macros = true;
+                            // First, get the parameters of the macro.
+                            var lparms = ids;
+                            // If there are no parameters, then just add the macro value to the output.
+                            if (lparms == null || lparms.Count == 0)
+                            {
+                                var foo = repls?.pp_tokens()?.preprocessing_token();
+                                if (foo != null)
+                                {
+                                    foreach (var s in repls.pp_tokens().preprocessing_token())
+                                    {
+                                        Add(eval, st, s);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // There are some parameters of the macro.
+                                // Scan ahead for the argument values of the macro. We'll use this
+                                // to make substitutions.
+                                var (get_args, e) = GetArgs(lparms, toks, i);
+                                i = e;
+                                // Instantiate the macro.
+                                Dictionary<string, string> map = new Dictionary<string, string>();
+                                for (int k = 0; k < lparms.Count; ++k)
+                                {
+                                    if (lparms[k] == "...")
+                                    {
+                                        // all args from this point on are matched to this parameter.
+                                        map["__VA_ARGS__"] = string.Join("", get_args.Skip(k));
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        map[lparms[k]] = get_args[k];
+                                    }
+                                }
+                                var pp_tokens = repls.pp_tokens();
+                                if (pp_tokens == null)
+                                {
+                                    continue;
+                                }
+                                var frontier = TreeEdits.Frontier(
+                                    pp_tokens)
+                                    .ToList();
+                                var toks2 = frontier.ToList();
+                                if (toks2 == null)
+                                {
+                                    continue;
+                                }
+                                bool stringize = false;
+                                foreach (var t in toks2)
+                                {
+                                    var value = t.Symbol.Text;
+                                    if (value == "#")
+                                    {
+                                        stringize = true;
+                                        continue;
+                                    }
+                                    if (map.TryGetValue(value, out string xxx))
+                                    {
+                                        if (stringize)
+                                            Add(eval, st, t, '"' + xxx + '"');
+                                        else
+                                            Add(eval, st, t, xxx);
+                                    }
+                                    else
+                                    {
+                                        Add(eval, st, t);
+                                    }
+                                    stringize = false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Add(eval, this._stream, tok);
+                        }
+                    }
+                    else
+                    {
+                        Add(eval, this._stream, tok);
+                    }
+                }
+                if (any_macros)
+                {
+                    // Reparse and call recursively until fix-point.
+                    var todo = eval.ToString();
+                    var regex = new Regex("[ \t]*[#][#][ \t]*");
+                    todo = regex.Replace(todo, "");
+                    if (_noisy) System.Console.Error.WriteLine("Input reparse and expand " + todo);
+                    var str = new AntlrInputStream(todo);
+                    var lexer = new CPlusPlus14Lexer(str);
+                    lexer.PushMode(CPlusPlus14Lexer.PP);
+                    var tokens = new CommonTokenStream(lexer);
+                    var parser = new CPlusPlus14Parser(tokens);
+                    var listener_lexer = new ErrorListener<int>(false);
+                    var listener_parser = new ErrorListener<IToken>(false);
+                    lexer.RemoveErrorListeners();
+                    parser.RemoveErrorListeners();
+                    lexer.AddErrorListener(listener_lexer);
+                    parser.AddErrorListener(listener_parser);
+                    DateTime before = DateTime.Now;
+                    var tree = parser.group();
+                    DateTime after = DateTime.Now;
+                    if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
+                    var visitor = new Preprocessor(tokens, this._probe_locations);
+                    visitor._noisy = this._noisy;
+                    visitor._current_file_name = this._current_file_name;
+                    visitor._preprocessor_symbols = this._preprocessor_symbols;
+                    visitor._probe_locations = this._probe_locations;
+                    visitor.Visit(tree);
+                    this._preprocessor_symbols = visitor._preprocessor_symbols;
+                    this._probe_locations = visitor._probe_locations;
+                    var new_todo = visitor._sb.ToString();
+                    new_todo = regex.Replace(new_todo, "");
+                    if (new_todo.ToLower() == "true" || new_todo.ToLower() == "false")
+                    {
+                        new_todo = new_todo.ToLower();
+                    }
+                    if (_noisy) System.Console.Error.WriteLine("Got back " + new_todo);
+                    eval = new StringBuilder().Append(new_todo);
+                }
+            }
+            return eval.ToString();
         }
 
         public override IParseTree VisitGroup_part([NotNull] CPlusPlus14Parser.Group_partContext context)
