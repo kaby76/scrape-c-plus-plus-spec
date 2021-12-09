@@ -38,13 +38,23 @@ public abstract class ParserBase : Parser
         strg = strg.Replace("\\\r", "");
         var str = CharStreams.fromString(strg);
         //var sr = new StreamReader(stream);
-        //if (SeeOutput) System.Console.Error.WriteLine(strg);
+        if (_noisy)
+        {
+            System.Console.Error.WriteLine("Input:");
+            System.Console.Error.WriteLine(strg);
+        }
         var tokens = _input as CommonTokenStream;
         // tokens.TokenSource;
         lexer = tokens.TokenSource as Lexer;
         lexer.PushMode(CPlusPlus14Lexer.PP);
-        var pp = new CPlusPlus14Parser(tokens);
-        var tree = pp.preprocessing_file();
+        var parser = new CPlusPlus14Parser(tokens);
+        var listener_lexer = new ErrorListener<int>(false);
+        var listener_parser = new ErrorListener<IToken>(false);
+        lexer.RemoveErrorListeners();
+        parser.RemoveErrorListeners();
+        lexer.AddErrorListener(listener_lexer);
+        parser.AddErrorListener(listener_parser);
+        var tree = parser.preprocessing_file();
         // Walk parse tree and collect tokens from preprocessor.
         var visitor = new Test.Preprocessor(tokens, locations);
         visitor._noisy = this._noisy;
@@ -56,7 +66,7 @@ public abstract class ParserBase : Parser
         }
         if (_noisy)
         {
-            var sb = Test.TreeOutput.OutputTree(tree, lexer, pp, tokens);
+            var sb = Test.TreeOutput.OutputTree(tree, lexer, parser, tokens);
             System.Console.Error.WriteLine(sb.ToString());
         }
         visitor.Visit(tree);
@@ -155,8 +165,14 @@ public abstract class ParserBase : Parser
         var lexer = new CPlusPlus14Lexer(str);
         lexer.PushMode(CPlusPlus14Lexer.PP);
         var tokens = new CommonTokenStream(lexer);
-        var pp = new CPlusPlus14Parser(tokens);
-        var tree = pp.preprocessing_file();
+        var parser = new CPlusPlus14Parser(tokens);
+        var listener_lexer = new ErrorListener<int>(false);
+        var listener_parser = new ErrorListener<IToken>(false);
+        lexer.RemoveErrorListeners();
+        parser.RemoveErrorListeners();
+        lexer.AddErrorListener(listener_lexer);
+        parser.AddErrorListener(listener_parser);
+        var tree = parser.preprocessing_file();
         var visitor = new Test.Preprocessor(tokens, locations);
         visitor._noisy = this._noisy;
         visitor._current_file_name = init_header;

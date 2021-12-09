@@ -75,10 +75,6 @@ namespace Test
         public override IParseTree VisitGroup([NotNull] CPlusPlus14Parser.GroupContext context)
         {
             var check = TreeOutput.Reconstruct(this._stream, context);
-            if (check.Contains("QT_VERSION_CHECK"))
-            {
-
-            }
             // Collect all adjacent text_line and step through that with macro expansion.
             // For others, use visitor.
             for (int c = 0; c < context.ChildCount;)
@@ -225,8 +221,8 @@ namespace Test
                                             lexer.PushMode(CPlusPlus14Lexer.PP);
                                             var tokens = new CommonTokenStream(lexer);
                                             var parser = new CPlusPlus14Parser(tokens);
-                                            var listener_lexer = new ErrorListener<int>(true);
-                                            var listener_parser = new ErrorListener<IToken>(true);
+                                            var listener_lexer = new ErrorListener<int>(false);
+                                            var listener_parser = new ErrorListener<IToken>(false);
                                             lexer.RemoveErrorListeners();
                                             parser.RemoveErrorListeners();
                                             lexer.AddErrorListener(listener_lexer);
@@ -489,7 +485,6 @@ namespace Test
         public override IParseTree VisitControl_line([NotNull] CPlusPlus14Parser.Control_lineContext context)
         {
             // control_line :  Pound KWInclude pp_tokens new_line |  Pound KWDefine Identifier replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list ? RightParen replacement_list new_line |  Pound KWDefine Identifier lparen Ellipsis RightParen replacement_list new_line |  Pound KWDefine Identifier lparen identifier_list Comma Ellipsis RightParen replacement_list new_line |  Pound KWUndef Identifier new_line |  Pound KWLine pp_tokens new_line |  Pound (KWError|KWWarning) pp_tokens ? new_line |  Pound KWPragma pp_tokens ? new_line |  Pound new_line ;
-            var define = context.KWDefine();
             var id = context.Identifier();
             var lp = context.lparen();
             var pp_tokens = context.pp_tokens();
@@ -499,11 +494,7 @@ namespace Test
             if (context.KWDefine() != null)
             {
                 CPlusPlus14Parser.Replacement_listContext list = context.replacement_list();
-                var id_string = id.GetText();
-                if (id_string.Contains("QT_VERSION_CHECK"))
-                {
-
-                }
+		var id_string = id.GetText();
                 var parms1 = context.identifier_list();
                 var parms2 = context.Ellipsis();
                 var parms = new List<string>();
@@ -511,13 +502,22 @@ namespace Test
                     parms.AddRange(parms1.Identifier().Select(p => p.GetText()));
                 if (parms2 != null)
                     parms.Add(parms2.GetText());
-                _preprocessor_symbols.Add(id.GetText(),
+		if (_noisy)
+		{
+			System.Console.Error.WriteLine("Defining " + id_string);
+		}
+                _preprocessor_symbols.Add(id_string,
                     parms, list, _stream, _current_file_name);
                 _sb.AppendLine(); // Per spec, output blank line.
             }
             else if (context.KWUndef() != null)
             {
-                _preprocessor_symbols.Delete(id.GetText());
+		    var id_string = id.GetText();
+		    if (_noisy)
+		    {
+			    System.Console.Error.WriteLine("Undefining " + id_string);
+		    }
+                _preprocessor_symbols.Delete(id_string);
             }
             else if (context.KWInclude() != null)
             {
@@ -564,8 +564,8 @@ namespace Test
                         lexer.PushMode(CPlusPlus14Lexer.PP);
                         var tokens = new CommonTokenStream(lexer);
                         var parser = new CPlusPlus14Parser(tokens);
-                        var listener_lexer = new ErrorListener<int>(true);
-                        var listener_parser = new ErrorListener<IToken>(true);
+                        var listener_lexer = new ErrorListener<int>(false);
+                        var listener_parser = new ErrorListener<IToken>(false);
                         lexer.RemoveErrorListeners();
                         parser.RemoveErrorListeners();
                         lexer.AddErrorListener(listener_lexer);

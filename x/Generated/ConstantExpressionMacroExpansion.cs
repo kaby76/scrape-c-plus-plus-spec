@@ -34,8 +34,8 @@ namespace Test
                 _tokens = cts;
                 _rewriter = new TokenStreamRewriter(_tokens);
                 var parser = new CPlusPlus14Parser(_tokens);
-                var listener_lexer = new ErrorListener<int>(true);
-                var listener_parser = new ErrorListener<IToken>(true);
+                var listener_lexer = new ErrorListener<int>(false);
+                var listener_parser = new ErrorListener<IToken>(false);
                 lexer.RemoveErrorListeners();
                 parser.RemoveErrorListeners();
                 lexer.AddErrorListener(listener_lexer);

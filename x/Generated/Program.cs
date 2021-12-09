@@ -128,8 +128,8 @@ public class Program
         var tokens = new CommonTokenStream(lexer);
         var parser = new CPlusPlus14Parser(tokens);
         parser._noisy = noisy;
-        var listener_lexer = new ErrorListener<int>();
-        var listener_parser = new ErrorListener<IToken>();
+        var listener_lexer = new ErrorListener<int>(false);
+        var listener_parser = new ErrorListener<IToken>(false);
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
