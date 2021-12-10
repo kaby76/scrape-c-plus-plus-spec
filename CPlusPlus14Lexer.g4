@@ -76,7 +76,7 @@ fragment FDigit_sequence :  FDigit ( '\'' ? FDigit )* ;
 fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
 fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 fragment FS_char_sequence :  FS_Char+ ;
-fragment FS_Char :  'any member of the source character set except the double_quote ", backslash \\. or new_line character' |  FEscape_sequence |  FUniversal_character_name ;
+fragment FS_Char :  ~["\\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
 fragment FRaw_string :  '"' FD_char_sequence ? '(' FR_char_sequence ? ')' FD_char_sequence ? '"' ;
 fragment FR_char_sequence :  FR_char+ ;
 fragment FR_char :  ~[)"] ;

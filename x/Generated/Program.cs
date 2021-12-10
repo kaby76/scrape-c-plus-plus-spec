@@ -17,7 +17,7 @@ public class Program
     public static string Input { get; set; }
     public static ITokenStream TokenStream { get; set; }
     public static IParseTree Tree { get; set; }
-    public static string StartSymbol { get; set; } = "start";
+    public static string StartSymbol { get; set; } = "translation_unit";
     public static IParseTree Parse(string input)
     {
         var str = new AntlrInputStream(input);
@@ -27,7 +27,7 @@ public class Program
         TokenStream = tokens;
         var parser = new CPlusPlus14Parser(tokens);
         Parser = parser;
-        var tree = parser.start();
+        var tree = parser.translation_unit();
         Input = lexer.InputStream.ToString();
         TokenStream = parser.TokenStream;
         Tree = tree;
@@ -133,7 +133,7 @@ public class Program
         lexer.AddErrorListener(listener_lexer);
         parser.AddErrorListener(listener_parser);
         DateTime before = DateTime.Now;
-        var tree = parser.start();
+        var tree = parser.translation_unit();
         DateTime after = DateTime.Now;
         if (_noisy) System.Console.Error.WriteLine("Time: " + (after - before));
         if (listener_lexer.had_error || listener_parser.had_error)

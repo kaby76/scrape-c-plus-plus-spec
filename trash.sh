@@ -59,6 +59,11 @@ trparse $name.g4 | \
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set except the single_quote \\'', backslash \\\\, or new_line character''']" "~['\\\r\n]" | \
 	trsponge -c true
+echo yo
+trparse $name.g4 | \
+	trreplace "//STRING_LITERAL[text()='''any member of the source character set except the double_quote \", backslash \\\\. or new_line character''']" '~["\\\r\n]' | \
+	trsponge -c true
+echo yo2
 trparse $name.g4 | \
 	trreplace "//STRING_LITERAL[text()='''any member of the source character set, except a right parenthesis ) followed by the initial d_char_sequence (which may be empty) followed by a double quote \".''']"  '~[)"]' | \
 	trsponge -c true
