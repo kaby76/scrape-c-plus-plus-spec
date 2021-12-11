@@ -4,7 +4,8 @@
 WS : [\n\r\t ]+ -> channel(HIDDEN);
 //Newline: [\n\r];
 COMMENT : '//' ~[\n\r]* -> channel(HIDDEN);
-ML_COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
+ML_COMMENT : '/*' ({ this.NotEnd() }? . )* '*/' -> channel(HIDDEN);
+MultiLineMacro: '#' (~[\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> channel (HIDDEN);
 Prep : '#' ~[\n\r]* -> channel(HIDDEN);
 
 mode PP;

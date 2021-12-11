@@ -9,7 +9,8 @@ do
   if [ "$x1" != "errors" ]
   then
     echo "$file"
-    cat "$file" | trwdog ./bin/Debug/net5.0/Test.exe
+#    g++ -E "$file" | ./bin/Debug/net5.0/Test.exe
+    cat "$file" | ./bin/Debug/net5.0/Test.exe
     status="$?"
     if [ -f "$file".errors ]
     then
@@ -17,7 +18,7 @@ do
       then
         echo Expected parse fail.
         err=1
-        break
+#        break
       else
         echo Expected.
       fi
@@ -25,7 +26,7 @@ do
       if [ "$status" != "0" ]
       then
         err=1
-        break
+#        break
       fi
     fi
   fi

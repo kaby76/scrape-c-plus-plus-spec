@@ -25,4 +25,12 @@ public abstract class LexerBase : Lexer
     public void NewStream(ICharStream input)
     {
     }
+
+    protected bool NotEnd()
+    {
+	    if (_input.LA(1) == '*' && _input.LA(2) == '/')
+            return false;
+        else
+            return true;
+    }
 }

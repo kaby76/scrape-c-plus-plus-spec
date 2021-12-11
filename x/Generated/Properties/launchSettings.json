@@ -2,7 +2,7 @@
   "profiles": {
     "Test": {
       "commandName": "Project",
-      "commandLineArgs": "-noisy -file ../../test/z.cpp",
+      "commandLineArgs": "-noisy -tokens -file c:\\msys64\\home\\Kenne\\scrape-c-plus-plus-spec\\x\\examples\\avrc_api.cc",
       "workingDirectory": "c:\\msys64\\home\\Kenne\\scrape-c-plus-plus-spec\\x\\Generated"
     }
   }

@@ -239,3 +239,36 @@ trparse "$name"Parser.g4 | \
 	trdelete "//parserRuleSpec[RULE_REF/text()='control_line']/ruleBlock/ruleAltList/labeledAlt[*//RULE_REF/text()='replacement_list' and *//TOKEN_REF/text()='KWDefine' and not(*//RULE_REF/text()='lparen')]/(self::labeledAlt|self::labeledAlt/preceding-sibling::OR)" | \
 	trinsert "//parserRuleSpec[RULE_REF/text()='control_line']/SEMI" "| Pound KWDefine Identifier replacement_list new_line" | \
 	trsponge -c true
+
+# Extension for const in declarations.
+trparse "$name"Parser.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='ptr_declarator']//RULE_REF[text()='ptr_operator']" '( ptr_operator KWConst? )' | \
+	trsponge -c true
+
+# Extension for backslash return within strings. This should be handled
+# by preprocessor but this is a work-around.
+trparse "$name"Lexer.g4 | \
+	trinsert "//lexerRuleSpec[TOKEN_REF/text()='FSimple_escape_sequence']//SEMI" "| ( '\\\\' [\n\r]+ )" | \
+	trsponge -c true
+
+# We have to modify the Raw_string production because the rule derived
+# from spec does not work.
+trparse "$name"Lexer.g4 | \
+	trreplace "//lexerRuleSpec[TOKEN_REF/text()='FRaw_string']" \
+		"fragment FRaw_string : '\"' (( '\\\\' [\"()] )|~[\\r\\n (])*? '(' ~[)]*? ')' (( '\\\\' [\"()]) | ~[\\r\\n \"])*? '\"' ;" | \
+	trsponge -c true
+
+# We have to move Identifier after string. I don't know why.
+trparse "$name"Lexer.g4 | \
+	trmove "//lexerRuleSpec[TOKEN_REF/text()='Identifier']" \
+               "//lexerRuleSpec[TOKEN_REF/text()='User_defined_literal']" | \
+	trsponge -c true
+
+# Extension of the grammar to support superficially "str1" "str2"
+# concatenation.
+trparse "$name"Lexer.g4 | \
+	trreplace "//lexerRuleSpec[TOKEN_REF/text()='String_literal']" \
+		"fragment FString_literal :  ( FEncoding_prefix ? '\"' FS_char_sequence ? '\"' |  FEncoding_prefix ? 'R' FRaw_string );
+String_literal : FString_literal ([ \\t\\n\\r]* FString_literal )*;" | \
+	trsponge -c true
+

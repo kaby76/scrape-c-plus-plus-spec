@@ -172,7 +172,7 @@ balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balance
 init_declarator_list :  init_declarator ( Comma init_declarator )* ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
-ptr_declarator :  ptr_operator*  noptr_declarator ;
+ptr_declarator :  ( ptr_operator KWConst? )*  noptr_declarator ;
 noptr_declarator : (  declarator_id attribute_specifier_seq ? |  LeftParen ptr_declarator RightParen ) ( parameters_and_qualifiers | LeftBracket constant_expression ? RightBracket attribute_specifier_seq ? )* ;
 parameters_and_qualifiers :  LeftParen parameter_declaration_clause RightParen cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
 trailing_return_type :  Arrow trailing_type_specifier_seq abstract_declarator ? ;
