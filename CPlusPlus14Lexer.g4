@@ -130,7 +130,9 @@ KWFor: 'for';
 KWFriend: 'friend';
 KWGoto: 'goto';
 KWIf: 'if';
-KWInline: 'inline';
+KWInline: 'inline'
+// GNU
+| '__inline__' ;
 KWInt: 'int';
 KWLong: 'long';
 KWMutable: 'mutable';
@@ -176,7 +178,9 @@ KWUnsigned: 'unsigned';
 KWUsing: 'using';
 KWVirtual: 'virtual';
 KWVoid: 'void';
-KWVolatile: 'volatile';
+KWVolatile: 'volatile'
+// GNU
+| '__volatile__' ;
 KWWchar: 'wchar_t';
 KWWhile: 'while';
 KWXor: 'xor';

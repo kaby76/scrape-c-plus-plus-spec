@@ -272,3 +272,76 @@ trparse "$name"Lexer.g4 | \
 String_literal : FString_literal ([ \\t\\n\\r]* FString_literal )*;" | \
 	trsponge -c true
 
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='simple_declaration']/SEMI" "
+ //GNU
+ |  decl_specifier_seq attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi" | \
+	trsponge -c true
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='named_namespace_definition']/SEMI" "
+ //GNU
+ | KWInline ? KWNamespace Identifier attribute_specifier_seq ? LeftBrace namespace_body RightBrace" | \
+	trsponge -c true
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='asm_definition']/SEMI" "
+ //GNU
+ | gnu_asm_definition" | \
+	trinsert -a "//parserRuleSpec[RULE_REF/text()='punctuator']/SEMI" "
+
+// GNU
+// 6.47.2 Extended Asm - Assembler Instructions with C Expression Operands
+// https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+gnu_asm_definition : gnu_asm Semi ;
+gnu_asm : KWAsm gnu_asm_qualifiers LeftParen gnu_assembler_template (Colon gnu_output_operands ( Colon gnu_input_operands ( Colon gnu_clobbers )? )? )? RightParen ;
+gnu_asm_qualifiers : (KWVolatile | KWInline | KWGoto)* ;
+gnu_assembler_template : String_literal ;
+gnu_output_operands : ( gnu_output_operand (Comma gnu_output_operand)* )? ;
+gnu_output_operand : (LeftBracket gnu_asm_symbolic_name RightBracket)? gnu_constraint LeftParen gnu_cvariablename RightParen ;
+gnu_asm_symbolic_name : Identifier ;
+gnu_constraint : String_literal ;
+gnu_cvariablename : Identifier ;
+gnu_input_operands : ( expression (Comma expression)* )? ;
+gnu_clobbers : ( String_literal (Comma String_literal)* )? ;
+gnu_goto_labels : ( String_literal (Comma String_literal)* )? ;
+	" | \
+	trsponge -c true
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='attribute_specifier_seq']" "
+// GNU Extension.
+attribute_specifier_seq :
+    (
+        attribute_specifier
+	| gnu_attribute_specifier
+    )+ ;
+gnu_attribute_specifier :
+    KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen
+    | alignment_specifier
+    ;
+    " | \
+	trsponge -c true
+
+
+trparse "$name"Lexer.g4 | \
+	trinsert "//lexerRuleSpec[TOKEN_REF/text()='KWVolatile']/SEMI" "
+// GNU
+| '__volatile__'" | \
+	trsponge -c true
+	
+trparse "$name"Lexer.g4 | \
+	trinsert "//lexerRuleSpec[TOKEN_REF/text()='KWInline']/SEMI" "
+// GNU
+| '__inline__'" | \
+	trsponge -c true
+	
+cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4
+mv temp."$name"Lexer.g4 "$name"Lexer.g4
+cat "$name"Parser.g4 | unix2dos -f > temp."$name"Parser.g4
+mv temp."$name"Parser.g4 "$name"Parser.g4
