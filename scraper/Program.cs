@@ -859,6 +859,33 @@ Published in Switzerland
                     Version.draft_cpp_20 => 4,
                     Version.iso_cpp_20 => 0,
                     _ => 1
+		});
+
+
+            FixupOutput(ref output, @" '~' |  class_name",
+                @" '~' class_name",
+                version switch
+                {
+                    Version.draft_cpp_14 => 1,
+                    Version.iso_cpp_14 => 1,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
+                    _ => 1
+                });
+
+            FixupOutput(ref output, @"'~' |  decltype_specifier",
+                @"'~' decltype_specifier",
+                version switch
+                {
+                    Version.draft_cpp_14 => 2,
+                    Version.iso_cpp_14 => 2,
+                    Version.draft_cpp_17 => 0,
+                    Version.iso_cpp_17 => 0,
+                    Version.draft_cpp_20 => 0,
+                    Version.iso_cpp_20 => 0,
+                    _ => 1
                 });
 
             System.Console.Write(output);
