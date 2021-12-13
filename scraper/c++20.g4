@@ -39,24 +39,16 @@ Published in Switzerland
 */
 
 grammar Scrape;
-
-// A.1 General [gram.general]
-
-// A.2 Keywords [gram.key]
 typedef_name :  identifier |  simple_template_id ;
 namespace_name :  identifier |  namespace_alias ;
 namespace_alias :  identifier ;
 class_name :  identifier |  simple_template_id ;
 enum_name :  identifier ;
 template_name :  identifier ;
-
-// A.3 Lexical conventions [gram.lex]
 hex_quad :  hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit ;
 universal_character_name :  '\\u' hex_quad |  '\\U' hex_quad hex_quad ;
 preprocessing_token :  header_name |  import_keyword |  module_keyword |  export_keyword |  identifier |  pp_number |  character_literal |  user_defined_character_literal |  string_literal |  user_defined_string_literal |  preprocessing_op_or_punc |  'each non_white_space character that cannot be one of the above' ;
 token :  identifier |  keyword |  literal |  operator_or_punctuator ;
-//  A.3 cISO/IEC 2020 - All rights reserved 1632ISO/IEC 14882:2020(E)
-
 header_name :  '<' h_char_sequence '>' |  '"' q_char_sequence '"' ;
 h_char_sequence :  h_char |  h_char_sequence h_char ;
 h_char :  'any member of the source character set except new_line and >' ;
@@ -71,8 +63,6 @@ keyword :  'any identifier listed in Table 5' |  import_keyword |  module_keywor
 preprocessing_op_or_punc :  preprocessing_operator |  operator_or_punctuator ;
 preprocessing_operator :  '#' | '##' | '%:' | '%:%:' ;
 operator_or_punctuator :  '{' | '}' | '[' | ']' | '(' | ')' | '<:' | ':>' | '<%' | '%>' | ';' | ':' | '...' | '?' | '::' | '.' | '.*' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' | 'and' | 'or' | 'xor' | 'not' | 'bitand' | 'bitor' | 'compl' | 'and_eq' | 'or_eq' | 'xor_eq' | 'not_eq' ;
-//  A.3 cISO/IEC 2020 - All rights reserved 1633ISO/IEC 14882:2020(E)
-
 literal :  integer_literal |  character_literal |  floating_point_literal |  string_literal |  boolean_literal |  pointer_literal |  user_defined_literal ;
 integer_literal :  binary_literal integer_suffix ? |  octal_literal integer_suffix ? |  decimal_literal integer_suffix ? |  hexadecimal_literal integer_suffix ? ;
 binary_literal :  '0b' binary_digit |  '0B' binary_digit |  binary_literal '\'' ? binary_digit ;
@@ -91,8 +81,6 @@ long_suffix :  'l' | 'L' ;
 long_long_suffix :  'll' | 'LL' ;
 character_literal :  encoding_prefix ? '\'' c_char_sequence '\'' ;
 encoding_prefix :  'u8' | 'u' | 'U' | 'L' ;
-//  A.3 cISO/IEC 2020 - All rights reserved 1634ISO/IEC 14882:2020(E)
-
 c_char_sequence :  c_char |  c_char_sequence c_char ;
 c_char :  'any member of the source character set except the single_quote \', backslash \\, or new_line character' |  escape_sequence |  universal_character_name ;
 escape_sequence :  simple_escape_sequence |  octal_escape_sequence |  hexadecimal_escape_sequence ;
@@ -111,8 +99,6 @@ digit_sequence :  digit |  digit_sequence '\'' ? digit ;
 floating_point_suffix :  'f' | 'l' | 'F' | 'L' ;
 string_literal :  encoding_prefix ? '"' s_char_sequence ? '"' |  encoding_prefix ? 'R' raw_string ;
 s_char_sequence :  s_char |  s_char_sequence s_char ;
-//  A.3 cISO/IEC 2020 - All rights reserved 1635ISO/IEC 14882:2020(E)
-
 s_char :  any member of the basic source character set except the double_quote '",' backslash '\\,' or new_line character |  escape_sequence |  universal_character_name ;
 raw_string :  '"' d_char_sequence ? '(' r_char_sequence ? ')' d_char_sequence ? '"' ;
 r_char_sequence :  r_char |  r_char_sequence r_char ;
@@ -127,13 +113,7 @@ user_defined_floating_point_literal :  fractional_constant exponent_part ? ud_su
 user_defined_string_literal :  string_literal ud_suffix ;
 user_defined_character_literal :  character_literal ud_suffix ;
 ud_suffix :  identifier ;
-
-// A.4 Basics [gram.basic]
 translation_unit :  declaration_seq ? |  global_module_fragment ? module_declaration declaration_seq ? private_module_fragment ? ;
-//  A.4 cISO/IEC 2020 - All rights reserved 1636ISO/IEC 14882:2020(E)
-
-
-// A.5 Expressions [gram.expr]
 primary_expression :  literal |  'this' |  '(' expression ')' |  id_expression |  lambda_expression |  fold_expression |  requires_expression ;
 id_expression :  unqualified_id |  qualified_id ;
 unqualified_id :  identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  '~' type_name |  '~' decltype_specifier |  template_id ;
@@ -148,8 +128,6 @@ capture_list :  capture |  capture_list ',' capture ;
 capture :  simple_capture |  init_capture ;
 simple_capture :  identifier '...' ? |  '&' identifier '...' ? |  'this' |  '*' 'this' ;
 init_capture :  '...' ? identifier initializer |  '&' '...' ? identifier initializer ;
-//  A.5 cISO/IEC 2020 - All rights reserved 1637ISO/IEC 14882:2020(E)
-
 fold_expression :  '(' cast_expression fold_operator '...' ')' |  '(' '...' fold_operator cast_expression ')' |  '(' cast_expression fold_operator '...' fold_operator cast_expression ')' ;
 fold_operator :  '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '<<' | '>>' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '<<=' | '>>=' | '=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '&&' | '||' | ',' | '.*' | '->*' ;
 requires_expression :  'requires' requirement_parameter_list ? requirement_body ;
@@ -164,8 +142,6 @@ return_type_requirement :  '->' type_constraint ;
 nested_requirement :  'requires' constraint_expression ';' ;
 postfix_expression :  primary_expression |  postfix_expression '[' expr_or_braced_init_list ']' |  postfix_expression '(' expression_list ? ')' |  simple_type_specifier '(' expression_list ? ')' |  typename_specifier '(' expression_list ? ')' |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  postfix_expression '.' 'template' ? id_expression |  postfix_expression '->' 'template' ? id_expression |  postfix_expression '++' |  postfix_expression '--' |  'dynamic_cast' '<' type_id '>' '(' expression ')' |  'static_cast' '<' type_id '>' '(' expression ')' |  'reinterpret_cast' '<' type_id '>' '(' expression ')' |  'const_cast' '<' type_id '>' '(' expression ')' |  'typeid' '(' expression ')' |  'typeid' '(' type_id ')' ;
 expression_list :  initializer_list ;
-//  A.5 cISO/IEC 2020 - All rights reserved 1638ISO/IEC 14882:2020(E)
-
 unary_expression :  postfix_expression |  unary_operator cast_expression |  '++' cast_expression |  '--' cast_expression |  await_expression |  'sizeof' unary_expression |  'sizeof' '(' type_id ')' |  'sizeof' '...' '(' identifier ')' |  'alignof' '(' type_id ')' |  noexcept_expression |  new_expression |  delete_expression ;
 unary_operator :  '*' | '&' | '+' | '-' | '!' | '~' ;
 await_expression :  'co_await' cast_expression ;
@@ -182,8 +158,6 @@ pm_expression :  cast_expression |  pm_expression '.*' cast_expression |  pm_exp
 multiplicative_expression :  pm_expression |  multiplicative_expression '*' pm_expression |  multiplicative_expression '/' pm_expression |  multiplicative_expression '%' pm_expression ;
 additive_expression :  multiplicative_expression |  additive_expression '+' multiplicative_expression |  additive_expression '-' multiplicative_expression ;
 shift_expression :  additive_expression |  shift_expression '<<' additive_expression |  shift_expression '>>' additive_expression ;
-//  A.5 cISO/IEC 2020 - All rights reserved 1639ISO/IEC 14882:2020(E)
-
 compare_expression :  shift_expression |  compare_expression '<=>' shift_expression ;
 relational_expression :  compare_expression |  relational_expression '<' compare_expression |  relational_expression '>' compare_expression |  relational_expression '<=' compare_expression |  relational_expression '>=' compare_expression ;
 equality_expression :  relational_expression |  equality_expression '==' relational_expression |  equality_expression '!=' relational_expression ;
@@ -199,10 +173,6 @@ assignment_expression :  conditional_expression |  yield_expression |  throw_exp
 assignment_operator :  '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '>>=' | '<<=' | '&=' | '^=' | '|=' ;
 expression :  assignment_expression |  expression ',' assignment_expression ;
 constant_expression :  conditional_expression ;
-//  A.5 cISO/IEC 2020 - All rights reserved 1640ISO/IEC 14882:2020(E)
-
-
-// A.6 Statements [gram.stmt]
 statement :  labeled_statement |  attribute_specifier_seq ? expression_statement |  attribute_specifier_seq ? compound_statement |  attribute_specifier_seq ? selection_statement |  attribute_specifier_seq ? iteration_statement |  attribute_specifier_seq ? jump_statement |  declaration_statement |  attribute_specifier_seq ? try_block ;
 init_statement :  expression_statement |  simple_declaration ;
 condition :  expression |  attribute_specifier_seq ? decl_specifier_seq declarator brace_or_equal_initializer ;
@@ -217,11 +187,7 @@ for_range_initializer :  expr_or_braced_init_list ;
 jump_statement :  'break' ';' |  'continue' ';' |  'return' expr_or_braced_init_list ? ';' |  coroutine_return_statement |  'goto' identifier ';' ;
 coroutine_return_statement :  'co_return' expr_or_braced_init_list ? ';' ;
 declaration_statement :  block_declaration ;
-
-// A.7 Declarations [gram.dcl]
 declaration_seq :  declaration |  declaration_seq declaration ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1641ISO/IEC 14882:2020(E)
-
 declaration :  block_declaration |  nodeclspec_function_declaration |  function_definition |  template_declaration |  deduction_guide |  explicit_instantiation |  explicit_specialization |  export_declaration |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration |  module_import_declaration ;
 block_declaration :  simple_declaration |  asm_declaration |  namespace_alias_definition |  using_declaration |  using_enum_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 nodeclspec_function_declaration :  attribute_specifier_seq ? declarator ';' ;
@@ -233,8 +199,6 @@ attribute_declaration :  attribute_specifier_seq ';' ;
 decl_specifier :  storage_class_specifier |  defining_type_specifier |  function_specifier |  'friend' |  'typedef' |  'constexpr' |  'consteval' |  'constinit' |  'inline' ;
 decl_specifier_seq :  decl_specifier attribute_specifier_seq ? |  decl_specifier decl_specifier_seq ;
 storage_class_specifier :  'static' |  'thread_local' |  'extern' |  'mutable' ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1642ISO/IEC 14882:2020(E)
-
 function_specifier :  'virtual' |  explicit_specifier ;
 explicit_specifier :  'explicit' '(' constant_expression ')' |  'explicit' ;
 typedef_name :  identifier |  simple_template_id ;
@@ -247,8 +211,6 @@ type_name :  class_name |  enum_name |  typedef_name ;
 elaborated_type_specifier :  class_key attribute_specifier_seq ? nested_name_specifier ? identifier |  class_key simple_template_id |  class_key nested_name_specifier 'template' ? simple_template_id |  elaborated_enum_specifier ;
 elaborated_enum_specifier :  'enum' nested_name_specifier ? identifier ;
 decltype_specifier :  'decltype' '(' expression ')' ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1643ISO/IEC 14882:2020(E)
-
 placeholder_type_specifier :  type_constraint ? 'auto' |  type_constraint ? 'decltype' '(' 'auto' ')' ;
 init_declarator_list :  init_declarator |  init_declarator_list ',' init_declarator ;
 init_declarator :  declarator initializer ? |  declarator requires_clause ;
@@ -267,8 +229,6 @@ defining_type_id :  defining_type_specifier_seq abstract_declarator ? ;
 abstract_declarator :  ptr_abstract_declarator |  noptr_abstract_declarator ? parameters_and_qualifiers trailing_return_type |  abstract_pack_declarator ;
 ptr_abstract_declarator :  noptr_abstract_declarator |  ptr_operator ptr_abstract_declarator ? ;
 noptr_abstract_declarator :  noptr_abstract_declarator ? parameters_and_qualifiers |  noptr_abstract_declarator ? '[' constant_expression ? ']' attribute_specifier_seq ? |  '(' ptr_abstract_declarator ')' ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1644ISO/IEC 14882:2020(E)
-
 abstract_pack_declarator :  noptr_abstract_pack_declarator |  ptr_operator abstract_pack_declarator ;
 noptr_abstract_pack_declarator :  noptr_abstract_pack_declarator parameters_and_qualifiers |  noptr_abstract_pack_declarator '[' constant_expression ? ']' attribute_specifier_seq ? |  '...' ;
 parameter_declaration_clause :  parameter_declaration_list ? '...' ? |  parameter_declaration_list ',' '...' ;
@@ -287,8 +247,6 @@ function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator
 function_body :  ctor_initializer ? compound_statement |  function_try_block |  '=' 'default' ';' |  '=' 'delete' ';' ;
 enum_name :  identifier ;
 enum_specifier :  enum_head '{' enumerator_list ? '}' |  enum_head '{' enumerator_list ',' '}' ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1645ISO/IEC 14882:2020(E)
-
 enum_head :  enum_key attribute_specifier_seq ? enum_head_name ? enum_base ? ;
 enum_head_name :  nested_name_specifier ? identifier ;
 opaque_enum_declaration :  enum_key attribute_specifier_seq ? enum_head_name enum_base ? ';' ;
@@ -312,8 +270,6 @@ using_directive :  attribute_specifier_seq ? 'using' 'namespace' nested_name_spe
 using_declaration :  'using' using_declarator_list ';' ;
 using_declarator_list :  using_declarator '...' ? |  using_declarator_list ',' using_declarator '...' ? ;
 using_declarator :  'typename' ? nested_name_specifier unqualified_id ;
-//  A.7 cISO/IEC 2020 - All rights reserved 1646ISO/IEC 14882:2020(E)
-
 asm_declaration :  attribute_specifier_seq ? 'asm' '(' string_literal ')' ';' ;
 linkage_specification :  'extern' string_literal '{' declaration_seq ? '}' |  'extern' string_literal declaration ;
 attribute_specifier_seq :  attribute_specifier_seq ? attribute_specifier ;
@@ -328,20 +284,14 @@ attribute_namespace :  identifier ;
 attribute_argument_clause :  '(' balanced_token_seq ? ')' ;
 balanced_token_seq :  balanced_token |  balanced_token_seq balanced_token ;
 balanced_token :  '(' balanced_token_seq ? ')' |  '[' balanced_token_seq ? ']' |  '{' balanced_token_seq ? '}' |  'any token other than a parenthesis, a bracket, or a brace' ;
-
-// A.8 Modules [gram.module]
 module_declaration :  export_keyword ? module_keyword module_name module_partition ? attribute_specifier_seq ? ';' ;
 module_name :  module_name_qualifier ? identifier ;
 module_partition :  ':' module_name_qualifier ? identifier ;
 module_name_qualifier :  identifier '.' |  module_name_qualifier identifier '.' ;
 export_declaration :  'export' declaration |  'export' '{' declaration_seq ? '}' |  export_keyword module_import_declaration ;
-//  A.8 cISO/IEC 2020 - All rights reserved 1647ISO/IEC 14882:2020(E)
-
 module_import_declaration :  import_keyword module_name attribute_specifier_seq ? ';' |  import_keyword module_partition attribute_specifier_seq ? ';' |  import_keyword header_name attribute_specifier_seq ? ';' ;
 global_module_fragment :  module_keyword ';' declaration_seq ? ;
 private_module_fragment :  module_keyword ':' 'private' ';' declaration_seq ? ;
-
-// A.9 Classes [gram.class]
 class_name :  identifier |  simple_template_id ;
 class_specifier :  class_head '{' member_specification ? '}' ;
 class_head :  class_key attribute_specifier_seq ? class_head_name class_virt_specifier ? base_clause ? |  class_key attribute_specifier_seq ? base_clause ? ;
@@ -355,8 +305,6 @@ member_declarator :  declarator virt_specifier_seq ? pure_specifier ? |  declara
 virt_specifier_seq :  virt_specifier |  virt_specifier_seq virt_specifier ;
 virt_specifier :  'override' |  'final' ;
 pure_specifier :  '=' '0' ;
-//  A.9 cISO/IEC 2020 - All rights reserved 1648ISO/IEC 14882:2020(E)
-
 conversion_function_id :  'operator' conversion_type_id ;
 conversion_type_id :  type_specifier_seq conversion_declarator ? ;
 conversion_declarator :  ptr_operator conversion_declarator ? ;
@@ -369,17 +317,11 @@ ctor_initializer :  ':' mem_initializer_list ;
 mem_initializer_list :  mem_initializer '...' ? |  mem_initializer_list ',' mem_initializer '...' ? ;
 mem_initializer :  mem_initializer_id '(' expression_list ? ')' |  mem_initializer_id braced_init_list ;
 mem_initializer_id :  class_or_decltype |  identifier ;
-
-// A.10 Overloading [gram.over]
 operator_function_id :  'operator' operator ;
 operator :  'new' | 'delete' | 'new' '[]' | 'delete' '[]' | 'co_await' | '()' | '[]' | '->' | '->*' | '~' | '!' | '+' | '-' | '*' | '/' | '%' | '^' | '&' | '|' | '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '^=' | '&=' | '|=' | '==' | '!=' | '<' | '>' | '<=' | '>=' | '<=>' | '&&' | '||' | '<<' | '>>' | '<<=' | '>>=' | '++' | '--' | ',' ;
 literal_operator_id :  'operator' string_literal identifier |  'operator' user_defined_string_literal ;
-
-// A.11 Templates [gram.temp]
 template_declaration :  template_head declaration |  template_head concept_definition ;
 template_head :  'template' '<' template_parameter_list '>' requires_clause ? ;
-//  A.11 cISO/IEC 2020 - All rights reserved 1649ISO/IEC 14882:2020(E)
-
 template_parameter_list :  template_parameter |  template_parameter_list ',' template_parameter ;
 requires_clause :  'requires' constraint_logical_or_expression ;
 constraint_logical_or_expression :  constraint_logical_and_expression |  constraint_logical_or_expression '||' constraint_logical_and_expression ;
@@ -399,19 +341,13 @@ concept_definition :  concept concept_name '=' constraint_expression ';' ;
 concept_name :  identifier ;
 typename_specifier :  'typename' nested_name_specifier identifier |  'typename' nested_name_specifier 'template' ? simple_template_id ;
 explicit_instantiation :  'extern' ? 'template' declaration ;
-//  A.11 cISO/IEC 2020 - All rights reserved 1650ISO/IEC 14882:2020(E)
-
 explicit_specialization :  'template' '<' '>' declaration ;
-
-// A.12 Exception handling [gram.except]
 try_block :  'try' compound_statement handler_seq ;
 function_try_block :  'try' ctor_initializer ? compound_statement handler_seq ;
 handler_seq :  handler handler_seq ? ;
 handler :  'catch' '(' exception_declaration ')' compound_statement ;
 exception_declaration :  attribute_specifier_seq ? type_specifier_seq declarator |  attribute_specifier_seq ? type_specifier_seq abstract_declarator ? |  '...' ;
 noexcept_specifier :  'noexcept' '(' constant_expression ')' |  'noexcept' ;
-
-// A.13 Preprocessing directives [gram.cpp]
 preprocessing_file :  group ? |  module_file ;
 module_file :  pp_global_module_fragment ? pp_module group ? pp_private_module_fragment ? ;
 pp_global_module_fragment :  'module' ';' new_line group ? ;
@@ -421,8 +357,6 @@ group_part :  control_line |  if_section |  text_line |  '#' conditionally_suppo
 control_line :  '#' 'include' pp_tokens new_line |  pp_import |  '#' 'define' identifier replacement_list new_line |  '#' 'define' identifier lparen identifier_list ? ')' replacement_list new_line |  '#' 'define' identifier lparen '...' ')' replacement_list new_line |  '#' 'define' identifier lparen identifier_list ',' '...' ')' replacement_list new_line |  '#' 'undef' identifier new_line |  '#' 'line' pp_tokens new_line |  '#' 'error' pp_tokens ? new_line |  '#' 'pragma' pp_tokens ? new_line |  '#' new_line ;
 if_section :  if_group elif_groups ? else_group ? endif_line ;
 if_group :  '#' 'if' constant_expression new_line group ? |  '#' 'ifdef' identifier new_line group ? |  '#' 'ifndef' identifier new_line group ? ;
-//  A.13 cISO/IEC 2020 - All rights reserved 1651ISO/IEC 14882:2020(E)
-
 elif_groups :  elif_group |  elif_groups elif_group ;
 elif_group :  '#' 'elif' constant_expression new_line group ? ;
 else_group :  '#' 'else' new_line group ? ;
@@ -443,5 +377,3 @@ has_attribute_expression :  '__has_cpp_attribute' '(' pp_tokens ')' ;
 pp_module :  'export' ? 'module' pp_tokens ? ';' new_line ;
 pp_import :  'export' ? 'import' header_name pp_tokens ? ';' new_line |  'export' ? 'import' header_name_tokens pp_tokens ? ';' new_line |  'export' ? 'import' pp_tokens ';' new_line ;
 va_ ?_replacement :  '__VA_OPT__' '(' pp_tokens ? ')' ;
-//  A.13 cISO/IEC 2020 - All rights reserved 1652ISO/IEC 14882:2020(E)
-
