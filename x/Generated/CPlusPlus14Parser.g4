@@ -58,7 +58,7 @@ pointer_literal :  KWNullptr ;
 translation_unit :  declaration_seq ? EOF ;
 primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression ;
 id_expression :  unqualified_id |  qualified_id ;
-unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde |  class_name |  Tilde |  decltype_specifier |  template_id ;
+unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde class_name |  Tilde decltype_specifier |  template_id ;
 qualified_id :  nested_name_specifier KWTemplate ? unqualified_id ;
 nested_name_specifier : (  Doublecolon |  type_name Doublecolon |  namespace_name Doublecolon |  decltype_specifier Doublecolon ) ( Identifier Doublecolon | KWTemplate ? simple_template_id Doublecolon )* ;
 lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
@@ -117,7 +117,9 @@ declaration_seq :  declaration+ ;
 declaration :  block_declaration |  function_definition |  template_declaration |  explicit_instantiation |  explicit_specialization |  linkage_specification |  namespace_definition |  empty_declaration |  attribute_declaration ;
 block_declaration :  simple_declaration |  asm_definition |  namespace_alias_definition |  using_declaration |  using_directive |  static_assert_declaration |  alias_declaration |  opaque_enum_declaration ;
 alias_declaration :  KWUsing Identifier attribute_specifier_seq ? Assign type_id Semi ;
-simple_declaration :  decl_specifier_seq ? init_declarator_list ? Semi |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi ;
+simple_declaration :  decl_specifier_seq ? init_declarator_list ? Semi |  attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi 
+ //GNU
+ |  decl_specifier_seq attribute_specifier_seq decl_specifier_seq ? init_declarator_list Semi ;
 static_assert_declaration :  KWStatic_assert LeftParen constant_expression Comma String_literal RightParen Semi ;
 empty_declaration :  Semi ;
 attribute_declaration :  attribute_specifier_seq Semi ;
@@ -146,7 +148,9 @@ enumerator :  Identifier ;
 namespace_name :  original_namespace_name |  namespace_alias ;
 original_namespace_name :  Identifier ;
 namespace_definition :  named_namespace_definition |  unnamed_namespace_definition ;
-named_namespace_definition :  original_namespace_definition |  extension_namespace_definition ;
+named_namespace_definition :  original_namespace_definition |  extension_namespace_definition 
+ //GNU
+ | KWInline ? KWNamespace Identifier attribute_specifier_seq ? LeftBrace namespace_body RightBrace ;
 original_namespace_definition :  KWInline ? KWNamespace Identifier LeftBrace namespace_body RightBrace ;
 extension_namespace_definition :  KWInline ? KWNamespace original_namespace_name LeftBrace namespace_body RightBrace ;
 unnamed_namespace_definition :  KWInline ? KWNamespace LeftBrace namespace_body RightBrace ;
@@ -156,9 +160,22 @@ namespace_alias_definition :  KWNamespace Identifier Assign qualified_namespace_
 qualified_namespace_specifier :  nested_name_specifier ? namespace_name ;
 using_declaration :  KWUsing KWTypename_ ? nested_name_specifier unqualified_id Semi |  KWUsing Doublecolon unqualified_id Semi ;
 using_directive :  attribute_specifier_seq ? KWUsing KWNamespace nested_name_specifier ? namespace_name Semi ;
-asm_definition :  KWAsm LeftParen String_literal RightParen Semi ;
+asm_definition :  KWAsm LeftParen String_literal RightParen Semi 
+ //GNU
+ | gnu_asm_definition ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
-attribute_specifier_seq : attribute_specifier attribute_specifier* ;
+
+// GNU Extension.
+attribute_specifier_seq :
+    (
+        attribute_specifier
+	| gnu_attribute_specifier
+    )+ ;
+gnu_attribute_specifier :
+    KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen
+    | alignment_specifier
+    ;
+    
 attribute_specifier :  LeftBracket LeftBracket attribute_list RightBracket RightBracket |  alignment_specifier ;
 alignment_specifier :  KWAlignas LeftParen type_id Ellipsis ? RightParen |  KWAlignas LeftParen constant_expression Ellipsis ? RightParen ;
 attribute_list : (  attribute ? |  attribute Ellipsis ) ( Comma attribute ? | Comma attribute Ellipsis )* ;
@@ -172,13 +189,15 @@ balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balance
 init_declarator_list :  init_declarator ( Comma init_declarator )* ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
-ptr_declarator :  ( ptr_operator KWConst? )*  noptr_declarator ;
+ptr_declarator :  ( ptr_operator (KWConst|KWRestrict)? )*  noptr_declarator ;
 noptr_declarator : (  declarator_id attribute_specifier_seq ? |  LeftParen ptr_declarator RightParen ) ( parameters_and_qualifiers | LeftBracket constant_expression ? RightBracket attribute_specifier_seq ? )* ;
 parameters_and_qualifiers :  LeftParen parameter_declaration_clause RightParen cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
 trailing_return_type :  Arrow trailing_type_specifier_seq abstract_declarator ? ;
 ptr_operator :  Star attribute_specifier_seq ? cv_qualifier_seq ? |  And attribute_specifier_seq ? |  AndAnd attribute_specifier_seq ? |  nested_name_specifier Star attribute_specifier_seq ? cv_qualifier_seq ? ;
 cv_qualifier_seq :  cv_qualifier*  cv_qualifier ;
-cv_qualifier :  KWConst |  KWVolatile ;
+cv_qualifier :  KWConst |  KWVolatile
+//GNU
+ | KWRestrict ;
 ref_qualifier :  And |  AndAnd ;
 declarator_id :  Ellipsis ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;
@@ -190,7 +209,9 @@ noptr_abstract_pack_declarator :  Ellipsis ( parameters_and_qualifiers | LeftBra
 parameter_declaration_clause :  parameter_declaration_list ? Ellipsis ? |  parameter_declaration_list Comma Ellipsis ;
 parameter_declaration_list :  parameter_declaration ( Comma parameter_declaration )* ;
 parameter_declaration :  attribute_specifier_seq ? decl_specifier_seq declarator |  attribute_specifier_seq ? decl_specifier_seq declarator Assign initializer_clause |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? |  attribute_specifier_seq ? decl_specifier_seq abstract_declarator ? Assign initializer_clause ;
-function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator virt_specifier_seq ? function_body ;
+//function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator virt_specifier_seq ? function_body ;
+// GNU
+function_definition :  (attribute_specifier | gnu_attribute_specifier | decl_specifier)* declarator virt_specifier_seq ? function_body ;
 function_body :  ctor_initializer ? compound_statement |  function_try_block |  Assign KWDefault Semi |  Assign KWDelete Semi ;
 initializer :  brace_or_equal_initializer |  LeftParen expression_list RightParen ;
 brace_or_equal_initializer :  Assign initializer_clause |  braced_init_list ;
@@ -269,4 +290,21 @@ new_line :  Newline ;
 // Defs from "addin3".
 
 keyword : KWAlignas | KWContinue | KWFriend | KWRegister | KWTrue_ | KWAlignof | KWDecltype | KWGoto | KWReinterpret_cast | KWTry | KWAsm | KWDefault | KWIf | KWReturn | KWTypedef | KWAuto | KWDelete | KWInline | KWShort | KWTypeid_ | KWBool | KWDo | KWInt | KWSigned | KWTypename_ | KWBreak | KWDouble | KWLong | KWSizeof | KWUnion | KWCase | KWDynamic_cast | KWMutable | KWStatic | KWUnsigned | KWCatch | KWElse | KWNamespace | KWStatic_assert | KWUsing | KWChar | KWEnum | KWNew | KWStatic_cast | KWVirtual | KWChar16 | KWExplicit | KWNoexcept | KWStruct | KWVoid | KWChar32 | KWExport | KWNullptr | KWSwitch | KWVolatile | KWClass | KWExtern | KWOperator | KWTemplate | KWWchar | KWConst | KWFalse_ | KWPrivate | KWThis | KWWhile | KWConstexpr | KWFloat | KWProtected | KWThread_local | KWConst_cast | KWFor | KWPublic | KWThrow | KWAnd | KWAndEq | KWBitAnd | KWBitOr | KWCompl | KWNot | KWNotEq | KWOr | KWOrEq | KWXor | KWXorEq ;
-punctuator : preprocessing_op_or_punc ;
+punctuator : preprocessing_op_or_punc ; 
+
+// GNU
+// 6.47.2 Extended Asm - Assembler Instructions with C Expression Operands
+// https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+gnu_asm_definition : gnu_asm Semi ;
+gnu_asm : KWAsm gnu_asm_qualifiers LeftParen gnu_assembler_template (Colon gnu_output_operands ( Colon gnu_input_operands ( Colon gnu_clobbers )? )? )? RightParen ;
+gnu_asm_qualifiers : (KWVolatile | KWInline | KWGoto)* ;
+gnu_assembler_template : String_literal ;
+gnu_output_operands : ( gnu_output_operand (Comma gnu_output_operand)* )? ;
+gnu_output_operand : (LeftBracket gnu_asm_symbolic_name RightBracket)? gnu_constraint LeftParen gnu_cvariablename RightParen ;
+gnu_asm_symbolic_name : Identifier ;
+gnu_constraint : String_literal ;
+gnu_cvariablename : Identifier ;
+gnu_input_operands : ( expression (Comma expression)* )? ;
+gnu_clobbers : ( String_literal (Comma String_literal)* )? ;
+gnu_goto_labels : ( String_literal (Comma String_literal)* )? ;
+	

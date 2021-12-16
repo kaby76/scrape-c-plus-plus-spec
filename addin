@@ -70,6 +70,8 @@ KWProtected: 'protected';
 KWPublic: 'public';
 KWRegister: 'register';
 KWReinterpret_cast: 'reinterpret_cast';
+// GNU
+KWRestrict: '__restrict__';
 KWReturn: 'return';
 KWShort: 'short';
 KWSigned: 'signed';

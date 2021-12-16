@@ -58,7 +58,7 @@ pointer_literal :  KWNullptr ;
 translation_unit :  declaration_seq ? EOF ;
 primary_expression :  literal |  KWThis |  LeftParen expression RightParen |  id_expression |  lambda_expression ;
 id_expression :  unqualified_id |  qualified_id ;
-unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde |  class_name |  Tilde |  decltype_specifier |  template_id ;
+unqualified_id :  Identifier |  operator_function_id |  conversion_function_id |  literal_operator_id |  Tilde class_name |  Tilde decltype_specifier |  template_id ;
 qualified_id :  nested_name_specifier KWTemplate ? unqualified_id ;
 nested_name_specifier : (  Doublecolon |  type_name Doublecolon |  namespace_name Doublecolon |  decltype_specifier Doublecolon ) ( Identifier Doublecolon | KWTemplate ? simple_template_id Doublecolon )* ;
 lambda_expression :  lambda_introducer lambda_declarator ? compound_statement ;
@@ -72,7 +72,7 @@ init_capture :  Identifier initializer |  And Identifier initializer ;
 lambda_declarator :  LeftParen parameter_declaration_clause RightParen KWMutable ? exception_specification ? attribute_specifier_seq ? trailing_return_type ? ;
 postfix_expression : (  primary_expression |  simple_type_specifier LeftParen expression_list ? RightParen |  typename_specifier LeftParen expression_list ? RightParen |  simple_type_specifier braced_init_list |  typename_specifier braced_init_list |  KWDynamic_cast Less type_id Greater LeftParen expression RightParen |  KWStatic_cast Less type_id Greater LeftParen expression RightParen |  KWReinterpret_cast Less type_id Greater LeftParen expression RightParen |  KWConst_cast Less type_id Greater LeftParen expression RightParen |  KWTypeid_ LeftParen expression RightParen |  KWTypeid_ LeftParen type_id RightParen ) ( LeftBracket expression RightBracket | LeftBracket braced_init_list RightBracket | LeftParen expression_list ? RightParen | Dot KWTemplate ? id_expression | Arrow KWTemplate ? id_expression | Dot pseudo_destructor_name | Arrow pseudo_destructor_name | PlusPlus | MinusMinus )* ;
 expression_list :  initializer_list ;
-pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Tilde  type_name |  nested_name_specifier KWTemplate simple_template_id Doublecolon Tilde  type_name |  nested_name_specifier ? Tilde  type_name |  Tilde |  decltype_specifier ;
+pseudo_destructor_name :  nested_name_specifier ? type_name Doublecolon Tilde  type_name |  nested_name_specifier KWTemplate simple_template_id Doublecolon Tilde  type_name |  nested_name_specifier ? Tilde  type_name |  Tilde decltype_specifier ;
 unary_expression :  KWSizeof* (  postfix_expression |  PlusPlus cast_expression |  MinusMinus cast_expression |  unary_operator cast_expression |  KWSizeof LeftParen type_id RightParen |  KWSizeof Ellipsis LeftParen Identifier RightParen |  KWAlignof LeftParen type_id RightParen |  noexcept_expression |  new_expression |  delete_expression ) ;
 unary_operator :  Star | And | Plus | Minus | Not | Tilde | KWNot | KWCompl | KWDefined ;
 new_expression :  Doublecolon ? KWNew new_placement ? new_type_id new_initializer ? |  Doublecolon ? KWNew new_placement ? LeftParen type_id RightParen new_initializer ? ;
@@ -189,13 +189,17 @@ balanced_token :  LeftParen balanced_token_seq RightParen |  LeftBracket balance
 init_declarator_list :  init_declarator ( Comma init_declarator )* ;
 init_declarator :  declarator initializer ? ;
 declarator :  ptr_declarator |  noptr_declarator parameters_and_qualifiers trailing_return_type ;
-ptr_declarator :  ( ptr_operator KWConst? )*  noptr_declarator ;
+ptr_declarator :  
+//GNU
+// ptr_declarator :  ( ptr_operator KWConst? )*  noptr_declarator ;
+ ( ptr_operator (KWConst|KWRestrict)? )*  noptr_declarator ;
 noptr_declarator : (  declarator_id attribute_specifier_seq ? |  LeftParen ptr_declarator RightParen ) ( parameters_and_qualifiers | LeftBracket constant_expression ? RightBracket attribute_specifier_seq ? )* ;
 parameters_and_qualifiers :  LeftParen parameter_declaration_clause RightParen cv_qualifier_seq ?  ref_qualifier ? exception_specification ? attribute_specifier_seq ? ;
 trailing_return_type :  Arrow trailing_type_specifier_seq abstract_declarator ? ;
 ptr_operator :  Star attribute_specifier_seq ? cv_qualifier_seq ? |  And attribute_specifier_seq ? |  AndAnd attribute_specifier_seq ? |  nested_name_specifier Star attribute_specifier_seq ? cv_qualifier_seq ? ;
 cv_qualifier_seq :  cv_qualifier*  cv_qualifier ;
-cv_qualifier :  KWConst |  KWVolatile ;
+cv_qualifier :  KWConst |  KWVolatile // GNU Extension.
+| KWRestrict ;
 ref_qualifier :  And |  AndAnd ;
 declarator_id :  Ellipsis ? id_expression ;
 type_id :  type_specifier_seq abstract_declarator ? ;

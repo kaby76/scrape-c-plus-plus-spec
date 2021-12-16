@@ -242,7 +242,11 @@ trparse "$name"Parser.g4 | \
 
 # Extension for const in declarations.
 trparse "$name"Parser.g4 | \
-	trreplace "//parserRuleSpec[RULE_REF/text()='ptr_declarator']//RULE_REF[text()='ptr_operator']" '( ptr_operator KWConst? )' | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='ptr_declarator']//RULE_REF[text()='ptr_operator']" "
+//GNU
+// ptr_declarator :  ( ptr_operator KWConst? )*  noptr_declarator ;
+" | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='ptr_declarator']//RULE_REF[text()='ptr_operator']" '( ptr_operator (KWConst|KWRestrict)? )' | \
 	trsponge -c true
 
 # Extension for backslash return within strings. This should be handled
@@ -339,6 +343,21 @@ trparse "$name"Lexer.g4 | \
 	trinsert "//lexerRuleSpec[TOKEN_REF/text()='KWInline']/SEMI" "
 // GNU
 | '__inline__'" | \
+	trsponge -c true
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trinsert "//parserRuleSpec[RULE_REF/text()='cv_qualifier']/SEMI" "// GNU Extension.
+| KWRestrict" | \
+	trsponge -c true
+
+# GNU Extension
+trparse "$name"Parser.g4 | \
+	trreplace "//parserRuleSpec[RULE_REF/text()='function_defintion']" "
+//function_definition :  attribute_specifier_seq ? decl_specifier_seq ? declarator virt_specifier_seq ? function_body ;
+// GNU
+function_definition :  (attribute_specifier | gnu_attribute_specifier | decl_specifier)* declarator virt_specifier_seq ? function_body ;
+" | \
 	trsponge -c true
 	
 cat "$name"Lexer.g4 | unix2dos -f > temp."$name"Lexer.g4

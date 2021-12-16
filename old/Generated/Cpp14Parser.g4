@@ -178,10 +178,7 @@ asm_definition :  KWAsm LeftParen String_literal RightParen Semi
 | gnu_asm_definition ;
 linkage_specification :  KWExtern String_literal LeftBrace declaration_seq ? RightBrace |  KWExtern String_literal declaration ;
 attribute_specifier_seq : (attribute_specifier | gnu_attribute_specifier)+ ;
-attribute_specifier :
-    LeftBracket LeftBracket attribute_list RightBracket RightBracket
-    | alignment_specifier
-    ;
+attribute_specifier : LeftBracket LeftBracket attribute_list RightBracket RightBracket | alignment_specifier ;
 gnu_attribute_specifier :
     KWGnuAttribute LeftParen LeftParen attribute_list RightParen RightParen
     | alignment_specifier

@@ -77,7 +77,7 @@ fragment FFloating_suffix :  'f' | 'l' | 'F' | 'L' ;
 fragment FEncoding_prefix :  'u8' |  'u' |  'U' |  'L' ;
 fragment FS_char_sequence :  FS_Char+ ;
 fragment FS_Char :  ~["\\\r\n] |  FEscape_sequence |  FUniversal_character_name ;
-fragment FRaw_string :  '"' (( '\\' ["()] )|~[\r\n (])*? '(' ~[)]*? ')'  (( '\\' ["()]) | ~[\r\n "])*? '"';
+fragment FRaw_string : '"' (( '\\' ["()] )|~[\r\n (])*? '(' ~[)]*? ')' (( '\\' ["()]) | ~[\r\n "])*? '"' ;
 fragment FR_char_sequence :  FR_char+ ;
 fragment FR_char :  ~[)"] ;
 fragment FD_char_sequence :  FD_char+ ;
@@ -130,7 +130,9 @@ KWFor: 'for';
 KWFriend: 'friend';
 KWGoto: 'goto';
 KWIf: 'if';
-KWInline: 'inline';
+KWInline: 'inline'
+// GNU
+| '__inline__' ;
 KWInt: 'int';
 KWLong: 'long';
 KWMutable: 'mutable';
@@ -149,6 +151,7 @@ KWProtected: 'protected';
 KWPublic: 'public';
 KWRegister: 'register';
 KWReinterpret_cast: 'reinterpret_cast';
+KWRestrict: '__restrict__';
 KWReturn: 'return';
 KWShort: 'short';
 KWSigned: 'signed';
@@ -176,7 +179,9 @@ KWUnsigned: 'unsigned';
 KWUsing: 'using';
 KWVirtual: 'virtual';
 KWVoid: 'void';
-KWVolatile: 'volatile';
+KWVolatile: 'volatile'
+// GNU
+| '__volatile__' ;
 KWWchar: 'wchar_t';
 KWWhile: 'while';
 KWXor: 'xor';
